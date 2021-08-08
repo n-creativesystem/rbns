@@ -1,0 +1,25 @@
+FROM golang:1.16-alpine as build
+ENV TZ=Asia/Tokyo
+
+WORKDIR /src/
+
+COPY go.mod go.sum Makefile ./
+
+RUN apk update \
+    && apk add make git \
+    && go mod download
+
+COPY auth auth
+COPY config config
+COPY di di
+COPY domain domain
+COPY handler handler
+COPY infra infra
+COPY logger logger
+COPY proto proto
+COPY protoconv protoconv
+COPY service service
+COPY utilsconv utilsconv
+COPY *.go ./
+
+RUN make build

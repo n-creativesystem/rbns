@@ -1,0 +1,11 @@
+.tfn {
+  text-transform: none;
+}
+
+.tfn-important {
+  text-transform: none !important;
+}
+
+.dense-4 {
+  padding: 4px;
+}

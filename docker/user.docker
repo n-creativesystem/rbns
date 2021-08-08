@@ -1,0 +1,4 @@
+RUN addgroup -g 70 -S api-rback \
+    && adduser -u 70 -S -D -G api-rback -H -h /var/lib/api-rback -s /bin/sh api-rback \
+    && mkdir -p /var/lib/api-rback \
+    && chown -R api-rback:api-rback /var/lib/api-rback

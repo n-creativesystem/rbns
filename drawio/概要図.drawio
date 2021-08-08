@@ -1,0 +1,37 @@
+<mxfile>
+    <diagram id="18ftKmwwMZPFkiIW2N4g" name="ページ1">
+        <mxGraphModel dx="867" dy="448" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="none" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="2" target="4" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="2" value="Web UI" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;labelBackgroundColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="100" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;fontColor=#000000;" parent="1" source="3" target="4" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="当該アプリ" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;labelBackgroundColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="220" y="260" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="4" target="3" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="サービスB" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;labelBackgroundColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="400" y="100" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="①リクエストを送信" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fontColor=#000000;labelBackgroundColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="210" y="120" width="120" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="&lt;span&gt;②&lt;br&gt;ユーザー&lt;/span&gt;&lt;br&gt;&lt;span&gt;組織情報&lt;/span&gt;&lt;br&gt;&lt;span&gt;パーミッションを送信&lt;br&gt;&lt;/span&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;labelBackgroundColor=#ffffff;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="310" y="180" width="130" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="13" value="③OK or NG" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fontColor=#000000;labelBackgroundColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="380" y="280" width="80" height="20" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

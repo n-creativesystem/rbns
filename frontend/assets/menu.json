@@ -1,0 +1,20 @@
+[
+  {
+    "title": "permission",
+    "href": "/permissions",
+    "icon": "mdi-security",
+    "key": "permissions"
+  },
+  {
+    "title": "role",
+    "href": "/roles",
+    "icon": "mdi-shield-account",
+    "key": "roles"
+  },
+  {
+    "title": "organization",
+    "href": "/organizations",
+    "icon": "mdi-domain",
+    "key": "organizations"
+  }
+]

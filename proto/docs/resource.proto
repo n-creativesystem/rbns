@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package ncs.protobuf;
+
+import "types.proto";
+
+option go_package = "github.com/n-creativesystem/api-rbac/proto";
+
+message saveRequest {
+    string method = 1;
+    string uri = 2;
+    repeated string permissions = 3;
+}
+
+message authzRequest {
+    string method = 1;
+    string uri = 2;
+    string organizationName = 3;
+    string userKey = 4;
+}
+
+service Resource {
+    rpc Save (saveRequest) returns (empty);
+    rpc Authz (authzRequest) returns (empty);
+}
