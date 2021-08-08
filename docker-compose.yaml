@@ -28,18 +28,6 @@ services:
       TZ: Asia/Tokyo
     networks:
       - rbns-net
-  api-rbac:
-    image: test:rbns
-    container_name: api-rbac
-    environment:
-      TZ: Asia/Tokyo
-      UI: 'true'
-      SECURE: 'false'
-      HTTP_PORT: 8080
-      BASE_URL: /admin/permissions
-      MASTER_DSN: 'host=api-rbac-postgres-dev user=rbac-user password=rbac-user dbname=postgres port=5432 sslmode=disable'
-    networks:
-      - rbns-net
   api-rbac-postgres-dev:
     image: postgres:11-alpine
     networks:
