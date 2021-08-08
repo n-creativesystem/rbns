@@ -29,7 +29,7 @@ protoc:
 
 .PHONY: ssl
 ssl:
-	@openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout ssl/selfsigned.key -out ssl/selfsigned.crt -subj "/C=JP/ST=Osaka/L=Osaka/O=NCreativeSystem, Inc./CN=localhost"
+	@openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout ssl/server.key -out ssl/server.crt -subj "/C=JP/ST=Osaka/L=Osaka/O=NCreativeSystem, Inc./CN=localhost"
 
 all-in-one: docker/all-in-one.dockerfile docker/*.docker
 	cpp -P -o all-in-one.dockerfile docker/all-in-one.dockerfile
