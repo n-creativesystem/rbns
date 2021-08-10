@@ -96,8 +96,21 @@ func New(opts ...Option) *gin.Engine {
 	r.Use(logger.RestLogger(loggerOpts...), gin.Recovery())
 	if conf.ui.enabled {
 		log.Infof("webUI enabled")
-		fileSystem := newFileSystem(conf.ui.root, conf.ui.indexes, conf.ui.baseURL)
-		r.Use(staticServe(conf.ui.prefix, fileSystem))
+		type settings struct {
+			BaseURL string `json:"base_url"`
+		}
+		var s settings
+		s.BaseURL = conf.ui.baseURL
+		r.GET("/", func(c *gin.Context) {
+			c.File("static/index.html")
+		})
+		r.GET("/index.html", func(c *gin.Context) {
+			c.File("static/index.html")
+		})
+		r.Static("/static", "./static")
+		r.GET("/settings.json", func(c *gin.Context) {
+			c.JSON(http.StatusOK, &s)
+		})
 	}
 	if len(conf.whiteList) > 0 {
 		r.Use(ipFilter(conf.whiteList))
