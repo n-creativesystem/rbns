@@ -100,7 +100,7 @@ func RestLogger(opts ...HandlerLogOption) gin.HandlerFunc {
 
 		param.Path = path
 		fields := logrus.Fields{
-			"key":      "[API-RBAC]",
+			"key":      "RBNS",
 			"status":   param.StatusCode,
 			"latency":  param.Latency,
 			"clientIP": param.ClientIP,
