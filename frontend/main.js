@@ -7,14 +7,19 @@ import './css/rbac.css'
 import store from './store'
 import { i18n } from '@plugins/i18n'
 
-Vue.use(plugin)
+(async () => {
+  const res = await fetch('settings.json')
+  const data = await res.json()
+  window.VUE_APP_RBNS_API_ENDPOINT = data.base_url
+  Vue.use(plugin)
 
-Vue.config.productionTip = false
+  Vue.config.productionTip = false
 
-new Vue({
-  vuetify,
-  router,
-  store,
-  i18n,
-  render: h => h(App)
-}).$mount('#app')
+  new Vue({
+    vuetify,
+    router,
+    store,
+    i18n,
+    render: h => h(App)
+  }).$mount("#app")
+})()

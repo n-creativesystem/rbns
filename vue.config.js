@@ -1,10 +1,14 @@
 const path = require('path')
+const webpack = require('webpack')
 module.exports = {
   pages: {
     index: {
       entry: 'frontend/main.js',
       title: "Role Based N Security",
     }
+  },
+  css: {
+    extract: false
   },
   transpileDependencies: [
     'vuetify'
@@ -31,8 +35,16 @@ module.exports = {
         '@mixin': path.resolve(__dirname, 'frontend', 'mixins'),
       }
     },
+    output: {
+      filename: 'rbns.js',
+      chunkFilename: 'rbns.js'
+    },
+    plugins: [
+      new webpack.optimize.LimitChunkCountPlugin({
+        maxChunks: 1
+      })
+    ]
   },
   outputDir: 'static',
-  publicPath: './'
-  // publicPath: './',
+  publicPath: './static'
 }
