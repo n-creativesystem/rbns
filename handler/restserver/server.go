@@ -142,6 +142,8 @@ func New(opts ...Option) *gin.Engine {
 		p.GET("/:id", pHandler.findById)
 		p.PUT("/:id", pHandler.update)
 		p.DELETE("/:id", pHandler.delete)
+		p.POST("/check", pHandler.check(checkbody))
+		p.POST("/header/check", pHandler.check(checkHeader))
 	}
 	role := apiV1.Group("/roles")
 	{

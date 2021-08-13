@@ -37,10 +37,8 @@ func setEnvFlag() {
 }
 
 func main() {
+	logger.SetFormatter(logrus.StandardLogger())
 	dao.Register()
-	logrus.SetFormatter(&logrus.TextFormatter{
-		TimestampFormat: logger.TimestampFormat,
-	})
 	setEnvFlag()
 	flag.Parse()
 	for _, envFile := range envFiles {

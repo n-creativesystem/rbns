@@ -10,6 +10,13 @@ import (
 	"github.com/n-creativesystem/rbns/service"
 )
 
+type checkType int
+
+const (
+	checkbody checkType = iota
+	checkHeader
+)
+
 func init() {
 	di.MustRegister(newPermissionHandler)
 }
@@ -20,6 +27,7 @@ type permissionHandle interface {
 	findAll(*gin.Context)
 	update(*gin.Context)
 	delete(*gin.Context)
+	check(typ checkType) gin.HandlerFunc
 }
 
 type permissionHandler struct {
@@ -83,4 +91,55 @@ func (h *permissionHandler) delete(c *gin.Context) {
 		return
 	}
 	c.Status(http.StatusNoContent)
+}
+
+func (h *permissionHandler) check(typ checkType) gin.HandlerFunc {
+	switch typ {
+	case checkHeader:
+		return h.checkHeader
+	case checkbody:
+		return h.checkBody
+	default:
+		return nil
+	}
+}
+
+func (h *permissionHandler) checkBody(c *gin.Context) {
+	var req req.PermissionsCheckBody
+	var res res.PermissionCheckResponse
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.AbortWithStatus(http.StatusForbidden)
+		return
+	}
+	result, err := h.svc.Check(c.Request.Context(), req.UserKey, req.OrganizationName, req.PermissionNames...)
+	if err != nil {
+		res.Message = http.StatusText(http.StatusForbidden)
+		res.Status = false
+		_ = c.Error(err).SetType(gin.ErrorTypePublic).SetMeta(response)
+		c.AbortWithStatusJSON(http.StatusForbidden, &res)
+		return
+	}
+	res.Message = result.GetMsg()
+	res.Status = result.IsOk()
+	c.JSON(http.StatusOK, &res)
+}
+
+func (h *permissionHandler) checkHeader(c *gin.Context) {
+	var req req.PermissionsCheckBody
+	var res res.PermissionCheckResponse
+	if err := c.ShouldBindHeader(&req); err != nil {
+		c.AbortWithStatus(http.StatusForbidden)
+		return
+	}
+	result, err := h.svc.Check(c.Request.Context(), req.UserKey, req.OrganizationName, req.PermissionNames...)
+	if err != nil {
+		res.Message = http.StatusText(http.StatusForbidden)
+		res.Status = false
+		_ = c.Error(err).SetType(gin.ErrorTypePublic).SetMeta(response)
+		c.AbortWithStatusJSON(http.StatusForbidden, &res)
+		return
+	}
+	res.Message = result.GetMsg()
+	res.Status = result.IsOk()
+	c.JSON(http.StatusOK, &res)
 }

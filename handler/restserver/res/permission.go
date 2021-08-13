@@ -30,8 +30,7 @@ func NewPermissions(permissions model.Permissions) Permissions {
 	}
 }
 
-type PermissionCheckRequest struct {
-	PermissionName   string `json:"permissionName"`
-	UserKey          string `json:"userKey"`
-	OrganizationName string `json:"organizationName"`
+type PermissionCheckResponse struct {
+	Status  bool   `json:"status"`
+	Message string `json:"message"`
 }

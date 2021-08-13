@@ -2,18 +2,31 @@ package logger
 
 import (
 	"context"
+	"fmt"
 	"io"
+	"os"
 	"path"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/n-creativesystem/rbns/utilsconv"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
+
+var (
+	omitHeaders = utilsconv.NewMap("authorization")
+)
+
+func init() {
+	omitHead := os.Getenv("OMIT_HEADERS")
+	headers := strings.Split(omitHead, ",")
+	omitHeaders.Adds(headers...)
+}
 
 type handlerLogConfig struct {
 	logLevel logrus.Level
@@ -28,7 +41,7 @@ func WithGinDebug(level logrus.Level) HandlerLogOption {
 }
 
 type handlerLogger struct {
-	*logrus.Logger
+	*logrus.Entry
 }
 
 var _ io.Writer = (*handlerLogger)(nil)
@@ -38,12 +51,9 @@ var logPool *sync.Pool
 func init() {
 	logPool = &sync.Pool{
 		New: func() interface{} {
-			log := logrus.New()
-			log.SetFormatter(&logrus.TextFormatter{
-				TimestampFormat: TimestampFormat,
-			})
+			log := New()
 			return &handlerLogger{
-				Logger: log,
+				Entry: logrus.NewEntry(log),
 			}
 		},
 	}
@@ -53,9 +63,12 @@ func NewHandlerLogger() *handlerLogger {
 	return logPool.Get().(*handlerLogger)
 }
 
+func (l *handlerLogger) SetLevel(level logrus.Level) {
+	l.Logger.SetLevel(level)
+}
+
 func (l *handlerLogger) Write(p []byte) (n int, err error) {
-	p = []byte(strings.ReplaceAll(string(p), "[GIN-debug] ", "[API-RBAC-debug] "))
-	l.Logger.Debug(string(p))
+	l.Logger.Info(string(p))
 	return len(p), nil
 }
 
@@ -74,11 +87,27 @@ func RestLogger(opts ...HandlerLogOption) gin.HandlerFunc {
 		path := c.Request.URL.Path
 		raw := c.Request.URL.RawQuery
 		ctx := c.Request.Context()
-		mpHeader := c.Request.Header.Clone()
+		fields := logrus.Fields{}
+		if conf.logLevel == logrus.DebugLevel {
+			mpHeader := c.Request.Header.Clone()
+			for key, value := range mpHeader {
+				if len(value) >= 0 {
+					key = strings.ToLower(key)
+					if !omitHeaders.Exists(key) {
+						k := fmt.Sprintf("req_%s", key)
+						v := strings.ToLower(strings.Join(value, ", "))
+						fields[k] = v
+					}
+				}
+			}
+		}
+		*log.Entry = *log.WithFields(fields)
 		newCtx := ToContext(ctx, log)
 		*c.Request = *c.Request.WithContext(newCtx)
 		c.Next()
-
+		for i, err := range c.Errors {
+			log.Errorf("idx: %d error: %v", i, err)
+		}
 		param := gin.LogFormatterParams{
 			Request: c.Request,
 			Keys:    c.Keys,
@@ -99,7 +128,7 @@ func RestLogger(opts ...HandlerLogOption) gin.HandlerFunc {
 		}
 
 		param.Path = path
-		fields := logrus.Fields{
+		mp := map[string]interface{}{
 			"key":      "RBNS",
 			"status":   param.StatusCode,
 			"latency":  param.Latency,
@@ -108,18 +137,19 @@ func RestLogger(opts ...HandlerLogOption) gin.HandlerFunc {
 			"path":     param.Path,
 			"Ua":       param.Request.UserAgent(),
 		}
-		if conf.logLevel == logrus.DebugLevel {
-			for key, value := range mpHeader {
-				if len(value) >= 0 {
-					log.Debugf("req_%s: %v", key, value)
-				}
-			}
+		for key, value := range mp {
+			fields[key] = value
 		}
 		if conf.logLevel == logrus.DebugLevel {
 			mpHeader := c.Writer.Header().Clone()
 			for key, value := range mpHeader {
 				if len(value) >= 0 {
-					log.Debugf("res_%s: %v", key, value)
+					key = strings.ToLower(key)
+					if !omitHeaders.Exists(key) {
+						k := fmt.Sprintf("res_%s", key)
+						v := strings.ToLower(strings.Join(value, ", "))
+						fields[k] = v
+					}
 				}
 			}
 		}

@@ -47,15 +47,12 @@ func NewGorm(opts ...GormOption) *gormLogger {
 	for _, opt := range opts {
 		opt(conf)
 	}
-	log := logrus.New()
+	log := New()
 	if conf.debug {
 		log.SetLevel(logrus.DebugLevel)
 	} else {
 		log.SetLevel(logrus.InfoLevel)
 	}
-	log.SetFormatter(&logrus.TextFormatter{
-		TimestampFormat: conf.timeFormat,
-	})
 	return &gormLogger{
 		SkipErrRecordNotFound: true,
 		SlowThreshold:         200 * time.Millisecond,
