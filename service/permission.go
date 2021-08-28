@@ -3,14 +3,9 @@ package service
 import (
 	"context"
 
-	"github.com/n-creativesystem/rbns/di"
 	"github.com/n-creativesystem/rbns/domain/model"
 	"github.com/n-creativesystem/rbns/domain/repository"
 )
-
-func init() {
-	di.MustRegister(newPermissionService)
-}
 
 type PermissionService interface {
 	Create(ctx context.Context, names, descriptions []string) (model.Permissions, error)
@@ -21,13 +16,15 @@ type PermissionService interface {
 	Check(ctx context.Context, userKey, organizationName string, permissionNames ...string) (*model.ResourceCheck, error)
 }
 type permissionService struct {
-	repo repository.Repository
+	reader repository.Reader
+	writer repository.Writer
 }
 
-var _ PermissionService = (*permissionService)(nil)
-
-func newPermissionService(repo repository.Repository) PermissionService {
-	return &permissionService{repo: repo}
+func NewPermissionService(reader repository.Reader, writer repository.Writer) PermissionService {
+	return &permissionService{
+		reader: reader,
+		writer: writer,
+	}
 }
 
 // Permission
@@ -43,8 +40,7 @@ func (srv *permissionService) Create(ctx context.Context, names, descriptions []
 			return nil, err
 		}
 	}
-	tx := srv.repo.NewConnection().Transaction(ctx)
-	err := tx.Do(func(tx repository.Transaction) error {
+	err := srv.writer.Do(ctx, func(tx repository.Transaction) error {
 		permissionRepo := tx.Permission()
 		permissions, err := permissionRepo.CreateBatch(mNames, mDescriptions)
 		if err != nil {
@@ -60,7 +56,7 @@ func (srv *permissionService) Create(ctx context.Context, names, descriptions []
 }
 
 func (srv *permissionService) FindById(ctx context.Context, strId string) (*model.Permission, error) {
-	permissionRepo := srv.repo.NewConnection().Permission(ctx)
+	permissionRepo := srv.reader.Permission(ctx)
 	id, err := model.NewID(strId)
 	if err != nil {
 		return nil, err
@@ -73,7 +69,7 @@ func (srv *permissionService) FindById(ctx context.Context, strId string) (*mode
 }
 
 func (srv *permissionService) FindAll(ctx context.Context) (model.Permissions, error) {
-	permissionRepo := srv.repo.NewConnection().Permission(ctx)
+	permissionRepo := srv.reader.Permission(ctx)
 	permissions, err := permissionRepo.FindAll()
 	if err != nil {
 		return nil, err
@@ -88,8 +84,7 @@ func (srv *permissionService) Update(ctx context.Context, strId, name, descripti
 	if err != nil {
 		return err
 	}
-	tx := srv.repo.NewConnection().Transaction(ctx)
-	if err := tx.Do(func(tx repository.Transaction) error { return tx.Permission().Update(p) }); err != nil {
+	if err := srv.writer.Do(ctx, func(tx repository.Transaction) error { return tx.Permission().Update(p) }); err != nil {
 		return err
 	}
 	return nil
@@ -100,15 +95,14 @@ func (srv *permissionService) Delete(ctx context.Context, strId string) error {
 	if err != nil {
 		return err
 	}
-	tx := srv.repo.NewConnection().Transaction(ctx)
-	if err := tx.Do(func(tx repository.Transaction) error { return tx.Permission().Delete(id) }); err != nil {
+	if err := srv.writer.Do(ctx, func(tx repository.Transaction) error { return tx.Permission().Delete(id) }); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (srv *permissionService) Check(ctx context.Context, userKey, organizationName string, permissionNames ...string) (*model.ResourceCheck, error) {
-	con := srv.repo.NewConnection()
+	con := srv.reader
 	mOrganizationName, err := model.NewName(organizationName)
 	if err != nil {
 		return model.NewResourceCheck(false, err.Error()), err
@@ -119,6 +113,7 @@ func (srv *permissionService) Check(ctx context.Context, userKey, organizationNa
 	}
 	org, err := con.Organization(ctx).FindByName(mOrganizationName)
 	if err != nil {
+		err = model.ErrNoData
 		return model.NewResourceCheck(false, err.Error()), err
 	}
 	if u, ok := org.IsContainsUsers(mUserKey); !ok {

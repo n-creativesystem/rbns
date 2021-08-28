@@ -1,0 +1,339 @@
+syntax = "proto3";
+
+package ncs.protobuf;
+
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+import "envoyproxy/protoc-gen-validate/validate/validate.proto";
+
+option go_package = "./proto";
+
+service Permission {
+    // Check is resource check
+    rpc Check (permissionCheckRequest) returns (permissionCheckResult) {
+        option (google.api.http) = {
+            post: "/api/v1/permissions/check"
+            body: "*"
+        };
+    }
+    // FindById is find by id
+    rpc FindById (permissionKey) returns (permissionEntity) {
+        option (google.api.http) = {
+            get: "/api/v1/permissions/{id}"
+        };
+    }
+    // Update is permission entity update
+    rpc Update (permissionEntity) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/api/v1/permissions/{id}"
+            body: "*"
+        };
+    }
+    // Delete is permission entity delete
+    rpc Delete (permissionKey) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/api/v1/permissions/{id}"
+        };
+    }
+    // Create is create permission
+    rpc Create (permissionEntities) returns (permissionEntities) {
+        option (google.api.http) = {
+            post: "/api/v1/permissions"
+            body: "*"
+        };
+    }
+    // FindAll is find by application id return permissions
+    rpc FindAll (google.protobuf.Empty) returns (permissionEntities) {
+        option (google.api.http) = {
+            get: "/api/v1/permissions"
+        };
+    }
+
+}
+
+service Role {
+    // DeletePermission is delete permission to the role
+    rpc DeletePermission (roleReleationPermission) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/api/v1/roles/{id}/permissions/{permissionId}"
+        };
+    }
+    // GetPermissions is get permission to the role
+    rpc GetPermissions (roleKey) returns (permissionEntities) {
+        option (google.api.http) = {
+            get: "/api/v1/roles/{id}/permissions"
+        };
+    }
+    // AddPermissions is add permission to the role
+    rpc AddPermissions (roleReleationPermissions) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/api/v1/roles/{id}/permissions"
+            body: "*"
+        };
+    }
+    // DeletePermissions is delete permission to the role
+    rpc DeletePermissions (roleReleationPermissions) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/api/v1/roles/{id}/permissions"
+            body: "*"
+        };
+    }
+
+    // FindById is find by id
+    rpc FindById (roleKey) returns (roleEntity) {
+        option (google.api.http) = {
+            get: "/api/v1/roles/{id}"
+        };
+    }
+    // Update is role entity update
+    rpc Update (roleUpdateEntity) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/api/v1/roles/{id}"
+            body: "*"
+        };
+    }
+    // Delete is role entity delete
+    rpc Delete (roleKey) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/api/v1/roles/{id}"
+        };
+    }
+    // RoleCreate is create role
+    rpc Create (roleEntities) returns (roleEntities) {
+        option (google.api.http) = {
+            post: "/api/v1/roles"
+            body: "*"
+        };
+    }
+    // FindAll is find roles
+    rpc FindAll (google.protobuf.Empty) returns (roleEntities) {
+        option (google.api.http) = {
+            get: "/api/v1/roles"
+        };
+    }
+}
+
+service Organization {
+    // FindById is application id and organization id
+    rpc FindById (organizationKey) returns (organizationEntity) {
+        option (google.api.http) = {
+            get: "/api/v1/organizations/{id}"
+        };
+    }
+    // Update is organization entity update
+    rpc Update (organizationUpdateEntity) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/api/v1/organizations/{id}"
+            body: "*"
+        };
+    }
+    // Delete is organization entity delete
+    rpc Delete (organizationKey) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/api/v1/organizations/{id}"
+        };
+    }
+    // Create is create orgnization
+    rpc Create (organizationEntity) returns (organizationEntity)  {
+        option (google.api.http) = {
+            post: "/api/v1/organizations"
+            body: "*"
+        };
+    }
+    // FindAll is application is return organizations
+    rpc FindAll (google.protobuf.Empty) returns (organizationEntities) {
+        option (google.api.http) = {
+            get: "/api/v1/organizations"
+        };
+    }
+}
+
+service User {
+    // FindByKey is find organization id and user key
+    rpc FindByKey (userKey) returns (userEntity) {
+        option (google.api.http) = {
+            get: "/api/v1/organizations/{organizationId}/users/{key}"
+        };
+    }
+
+    // FindByOrganizationNameAndUserKey is find organization id and user key
+    rpc FindByOrganizationNameAndUserKey (userKeyByName) returns (userEntity) {
+        option (google.api.http) = {
+            get: "/api/v1/organizations/name/{organizationName}/users/{key}"
+        };
+    }
+
+    // Delete is delete user
+    rpc Delete (userKey) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/api/v1/organizations/{organizationId}/users/{key}"
+        };
+    }
+
+    // DeleteRole is delete role to user  
+    rpc DeleteRole (userRoleDelete) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/api/v1/organizations/{organizationId}/users/{key}/roles/{roleId}"
+        };
+    }
+
+    // AddRoles is add role to user  
+    rpc AddRoles (userRole) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/api/v1/organizations/{organizationId}/users/{key}/roles"
+            body: "*"
+        };
+    }
+    // DeleteRoles is delete role to user  
+    rpc DeleteRoles (userRole) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/api/v1/organizations/{organizationId}/users/{key}/roles"
+            body: "*"
+        };
+    }
+
+    // Create is create user
+    rpc Create (userEntity) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/api/v1/organizations/{organizationId}/users"
+            body: "*"
+        };
+    }
+}
+
+service Resource {
+    rpc Save (saveRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {};
+    }
+    rpc Authz (authzRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {};
+    }
+}
+
+message userKey {
+    string key = 1;
+    string organizationId = 2;
+}
+
+message userKeyByName {
+    string key = 1;
+    string organizationName = 2;
+}
+
+message userEntity {
+    string key = 1;
+    string organizationId = 2;
+    repeated roleEntity roles = 3;
+    repeated permissionEntity permissions = 4;
+}
+
+message organizationUser {
+    string userKey = 1;
+    string organizationId = 2;
+    string organizationName = 3 [(validate.rules).string = {min_len: 1}];
+    string organizationDescription = 4 [(validate.rules).string = {min_len: 1}];
+}
+
+message userRole {
+    string key = 1;
+    string organizationId = 2 [(validate.rules).string = {min_len: 1}];
+    repeated roleKey roles = 3;
+}
+
+message userRoleDelete {
+    string key = 1 [(validate.rules).string = {min_len: 1}];
+    string organizationId = 2 [(validate.rules).string = {min_len: 1}];
+    string roleId = 3 [(validate.rules).string = {min_len: 1}];
+}
+
+message permissionEntity {
+    string id = 1;
+    string name = 2 [(validate.rules).string = {min_len: 1}];
+    string description = 3 [(validate.rules).string = {min_len: 1}];
+}
+
+message permissionKey {
+    string id = 1;
+}
+
+message permissionEntities {
+    repeated permissionEntity permissions = 1;
+}
+
+message permissionCheckRequest {
+    string userKey = 1 [(validate.rules).string = {min_len: 1}];
+    string organizationName = 2 [(validate.rules).string = {min_len: 1}];
+    repeated string permissionNames = 3 [(validate.rules).repeated.min_items = 1];
+}
+
+message permissionCheckResult {
+    bool result = 1;
+    string message = 2;
+}
+
+message roleEntity {
+    string id = 1;
+    string name = 2 [(validate.rules).string = {min_len: 1}];
+    string description = 3 [(validate.rules).string = {min_len: 1}];
+    repeated permissionEntity permissions = 4;
+    repeated organizationUser organizationUsers = 5;
+}
+
+message roleUpdateEntity {
+    string id = 1;
+    string name = 2 [(validate.rules).string = {min_len: 1}];
+    string description = 3 [(validate.rules).string = {min_len: 1}];
+}
+
+message roleKey {
+    string id = 1;
+}
+
+message roleEntities {
+    repeated roleEntity roles = 1;
+}
+
+message roleReleationPermission {
+    string id = 1;
+    string permissionId = 2;
+}
+
+message roleReleationPermissions {
+    string id = 1;
+    repeated permissionKey permissions = 2;
+}
+
+message organizationEntity {
+    string id = 1;
+    string name = 2 [(validate.rules).string = {min_len: 1}];
+    string description = 3 [(validate.rules).string = {min_len: 1}];
+    repeated userEntity users = 4;
+}
+
+message organizationUpdateEntity {
+    string id = 1;
+    string name = 2 [(validate.rules).string = {min_len: 1}];
+    string description = 3 [(validate.rules).string = {min_len: 1}];
+}
+
+message organizationEntities {
+    repeated organizationEntity organizations = 1;
+}
+
+message organizationKey {
+    string id = 1;
+}
+
+
+message saveRequest {
+    string method = 1 [(validate.rules).string = {min_len: 1}];
+    string uri = 2 [(validate.rules).string = {min_len: 1}];
+    repeated string permissions = 3;
+}
+
+message authzRequest {
+    string method = 1 [(validate.rules).string = {min_len: 1}];
+    string uri = 2 [(validate.rules).string = {min_len: 1}];
+    string organizationName = 3 [(validate.rules).string = {min_len: 1}];
+    string userKey = 4 [(validate.rules).string = {min_len: 1}];
+}

@@ -7,8 +7,8 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/n-creativesystem/rbns/domain/repository"
-	"github.com/n-creativesystem/rbns/infra"
 	"github.com/n-creativesystem/rbns/infra/dao"
+	"github.com/n-creativesystem/rbns/infra/rdb"
 	"github.com/n-creativesystem/rbns/tests"
 	"github.com/stretchr/testify/assert"
 )
@@ -39,7 +39,7 @@ func TestPermission(t *testing.T) {
 						description: "delete user permission",
 					},
 				}
-				var repo repository.Repository = infra.NewRepository(db)
+				var repo repository.Repository = rdb.NewRepository(db)
 				pSrv := newPermissionService(repo)
 				mock.ExpectBegin()
 				mock.ExpectExec(
@@ -63,7 +63,7 @@ func TestPermission(t *testing.T) {
 		{
 			Name: "findById",
 			Fn: func(db dao.DataBase, mock sqlmock.Sqlmock) func(t *testing.T) {
-				var repo repository.Repository = infra.NewRepository(db)
+				var repo repository.Repository = rdb.NewRepository(db)
 				pSrv := newPermissionService(repo)
 				mock.ExpectQuery(
 					regexp.QuoteMeta(`SELECT * FROM "permissions" WHERE "permissions"."id" = $1`),
@@ -108,7 +108,7 @@ func TestPermission(t *testing.T) {
 				for _, e := range expecteds {
 					row.AddRow(e.id, e.name, e.description)
 				}
-				var repo repository.Repository = infra.NewRepository(db)
+				var repo repository.Repository = rdb.NewRepository(db)
 				pSrv := newPermissionService(repo)
 				mock.ExpectQuery(
 					regexp.QuoteMeta(`SELECT * FROM "permissions" ORDER BY id`),
@@ -128,7 +128,7 @@ func TestPermission(t *testing.T) {
 		{
 			Name: "update",
 			Fn: func(db dao.DataBase, mock sqlmock.Sqlmock) func(t *testing.T) {
-				var repo repository.Repository = infra.NewRepository(db)
+				var repo repository.Repository = rdb.NewRepository(db)
 				pSrv := newPermissionService(repo)
 				mock.ExpectBegin()
 				mock.ExpectExec(

@@ -3,14 +3,9 @@ package service
 import (
 	"context"
 
-	"github.com/n-creativesystem/rbns/di"
 	"github.com/n-creativesystem/rbns/domain/model"
 	"github.com/n-creativesystem/rbns/domain/repository"
 )
-
-func init() {
-	di.MustRegister(newResource)
-}
 
 type Resource interface {
 	Save(ctx context.Context, method, uri string, permissions ...string) error
@@ -18,17 +13,19 @@ type Resource interface {
 }
 
 type resource struct {
-	repo repository.Repository
+	reader repository.Reader
+	writer repository.Writer
 }
 
-func newResource(repo repository.Repository) Resource {
+func NewResource(reader repository.Reader, writer repository.Writer) Resource {
 	return &resource{
-		repo: repo,
+		reader: reader,
+		writer: writer,
 	}
 }
 
 func (r *resource) Save(ctx context.Context, method, uri string, permissions ...string) error {
-	con := r.repo.NewConnection()
+	con := r.reader
 	permissionsRepo := con.Permission(ctx)
 	var mPermissions []model.Permission
 	for _, p := range permissions {
@@ -42,13 +39,13 @@ func (r *resource) Save(ctx context.Context, method, uri string, permissions ...
 		}
 		mPermissions = append(mPermissions, *permission)
 	}
-	return con.Transaction(ctx).Do(func(tx repository.Transaction) error {
+	return r.writer.Do(ctx, func(tx repository.Transaction) error {
 		return tx.Resource().Save(method, uri, mPermissions...)
 	})
 }
 
 func (r *resource) Authorized(ctx context.Context, method, uri, organizationName, userKey string) bool {
-	con := r.repo.NewConnection()
+	con := r.reader
 	rRepo := con.Resource(ctx)
 	uRepo := con.User(ctx)
 	oRepo := con.Organization(ctx)

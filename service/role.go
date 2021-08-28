@@ -3,15 +3,10 @@ package service
 import (
 	"context"
 
-	"github.com/n-creativesystem/rbns/di"
 	"github.com/n-creativesystem/rbns/domain/model"
 	"github.com/n-creativesystem/rbns/domain/repository"
 	"github.com/n-creativesystem/rbns/proto"
 )
-
-func init() {
-	di.MustRegister(newRoleService)
-}
 
 type RoleService interface {
 	Create(ctx context.Context, names, descriptions []string) (model.Roles, error)
@@ -26,16 +21,20 @@ type RoleService interface {
 
 type roleService struct {
 	*proto.UnimplementedRoleServer
-	repo repository.Repository
+	reader repository.Reader
+	writer repository.Writer
 }
 
 var _ RoleService = (*roleService)(nil)
 
-func newRoleService(repo repository.Repository) RoleService {
-	return &roleService{repo: repo}
+func NewRoleService(reader repository.Reader, writer repository.Writer) RoleService {
+	return &roleService{
+		reader: reader,
+		writer: writer,
+	}
 }
 
-func (srv *roleService) Create(ctx context.Context, names, descriptions []string) (model.Roles, error) {
+func (svc *roleService) Create(ctx context.Context, names, descriptions []string) (model.Roles, error) {
 	var out model.Roles
 	mNames := make([]model.Name, len(names))
 	mDescriptions := make([]string, len(descriptions))
@@ -47,8 +46,7 @@ func (srv *roleService) Create(ctx context.Context, names, descriptions []string
 			return nil, err
 		}
 	}
-	tx := srv.repo.NewConnection().Transaction(ctx)
-	err := tx.Do(func(tx repository.Transaction) error {
+	err := svc.writer.Do(ctx, func(tx repository.Transaction) error {
 		roleRepo := tx.Role()
 		roles, err := roleRepo.CreateBatch(mNames, mDescriptions)
 		if err != nil {
@@ -66,20 +64,20 @@ func (srv *roleService) Create(ctx context.Context, names, descriptions []string
 	return out, nil
 }
 
-func (srv *roleService) FindById(ctx context.Context, strId string) (*model.Role, error) {
+func (svc *roleService) FindById(ctx context.Context, strId string) (*model.Role, error) {
 	roleId, err := model.NewID(strId)
 	if err != nil {
 		return nil, err
 	}
-	role, err := srv.repo.NewConnection().Role(ctx).FindByID(roleId)
+	role, err := svc.reader.Role(ctx).FindByID(roleId)
 	if err != nil {
 		return nil, err
 	}
 	return role, nil
 }
 
-func (srv *roleService) FindAll(ctx context.Context) (model.Roles, error) {
-	roleRepo := srv.repo.NewConnection().Role(ctx)
+func (svc *roleService) FindAll(ctx context.Context) (model.Roles, error) {
+	roleRepo := svc.reader.Role(ctx)
 	roles, err := roleRepo.FindAll()
 	if err != nil {
 		return nil, err
@@ -87,36 +85,34 @@ func (srv *roleService) FindAll(ctx context.Context) (model.Roles, error) {
 	return roles, nil
 }
 
-func (srv *roleService) Update(ctx context.Context, strId string, name, description string) error {
+func (svc *roleService) Update(ctx context.Context, strId string, name, description string) error {
 	mRole, err := model.NewRole(strId, name, description, nil)
 	if err != nil {
 		return err
 	}
-	tx := srv.repo.NewConnection().Transaction(ctx)
-	if err := tx.Do(func(tx repository.Transaction) error { return tx.Role().Update(mRole) }); err != nil {
+	if err := svc.writer.Do(ctx, func(tx repository.Transaction) error { return tx.Role().Update(mRole) }); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (srv *roleService) Delete(ctx context.Context, strId string) error {
+func (svc *roleService) Delete(ctx context.Context, strId string) error {
 	id, err := model.NewID(strId)
 	if err != nil {
 		return err
 	}
-	tx := srv.repo.NewConnection().Transaction(ctx)
-	if err := tx.Do(func(tx repository.Transaction) error { return tx.Role().Delete(id) }); err != nil {
+	if err := svc.writer.Do(ctx, func(tx repository.Transaction) error { return tx.Role().Delete(id) }); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (srv *roleService) GetPermissions(ctx context.Context, strId string) (model.Permissions, error) {
+func (svc *roleService) GetPermissions(ctx context.Context, strId string) (model.Permissions, error) {
 	roleId, err := model.NewID(strId)
 	if err != nil {
 		return nil, err
 	}
-	role, err := srv.repo.NewConnection().Role(ctx).FindByID(roleId)
+	role, err := svc.reader.Role(ctx).FindByID(roleId)
 	if err != nil {
 		return nil, err
 	}
@@ -124,13 +120,12 @@ func (srv *roleService) GetPermissions(ctx context.Context, strId string) (model
 	return permissions, nil
 }
 
-func (srv *roleService) AddPermissions(ctx context.Context, strId string, permissionIds []string) error {
+func (svc *roleService) AddPermissions(ctx context.Context, strId string, permissionIds []string) error {
 	id, err := model.NewID(strId)
 	if err != nil {
 		return err
 	}
-	tx := srv.repo.NewConnection().Transaction(ctx)
-	err = tx.Do(func(tx repository.Transaction) error {
+	err = svc.writer.Do(ctx, func(tx repository.Transaction) error {
 		permissions := model.Permissions{}
 		for _, permissionId := range permissionIds {
 			if pId, err := model.NewID(permissionId); err == nil {
@@ -148,13 +143,12 @@ func (srv *roleService) AddPermissions(ctx context.Context, strId string, permis
 	return err
 }
 
-func (srv *roleService) DeletePermissions(ctx context.Context, strId string, permissionIds []string) error {
+func (svc *roleService) DeletePermissions(ctx context.Context, strId string, permissionIds []string) error {
 	roleId, err := model.NewID(strId)
 	if err != nil {
 		return err
 	}
-	tx := srv.repo.NewConnection().Transaction(ctx)
-	if err := tx.Do(func(tx repository.Transaction) error {
+	if err := svc.writer.Do(ctx, func(tx repository.Transaction) error {
 		for _, id := range permissionIds {
 			permissionId, err := model.NewID(id)
 			if err != nil {
