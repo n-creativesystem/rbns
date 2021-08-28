@@ -1,4 +1,4 @@
-package infra_test
+package rdb_test
 
 import (
 	"context"
@@ -8,8 +8,8 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/n-creativesystem/rbns/domain/model"
 	"github.com/n-creativesystem/rbns/domain/repository"
-	"github.com/n-creativesystem/rbns/infra"
 	"github.com/n-creativesystem/rbns/infra/dao"
+	"github.com/n-creativesystem/rbns/infra/rdb"
 	"github.com/n-creativesystem/rbns/tests"
 	"github.com/stretchr/testify/assert"
 )
@@ -25,10 +25,10 @@ func TestOrganization(t *testing.T) {
 					regexp.QuoteMeta(`INSERT INTO "organizations" ("id","created_at","updated_at","name","description") VALUES ($1,$2,$3,$4,$5)`),
 				).WillReturnResult(sqlmock.NewResult(0, 1))
 				mock.ExpectCommit()
-				var repo repository.Repository = infra.NewRepository(db)
+				var repo repository.Repository = rdb.NewRepository(db)
 				return func(t *testing.T) {
 					tx := repo.NewConnection().Transaction(ctx)
-					err := tx.Do(func(tx repository.Transaction) error {
+					err := tx.Do(func(tx repository.Writer) error {
 						name, _ := model.NewName("test")
 						e, err := tx.Organization().Create(name, "organization test")
 						assert.NoError(t, err)
@@ -51,7 +51,7 @@ func TestOrganization(t *testing.T) {
 				mock.ExpectQuery(
 					regexp.QuoteMeta(`SELECT * FROM "users" WHERE "users"."organization_id" = $1`),
 				).WithArgs(tests.IDs[0]).WillReturnRows(sqlmock.NewRows([]string{""}))
-				var repo repository.Repository = infra.NewRepository(db)
+				var repo repository.Repository = rdb.NewRepository(db)
 				return func(t *testing.T) {
 					id, _ := model.NewID(tests.IDs[0])
 					r, err := repo.NewConnection().Organization(ctx).FindByID(id)
@@ -72,7 +72,7 @@ func TestOrganization(t *testing.T) {
 				mock.ExpectQuery(
 					regexp.QuoteMeta(`SELECT * FROM "users" WHERE "users"."organization_id" = $1`),
 				).WithArgs(tests.IDs[0]).WillReturnRows(sqlmock.NewRows([]string{""}))
-				var repo repository.Repository = infra.NewRepository(db)
+				var repo repository.Repository = rdb.NewRepository(db)
 				return func(t *testing.T) {
 					name, _ := model.NewName("organization test")
 					r, err := repo.NewConnection().Organization(ctx).FindByName(name)
@@ -110,7 +110,7 @@ func TestOrganization(t *testing.T) {
 				mock.ExpectQuery(
 					regexp.QuoteMeta(`SELECT * FROM "users" WHERE "users"."organization_id" IN ($1,$2)`),
 				).WithArgs(tests.IDs[0], tests.IDs[1]).WillReturnRows(sqlmock.NewRows([]string{""}))
-				var repo repository.Repository = infra.NewRepository(db)
+				var repo repository.Repository = rdb.NewRepository(db)
 				return func(t *testing.T) {
 					orgs, err := repo.NewConnection().Organization(ctx).FindAll()
 					assert.NoError(t, err)
@@ -130,10 +130,10 @@ func TestOrganization(t *testing.T) {
 					regexp.QuoteMeta(`UPDATE "organizations" SET "updated_at"=$1,"name"=$2,"description"=$3 WHERE "organizations"."id" = $4`),
 				).WithArgs(sqlmock.AnyArg(), "test", "test org", tests.IDs[0]).WillReturnResult(sqlmock.NewResult(0, 1))
 				mock.ExpectCommit()
-				var repo repository.Repository = infra.NewRepository(db)
+				var repo repository.Repository = rdb.NewRepository(db)
 				return func(t *testing.T) {
 					tx := repo.NewConnection().Transaction(ctx)
-					err := tx.Do(func(tx repository.Transaction) error {
+					err := tx.Do(func(tx repository.Writer) error {
 						org, _ := model.NewOrganization(tests.IDs[0], "test", "test org")
 						return tx.Organization().Update(org)
 					})
@@ -149,10 +149,10 @@ func TestOrganization(t *testing.T) {
 					regexp.QuoteMeta(`DELETE FROM "organizations" WHERE "organizations"."id" = $1`),
 				).WithArgs(tests.IDs[0]).WillReturnResult(sqlmock.NewResult(0, 1))
 				mock.ExpectCommit()
-				var repo repository.Repository = infra.NewRepository(db)
+				var repo repository.Repository = rdb.NewRepository(db)
 				return func(t *testing.T) {
 					tx := repo.NewConnection().Transaction(ctx)
-					err := tx.Do(func(tx repository.Transaction) error {
+					err := tx.Do(func(tx repository.Writer) error {
 						id, _ := model.NewID(tests.IDs[0])
 						return tx.Organization().Delete(id)
 					})

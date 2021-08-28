@@ -1,9 +1,9 @@
-package infra
+package rdb
 
 import (
 	"github.com/n-creativesystem/rbns/domain/model"
 	"github.com/n-creativesystem/rbns/domain/repository"
-	"github.com/n-creativesystem/rbns/infra/entity"
+	"github.com/n-creativesystem/rbns/infra/rdb/entity"
 	"gorm.io/gorm"
 )
 
@@ -23,6 +23,9 @@ func (r *permission) FindAll() (model.Permissions, error) {
 	if err != nil {
 		return nil, model.NewDBErr(err)
 	}
+	if len(permissions) == 0 {
+		return nil, model.ErrNoData
+	}
 	modelPermissions := make(model.Permissions, len(permissions))
 	for i, permission := range permissions {
 		if p, err := permission.ConvertModel(); err != nil {
@@ -41,6 +44,9 @@ func (r *permission) FindByID(id model.ID) (*model.Permission, error) {
 	if err != nil {
 		return nil, model.NewDBErr(err)
 	}
+	if permission.ID == "" {
+		return nil, model.ErrNoData
+	}
 	return permission.ConvertModel()
 }
 
@@ -50,6 +56,9 @@ func (r *permission) FindByName(name model.Name) (*model.Permission, error) {
 	err := session.Where(&entity.Permission{Name: *name.Value()}).Find(&permission).Error
 	if err != nil {
 		return nil, model.NewDBErr(err)
+	}
+	if permission.ID == "" {
+		return nil, model.ErrNoData
 	}
 	return permission.ConvertModel()
 }

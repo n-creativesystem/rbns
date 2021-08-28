@@ -1,9 +1,9 @@
-package infra
+package rdb
 
 import (
 	"github.com/n-creativesystem/rbns/domain/model"
 	"github.com/n-creativesystem/rbns/domain/repository"
-	"github.com/n-creativesystem/rbns/infra/entity"
+	"github.com/n-creativesystem/rbns/infra/rdb/entity"
 	"gorm.io/gorm"
 )
 
@@ -23,6 +23,9 @@ func (r *organization) FindAll() (model.Organizations, error) {
 	if err != nil {
 		return nil, model.NewDBErr(err)
 	}
+	if len(organizations) == 0 {
+		return nil, model.ErrNoData
+	}
 	mOrganizations := make(model.Organizations, len(organizations))
 	for i, organization := range organizations {
 		if o, err := organization.ConvertModel(); err != nil {
@@ -41,6 +44,9 @@ func (r *organization) FindByID(id model.ID) (*model.Organization, error) {
 	if err != nil {
 		return nil, model.NewDBErr(err)
 	}
+	if organization.ID == "" {
+		return nil, model.ErrNoData
+	}
 	return organization.ConvertModel()
 }
 
@@ -48,6 +54,9 @@ func (r *organization) FindByName(name model.Name) (*model.Organization, error) 
 	var org entity.Organization
 	if err := r.db.Preload("Users.UserRoles.Role.RolePermissions.Permission").Where(&entity.Organization{Name: *name.Value()}).Find(&org).Error; err != nil {
 		return nil, model.NewDBErr(err)
+	}
+	if org.ID == "" {
+		return nil, model.ErrNoData
 	}
 	return org.ConvertModel()
 }

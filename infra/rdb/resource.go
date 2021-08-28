@@ -1,9 +1,9 @@
-package infra
+package rdb
 
 import (
 	"github.com/n-creativesystem/rbns/domain/model"
-	"github.com/n-creativesystem/rbns/infra/dao/driver/postgres"
-	"github.com/n-creativesystem/rbns/infra/entity"
+	"github.com/n-creativesystem/rbns/infra/rdb/driver/postgres"
+	"github.com/n-creativesystem/rbns/infra/rdb/entity"
 	"gorm.io/gorm"
 )
 

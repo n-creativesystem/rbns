@@ -1,4 +1,4 @@
-package infra_test
+package rdb_test
 
 import (
 	"context"
@@ -8,8 +8,8 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/n-creativesystem/rbns/domain/model"
 	"github.com/n-creativesystem/rbns/domain/repository"
-	"github.com/n-creativesystem/rbns/infra"
 	"github.com/n-creativesystem/rbns/infra/dao"
+	"github.com/n-creativesystem/rbns/infra/rdb"
 	"github.com/n-creativesystem/rbns/tests"
 	"github.com/stretchr/testify/assert"
 )
@@ -25,10 +25,10 @@ func TestUser(t *testing.T) {
 					regexp.QuoteMeta(`INSERT INTO "users" ("key","organization_id") VALUES ($1,$2)  ON CONFLICT DO NOTHING`),
 				).WillReturnResult(sqlmock.NewResult(0, 1))
 				mock.ExpectCommit()
-				var repo repository.Repository = infra.NewRepository(db)
+				var repo repository.Repository = rdb.NewRepository(db)
 				return func(t *testing.T) {
 					tx := repo.NewConnection().Transaction(ctx)
-					err := tx.Do(func(tx repository.Transaction) error {
+					err := tx.Do(func(tx repository.Writer) error {
 						orgId, _ := model.NewID(tests.IDs[0])
 						user, _ := model.NewUser("user1", nil, nil)
 						_, err := tx.User().Create(orgId, user)
@@ -46,10 +46,10 @@ func TestUser(t *testing.T) {
 					regexp.QuoteMeta(`INSERT INTO "user_roles" ("user_key","role_id","organization_id") VALUES ($1,$2,$3),($4,$5,$6) ON CONFLICT DO NOTHING`),
 				).WithArgs("user1", tests.IDs[1], tests.IDs[0], "user1", tests.IDs[2], tests.IDs[0]).WillReturnResult(sqlmock.NewResult(0, 2))
 				mock.ExpectCommit()
-				var repo repository.Repository = infra.NewRepository(db)
+				var repo repository.Repository = rdb.NewRepository(db)
 				return func(t *testing.T) {
 					tx := repo.NewConnection().Transaction(ctx)
-					err := tx.Do(func(tx repository.Transaction) error {
+					err := tx.Do(func(tx repository.Writer) error {
 						orgId, _ := model.NewID(tests.IDs[0])
 						userKey, _ := model.NewKey("user1")
 						role, _ := model.NewRole(tests.IDs[1], "admin", "administrator", nil)
@@ -68,10 +68,10 @@ func TestUser(t *testing.T) {
 					regexp.QuoteMeta(`DELETE FROM "user_roles" WHERE "user_roles"."user_key" = $1 AND "user_roles"."role_id" = $2 AND "user_roles"."organization_id" = $3`),
 				).WithArgs("user1", tests.IDs[1], tests.IDs[0]).WillReturnResult(sqlmock.NewResult(0, 1))
 				mock.ExpectCommit()
-				var repo repository.Repository = infra.NewRepository(db)
+				var repo repository.Repository = rdb.NewRepository(db)
 				return func(t *testing.T) {
 					tx := repo.NewConnection().Transaction(ctx)
-					err := tx.Do(func(tx repository.Transaction) error {
+					err := tx.Do(func(tx repository.Writer) error {
 						orgId, _ := model.NewID(tests.IDs[0])
 						userKey, _ := model.NewKey("user1")
 						role, _ := model.NewID(tests.IDs[1])
@@ -123,7 +123,7 @@ func TestUser(t *testing.T) {
 					regexp.QuoteMeta(`SELECT * FROM "permissions" WHERE "permissions"."id" IN ($1,$2)`),
 				).WithArgs(tests.IDs[3], tests.IDs[4]).WillReturnRows(permissionRow)
 
-				var repo repository.Repository = infra.NewRepository(db)
+				var repo repository.Repository = rdb.NewRepository(db)
 				return func(t *testing.T) {
 					orgId, _ := model.NewID(tests.IDs[0])
 					userKey, _ := model.NewKey("user1")
@@ -197,7 +197,7 @@ func TestUser(t *testing.T) {
 					regexp.QuoteMeta(`SELECT * FROM "permissions" WHERE "permissions"."id" IN ($1,$2)`),
 				).WithArgs(pCreate, pRead).WillReturnRows(permissionRow)
 
-				var repo repository.Repository = infra.NewRepository(db)
+				var repo repository.Repository = rdb.NewRepository(db)
 				return func(t *testing.T) {
 					orgId, _ := model.NewID(tests.IDs[0])
 					uRepo := repo.NewConnection().User(ctx)
