@@ -1,0 +1,8 @@
+DSN: 'host=${MASTER_HOST} user=${MASTER_USER} password=${MASTER_PASSWORD} dbname=${MASTER_NAME} port=${MASTER_PORT} sslmode=disable'
+SLAVE_DSN: 'host=${MASTER_HOST} user=${MASTER_USER} password=${MASTER_PASSWORD} dbname=${MASTER_NAME} port=${MASTER_PORT} sslmode=disable'
+MAX_IDLE_CONNS: 100
+MAX_OPEN_CONNS: 10
+MAX_LIFE_TIME: 1h
+migration: true
+log:
+  slow_threshold: 200ms

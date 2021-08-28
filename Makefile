@@ -24,8 +24,18 @@ cross-build: deps
 	done
 
 protoc:
-	@protoc -I ./proto/docs --go-grpc_out=./proto --go-grpc_opt=paths=source_relative --go_out=./proto --go_opt=paths=source_relative ./proto/docs/*.proto
-	@protoc -I ./proto/docs --doc_out=./proto/docs/resource/custom_markdown.tpl,index.md:./proto/docs ./proto/docs/*.proto
+	@protoc -I./proto \
+		--go-grpc_out=./proto \
+		--go-grpc_opt=paths=source_relative \
+		--go_out=./proto \
+		--go_opt=paths=source_relative \
+		--validate_out="lang=go:." \
+		--grpc-gateway_out ./proto \
+		--grpc-gateway_opt logtostderr=true,allow_delete_body=true,repeated_path_param_separator=ssv \
+		--grpc-gateway_opt paths=source_relative \
+		--openapiv2_out ./proto \
+		--openapiv2_opt logtostderr=true,allow_delete_body=true,repeated_path_param_separator=ssv \
+		./proto/*.proto
 
 .PHONY: ssl
 ssl:
