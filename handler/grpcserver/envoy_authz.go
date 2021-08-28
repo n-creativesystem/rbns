@@ -10,15 +10,10 @@ import (
 	auth "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
 	envoy_type "github.com/envoyproxy/go-control-plane/envoy/type/v3"
 	"github.com/gogo/googleapis/google/rpc"
-	"github.com/n-creativesystem/rbns/di"
 	"github.com/n-creativesystem/rbns/service"
 	rpcstatus "google.golang.org/genproto/googleapis/rpc/status"
 	"google.golang.org/grpc"
 )
-
-func init() {
-	di.MustRegister(newAuthz)
-}
 
 type authorizationServer interface {
 	auth.AuthorizationServer

@@ -1,13 +1,49 @@
 package grpcserver
 
 import (
+	"strings"
+	"sync"
+
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	"github.com/n-creativesystem/rbns/di"
-	"github.com/n-creativesystem/rbns/infra/dao"
-	"github.com/n-creativesystem/rbns/logger"
+	grpc_logrus "github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
+	"github.com/n-creativesystem/rbns/domain/repository"
 	"github.com/n-creativesystem/rbns/proto"
+	"github.com/n-creativesystem/rbns/service"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 )
+
+type ApiKeyManagements struct {
+	mu     sync.Mutex
+	values map[string]struct{}
+}
+
+func (apiKey *ApiKeyManagements) Exists(value string) bool {
+	apiKey.mu.Lock()
+	defer apiKey.mu.Unlock()
+	_, ok := apiKey.values[value]
+	return ok
+}
+
+func (apiKey *ApiKeyManagements) set(key string) {
+	apiKey.mu.Lock()
+	defer apiKey.mu.Unlock()
+	apiKey.values[key] = struct{}{}
+}
+
+var (
+	apiKeyManager ApiKeyManagements
+)
+
+func init() {
+	apiKey := viper.GetString("apiKey")
+	keys := strings.Split(apiKey, ";")
+	apiKeyManager.values = make(map[string]struct{}, len(keys))
+	for _, key := range keys {
+		apiKeyManager.set(key)
+	}
+}
 
 type Option func(*config)
 
@@ -19,46 +55,38 @@ func WithSecure(conf *config) {
 	conf.secure = true
 }
 
-func New(db dao.DataBase, opts ...Option) *grpc.Server {
+func New(reader repository.Reader, writer repository.Writer, logger *logrus.Logger, opts ...Option) *grpc.Server {
 	conf := &config{}
 	for _, opt := range opts {
 		opt(conf)
 	}
 	interceptors := []grpc.UnaryServerInterceptor{
-		logger.GrpcLogger(),
+		grpc_logrus.UnaryServerInterceptor(logrus.NewEntry(logger)),
 		Recovery,
+		// AuthUnaryServerInterceptor(),
 	}
+
 	server := grpc.NewServer(
 		grpc.UnaryInterceptor(
 			grpc_middleware.ChainUnaryServer(interceptors...),
 		),
 	)
+
 	var (
-		pSrv    proto.PermissionServer
-		rSrv    proto.RoleServer
-		oSrv    proto.OrganizationServer
-		uSrv    proto.UserServer
-		reSrv   proto.ResourceServer
-		authSrv authorizationServer
+		pSvc  = service.NewPermissionService(reader, writer)
+		rSvc  = service.NewRoleService(reader, writer)
+		oSvc  = service.NewOrganizationService(reader, writer)
+		uSvc  = service.NewUserService(reader, writer)
+		reSvc = service.NewResource(reader, writer)
 	)
-	di.MustInvoke(func(s proto.PermissionServer) {
-		pSrv = s
-	})
-	di.MustInvoke(func(s proto.RoleServer) {
-		rSrv = s
-	})
-	di.MustInvoke(func(s proto.OrganizationServer) {
-		oSrv = s
-	})
-	di.MustInvoke(func(s proto.UserServer) {
-		uSrv = s
-	})
-	di.MustInvoke(func(s proto.ResourceServer) {
-		reSrv = s
-	})
-	di.MustInvoke(func(s authorizationServer) {
-		authSrv = s
-	})
+	var (
+		pSrv    proto.PermissionServer   = newPermissionServer(pSvc)
+		rSrv    proto.RoleServer         = newRoleServer(rSvc)
+		oSrv    proto.OrganizationServer = newOrganizationService(oSvc)
+		uSrv    proto.UserServer         = newUserServer(uSvc, oSvc)
+		reSrv   proto.ResourceServer     = newResourceServer(reSvc)
+		authSrv authorizationServer      = newAuthz(reSvc)
+	)
 	proto.RegisterPermissionServer(server, pSrv)
 	proto.RegisterRoleServer(server, rSrv)
 	proto.RegisterOrganizationServer(server, oSrv)

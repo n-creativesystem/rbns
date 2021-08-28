@@ -3,14 +3,10 @@ package grpcserver
 import (
 	"context"
 
-	"github.com/n-creativesystem/rbns/di"
 	"github.com/n-creativesystem/rbns/proto"
 	"github.com/n-creativesystem/rbns/service"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
-
-func init() {
-	di.MustRegister(newResourceServer)
-}
 
 type resourceServer struct {
 	*proto.UnimplementedResourceServer
@@ -25,11 +21,11 @@ func newResourceServer(svc service.Resource) proto.ResourceServer {
 	}
 }
 
-func (r *resourceServer) Save(ctx context.Context, req *proto.SaveRequest) (*proto.Empty, error) {
+func (r *resourceServer) Save(ctx context.Context, req *proto.SaveRequest) (*emptypb.Empty, error) {
 	err := r.svc.Save(ctx, req.GetMethod(), req.GetUri(), req.GetPermissions()...)
-	return &proto.Empty{}, err
+	return &emptypb.Empty{}, err
 }
 
-func (r *resourceServer) Authz(ctx context.Context, req *proto.AuthzRequest) (*proto.Empty, error) {
+func (r *resourceServer) Authz(ctx context.Context, req *proto.AuthzRequest) (*emptypb.Empty, error) {
 	return nil, nil
 }
