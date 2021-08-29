@@ -12,7 +12,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/n-creativesystem/rbns/handler/gateway/marshaler"
 	"github.com/n-creativesystem/rbns/logger"
-	protobuf "github.com/n-creativesystem/rbns/proto"
+	"github.com/n-creativesystem/rbns/protobuf"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"

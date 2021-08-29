@@ -1,12 +1,12 @@
 syntax = "proto3";
 
-package ncs.protobuf;
+package ncs.rbns;
 
 import "google/protobuf/empty.proto";
 import "google/api/annotations.proto";
 import "envoyproxy/protoc-gen-validate/validate/validate.proto";
 
-option go_package = "./proto";
+option go_package = "./protobuf";
 
 service Permission {
     // Check is resource check

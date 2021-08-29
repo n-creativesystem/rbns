@@ -5,7 +5,6 @@ import (
 
 	"github.com/n-creativesystem/rbns/domain/model"
 	"github.com/n-creativesystem/rbns/domain/repository"
-	"github.com/n-creativesystem/rbns/proto"
 )
 
 type RoleService interface {
@@ -20,7 +19,6 @@ type RoleService interface {
 }
 
 type roleService struct {
-	*proto.UnimplementedRoleServer
 	reader repository.Reader
 	writer repository.Writer
 }

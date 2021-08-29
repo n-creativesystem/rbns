@@ -8,10 +8,10 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/n-creativesystem/rbns/domain/model"
 	"github.com/n-creativesystem/rbns/domain/repository"
-	"github.com/n-creativesystem/rbns/infra/dao"
 	"github.com/n-creativesystem/rbns/infra/rdb"
 	"github.com/n-creativesystem/rbns/tests"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 )
 
 func TestPermission(t *testing.T) {
@@ -19,16 +19,16 @@ func TestPermission(t *testing.T) {
 	cases := tests.MocksByPostgres{
 		{
 			Name: "create",
-			Fn: func(db dao.DataBase, mock sqlmock.Sqlmock) func(t *testing.T) {
+			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
 				mock.ExpectBegin()
 				mock.ExpectExec(
 					regexp.QuoteMeta(`INSERT INTO "permissions" ("id","created_at","updated_at","name","description") VALUES ($1,$2,$3,$4,$5)`),
 				).WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), "create:permission", "test").WillReturnResult(sqlmock.NewResult(0, 1))
 				mock.ExpectCommit()
-				con := rdb.NewRepository(db).NewConnection()
+				var repo = rdb.NewFactory(db)
 				return func(t *testing.T) {
-					tx := con.Transaction(ctx)
-					err := tx.Do(func(tx repository.Writer) error {
+					tx := repo.Writer()
+					err := tx.Do(ctx, func(tx repository.Transaction) error {
 						name, _ := model.NewName("create:permission")
 						pRepo := tx.Permission()
 						p, err := pRepo.Create(name, "test")
@@ -42,7 +42,7 @@ func TestPermission(t *testing.T) {
 		},
 		{
 			Name: "findById",
-			Fn: func(db dao.DataBase, mock sqlmock.Sqlmock) func(t *testing.T) {
+			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
 				id := tests.IDs[0]
 				name := "create:permission"
 				description := "test description"
@@ -50,7 +50,7 @@ func TestPermission(t *testing.T) {
 				mock.ExpectQuery(
 					regexp.QuoteMeta(`SELECT * FROM "permissions" WHERE "permissions"."id" = $1`),
 				).WithArgs(id).WillReturnRows(rows)
-				pRepo := rdb.NewRepository(db).NewConnection().Permission(ctx)
+				pRepo := rdb.NewFactory(db).Reader().Permission(ctx)
 				return func(t *testing.T) {
 					mId, _ := model.NewID(id)
 					p, err := pRepo.FindByID(mId)
@@ -63,14 +63,14 @@ func TestPermission(t *testing.T) {
 		},
 		{
 			Name: "find all",
-			Fn: func(db dao.DataBase, mock sqlmock.Sqlmock) func(t *testing.T) {
+			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
 				names := []string{"create:permission", "read:permission"}
 				descriptions := []string{"permission desc1", "permission desc2"}
 				rows := sqlmock.NewRows([]string{"id", "name", "description"}).AddRow(tests.IDs[0], names[0], descriptions[0]).AddRow(tests.IDs[1], names[1], descriptions[1])
 				mock.ExpectQuery(
 					regexp.QuoteMeta(`SELECT * FROM "permissions" ORDER BY id`),
 				).WillReturnRows(rows)
-				pRepo := rdb.NewRepository(db).NewConnection().Permission(ctx)
+				pRepo := rdb.NewFactory(db).Reader().Permission(ctx)
 				return func(t *testing.T) {
 					res, err := pRepo.FindAll()
 					assert.NoError(t, err)
@@ -84,17 +84,17 @@ func TestPermission(t *testing.T) {
 		},
 		{
 			Name: "update",
-			Fn: func(db dao.DataBase, mock sqlmock.Sqlmock) func(t *testing.T) {
+			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
 				id, name, desc := tests.IDs[0], "test", "test desc"
 				mock.ExpectBegin()
 				mock.ExpectExec(
 					regexp.QuoteMeta(`UPDATE "permissions" SET "updated_at"=$1,"name"=$2,"description"=$3 WHERE "permissions"."id" = $4`),
 				).WithArgs(sqlmock.AnyArg(), name, desc, id).WillReturnResult(sqlmock.NewResult(0, 1))
 				mock.ExpectCommit()
-				con := rdb.NewRepository(db).NewConnection()
+				repo := rdb.NewFactory(db)
 				return func(t *testing.T) {
-					tx := con.Transaction(ctx)
-					err := tx.Do(func(tx repository.Writer) error {
+					tx := repo.Writer()
+					err := tx.Do(ctx, func(tx repository.Transaction) error {
 						p, _ := model.NewPermission(id, name, desc)
 						return tx.Permission().Update(p)
 					})
@@ -104,17 +104,16 @@ func TestPermission(t *testing.T) {
 		},
 		{
 			Name: "delete",
-			Fn: func(db dao.DataBase, mock sqlmock.Sqlmock) func(t *testing.T) {
+			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
 				id := tests.IDs[0]
 				mock.ExpectBegin()
 				mock.ExpectExec(
 					regexp.QuoteMeta(`DELETE FROM "permissions" WHERE "permissions"."id" = $1`),
 				).WithArgs(id).WillReturnResult(sqlmock.NewResult(0, 1))
 				mock.ExpectCommit()
-				con := rdb.NewRepository(db).NewConnection()
+				tx := rdb.NewFactory(db).Writer()
 				return func(t *testing.T) {
-					tx := con.Transaction(ctx)
-					err := tx.Do(func(tx repository.Writer) error {
+					err := tx.Do(ctx, func(tx repository.Transaction) error {
 						id, _ := model.NewID(tests.IDs[0])
 						return tx.Permission().Delete(id)
 					})

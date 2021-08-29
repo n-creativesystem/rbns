@@ -7,7 +7,7 @@ import (
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_logrus "github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
 	"github.com/n-creativesystem/rbns/domain/repository"
-	"github.com/n-creativesystem/rbns/proto"
+	"github.com/n-creativesystem/rbns/protobuf"
 	"github.com/n-creativesystem/rbns/service"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -80,18 +80,18 @@ func New(reader repository.Reader, writer repository.Writer, logger *logrus.Logg
 		reSvc = service.NewResource(reader, writer)
 	)
 	var (
-		pSrv    proto.PermissionServer   = newPermissionServer(pSvc)
-		rSrv    proto.RoleServer         = newRoleServer(rSvc)
-		oSrv    proto.OrganizationServer = newOrganizationService(oSvc)
-		uSrv    proto.UserServer         = newUserServer(uSvc, oSvc)
-		reSrv   proto.ResourceServer     = newResourceServer(reSvc)
-		authSrv authorizationServer      = newAuthz(reSvc)
+		pSrv    protobuf.PermissionServer   = newPermissionServer(pSvc)
+		rSrv    protobuf.RoleServer         = newRoleServer(rSvc)
+		oSrv    protobuf.OrganizationServer = newOrganizationService(oSvc)
+		uSrv    protobuf.UserServer         = newUserServer(uSvc, oSvc)
+		reSrv   protobuf.ResourceServer     = newResourceServer(reSvc)
+		authSrv authorizationServer         = newAuthz(reSvc)
 	)
-	proto.RegisterPermissionServer(server, pSrv)
-	proto.RegisterRoleServer(server, rSrv)
-	proto.RegisterOrganizationServer(server, oSrv)
-	proto.RegisterUserServer(server, uSrv)
-	proto.RegisterResourceServer(server, reSrv)
+	protobuf.RegisterPermissionServer(server, pSrv)
+	protobuf.RegisterRoleServer(server, rSrv)
+	protobuf.RegisterOrganizationServer(server, oSrv)
+	protobuf.RegisterUserServer(server, uSrv)
+	protobuf.RegisterResourceServer(server, reSrv)
 	envoyAuthzRegister(server, authSrv)
 	healthRegister(server)
 	return server

@@ -8,10 +8,10 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/n-creativesystem/rbns/domain/model"
 	"github.com/n-creativesystem/rbns/domain/repository"
-	"github.com/n-creativesystem/rbns/infra/dao"
 	"github.com/n-creativesystem/rbns/infra/rdb"
 	"github.com/n-creativesystem/rbns/tests"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 )
 
 func TestUser(t *testing.T) {
@@ -19,16 +19,16 @@ func TestUser(t *testing.T) {
 	cases := tests.MocksByPostgres{
 		{
 			Name: "create",
-			Fn: func(db dao.DataBase, mock sqlmock.Sqlmock) func(t *testing.T) {
+			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
 				mock.ExpectBegin()
 				mock.ExpectExec(
 					regexp.QuoteMeta(`INSERT INTO "users" ("key","organization_id") VALUES ($1,$2)  ON CONFLICT DO NOTHING`),
 				).WillReturnResult(sqlmock.NewResult(0, 1))
 				mock.ExpectCommit()
-				var repo repository.Repository = rdb.NewRepository(db)
+				repo := rdb.NewFactory(db)
 				return func(t *testing.T) {
-					tx := repo.NewConnection().Transaction(ctx)
-					err := tx.Do(func(tx repository.Writer) error {
+					tx := repo.Writer()
+					err := tx.Do(ctx, func(tx repository.Transaction) error {
 						orgId, _ := model.NewID(tests.IDs[0])
 						user, _ := model.NewUser("user1", nil, nil)
 						_, err := tx.User().Create(orgId, user)
@@ -40,16 +40,16 @@ func TestUser(t *testing.T) {
 		},
 		{
 			Name: "add role",
-			Fn: func(db dao.DataBase, mock sqlmock.Sqlmock) func(t *testing.T) {
+			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
 				mock.ExpectBegin()
 				mock.ExpectExec(
 					regexp.QuoteMeta(`INSERT INTO "user_roles" ("user_key","role_id","organization_id") VALUES ($1,$2,$3),($4,$5,$6) ON CONFLICT DO NOTHING`),
 				).WithArgs("user1", tests.IDs[1], tests.IDs[0], "user1", tests.IDs[2], tests.IDs[0]).WillReturnResult(sqlmock.NewResult(0, 2))
 				mock.ExpectCommit()
-				var repo repository.Repository = rdb.NewRepository(db)
+				repo := rdb.NewFactory(db)
 				return func(t *testing.T) {
-					tx := repo.NewConnection().Transaction(ctx)
-					err := tx.Do(func(tx repository.Writer) error {
+					tx := repo.Writer()
+					err := tx.Do(ctx, func(tx repository.Transaction) error {
 						orgId, _ := model.NewID(tests.IDs[0])
 						userKey, _ := model.NewKey("user1")
 						role, _ := model.NewRole(tests.IDs[1], "admin", "administrator", nil)
@@ -62,16 +62,16 @@ func TestUser(t *testing.T) {
 		},
 		{
 			Name: "delete role",
-			Fn: func(db dao.DataBase, mock sqlmock.Sqlmock) func(t *testing.T) {
+			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
 				mock.ExpectBegin()
 				mock.ExpectExec(
 					regexp.QuoteMeta(`DELETE FROM "user_roles" WHERE "user_roles"."user_key" = $1 AND "user_roles"."role_id" = $2 AND "user_roles"."organization_id" = $3`),
 				).WithArgs("user1", tests.IDs[1], tests.IDs[0]).WillReturnResult(sqlmock.NewResult(0, 1))
 				mock.ExpectCommit()
-				var repo repository.Repository = rdb.NewRepository(db)
+				repo := rdb.NewFactory(db)
 				return func(t *testing.T) {
-					tx := repo.NewConnection().Transaction(ctx)
-					err := tx.Do(func(tx repository.Writer) error {
+					tx := repo.Writer()
+					err := tx.Do(ctx, func(tx repository.Transaction) error {
 						orgId, _ := model.NewID(tests.IDs[0])
 						userKey, _ := model.NewKey("user1")
 						role, _ := model.NewID(tests.IDs[1])
@@ -83,7 +83,7 @@ func TestUser(t *testing.T) {
 		},
 		{
 			Name: "findByKey",
-			Fn: func(db dao.DataBase, mock sqlmock.Sqlmock) func(t *testing.T) {
+			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
 				usersRow := sqlmock.NewRows([]string{"organization_id", "key"}).AddRow(tests.IDs[0], "user1")
 				orgRow := sqlmock.NewRows([]string{"id", "name", "description"}).AddRow(tests.IDs[0], "test", "organization test")
 				userRoleRow := sqlmock.NewRows([]string{"user_key", "role_id"}).AddRow("user1", tests.IDs[1]).AddRow("user1", tests.IDs[2])
@@ -123,11 +123,11 @@ func TestUser(t *testing.T) {
 					regexp.QuoteMeta(`SELECT * FROM "permissions" WHERE "permissions"."id" IN ($1,$2)`),
 				).WithArgs(tests.IDs[3], tests.IDs[4]).WillReturnRows(permissionRow)
 
-				var repo repository.Repository = rdb.NewRepository(db)
+				repo := rdb.NewFactory(db)
 				return func(t *testing.T) {
 					orgId, _ := model.NewID(tests.IDs[0])
 					userKey, _ := model.NewKey("user1")
-					u, err := repo.NewConnection().User(ctx).FindByKey(orgId, userKey)
+					u, err := repo.Reader().User(ctx).FindByKey(orgId, userKey)
 					assert.NoError(t, err)
 					assert.Equal(t, *userKey.Value(), u.GetKey())
 					assert.NotEmpty(t, u.GetRole())
@@ -141,7 +141,7 @@ func TestUser(t *testing.T) {
 		},
 		{
 			Name: "findAll",
-			Fn: func(db dao.DataBase, mock sqlmock.Sqlmock) func(t *testing.T) {
+			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
 				user1 := "user1"
 				user2 := "user2"
 				orgId := tests.IDs[0]
@@ -197,10 +197,10 @@ func TestUser(t *testing.T) {
 					regexp.QuoteMeta(`SELECT * FROM "permissions" WHERE "permissions"."id" IN ($1,$2)`),
 				).WithArgs(pCreate, pRead).WillReturnRows(permissionRow)
 
-				var repo repository.Repository = rdb.NewRepository(db)
+				repo := rdb.NewFactory(db)
 				return func(t *testing.T) {
 					orgId, _ := model.NewID(tests.IDs[0])
-					uRepo := repo.NewConnection().User(ctx)
+					uRepo := repo.Reader().User(ctx)
 					us, err := uRepo.FindAll(orgId)
 					u := us[0]
 					assert.NoError(t, err)

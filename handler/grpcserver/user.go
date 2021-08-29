@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/n-creativesystem/rbns/domain/model"
-	"github.com/n-creativesystem/rbns/proto"
+	"github.com/n-creativesystem/rbns/protobuf"
 	"github.com/n-creativesystem/rbns/protoconv"
 	"github.com/n-creativesystem/rbns/service"
 	"google.golang.org/grpc/codes"
@@ -13,19 +13,19 @@ import (
 )
 
 type userServer struct {
-	*proto.UnimplementedUserServer
+	*protobuf.UnimplementedUserServer
 	svc    service.UserService
 	orgSvc service.OrganizationService
 }
 
-var _ proto.UserServer = (*userServer)(nil)
+var _ protobuf.UserServer = (*userServer)(nil)
 
-func newUserServer(svc service.UserService, orgSvc service.OrganizationService) proto.UserServer {
+func newUserServer(svc service.UserService, orgSvc service.OrganizationService) protobuf.UserServer {
 	return &userServer{svc: svc, orgSvc: orgSvc}
 }
 
 // User
-func (s *userServer) Create(ctx context.Context, in *proto.UserEntity) (*emptypb.Empty, error) {
+func (s *userServer) Create(ctx context.Context, in *protobuf.UserEntity) (*emptypb.Empty, error) {
 	roles := make([]string, len(in.GetRoles()))
 	for idx, role := range in.GetRoles() {
 		roles[idx] = role.GetId()
@@ -40,7 +40,7 @@ func (s *userServer) Create(ctx context.Context, in *proto.UserEntity) (*emptypb
 	return &emptypb.Empty{}, nil
 }
 
-func (s *userServer) Delete(ctx context.Context, in *proto.UserKey) (*emptypb.Empty, error) {
+func (s *userServer) Delete(ctx context.Context, in *protobuf.UserKey) (*emptypb.Empty, error) {
 	err := s.svc.Delete(ctx, in.GetKey(), in.GetOrganizationId())
 	if err != nil {
 		if err == model.ErrNoData {
@@ -51,7 +51,7 @@ func (s *userServer) Delete(ctx context.Context, in *proto.UserKey) (*emptypb.Em
 	return &emptypb.Empty{}, err
 }
 
-func (s *userServer) FindByKey(ctx context.Context, in *proto.UserKey) (*proto.UserEntity, error) {
+func (s *userServer) FindByKey(ctx context.Context, in *protobuf.UserKey) (*protobuf.UserEntity, error) {
 	u, err := s.svc.FindByKey(ctx, in.GetKey(), in.GetOrganizationId())
 	if err != nil {
 		if err == model.ErrNoData {
@@ -64,7 +64,7 @@ func (s *userServer) FindByKey(ctx context.Context, in *proto.UserKey) (*proto.U
 	return out, nil
 }
 
-func (s *userServer) FindByOrganizationNameAndUserKey(ctx context.Context, in *proto.UserKeyByName) (*proto.UserEntity, error) {
+func (s *userServer) FindByOrganizationNameAndUserKey(ctx context.Context, in *protobuf.UserKeyByName) (*protobuf.UserEntity, error) {
 	org, err := s.orgSvc.FindByName(ctx, in.OrganizationName)
 	if err != nil {
 		if err == model.ErrNoData {
@@ -72,13 +72,13 @@ func (s *userServer) FindByOrganizationNameAndUserKey(ctx context.Context, in *p
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	return s.FindByKey(ctx, &proto.UserKey{
+	return s.FindByKey(ctx, &protobuf.UserKey{
 		Key:            in.Key,
 		OrganizationId: *org.GetID(),
 	})
 }
 
-func (s *userServer) AddRoles(ctx context.Context, in *proto.UserRole) (*emptypb.Empty, error) {
+func (s *userServer) AddRoles(ctx context.Context, in *protobuf.UserRole) (*emptypb.Empty, error) {
 	roles := make([]string, len(in.GetRoles()))
 	if len(roles) == 0 {
 		return &emptypb.Empty{}, nil
@@ -96,7 +96,7 @@ func (s *userServer) AddRoles(ctx context.Context, in *proto.UserRole) (*emptypb
 	return &emptypb.Empty{}, nil
 }
 
-func (s *userServer) DeleteRoles(ctx context.Context, in *proto.UserRole) (*emptypb.Empty, error) {
+func (s *userServer) DeleteRoles(ctx context.Context, in *protobuf.UserRole) (*emptypb.Empty, error) {
 	roles := make([]string, len(in.GetRoles()))
 	if len(roles) == 0 {
 		return &emptypb.Empty{}, nil
@@ -114,11 +114,11 @@ func (s *userServer) DeleteRoles(ctx context.Context, in *proto.UserRole) (*empt
 	return &emptypb.Empty{}, nil
 }
 
-func (s *userServer) DeleteRole(ctx context.Context, in *proto.UserRoleDelete) (*emptypb.Empty, error) {
-	return s.DeleteRoles(ctx, &proto.UserRole{
+func (s *userServer) DeleteRole(ctx context.Context, in *protobuf.UserRoleDelete) (*emptypb.Empty, error) {
+	return s.DeleteRoles(ctx, &protobuf.UserRole{
 		Key:            in.Key,
 		OrganizationId: in.OrganizationId,
-		Roles: []*proto.RoleKey{
+		Roles: []*protobuf.RoleKey{
 			{
 				Id: in.RoleId,
 			},

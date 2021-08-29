@@ -8,10 +8,10 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/n-creativesystem/rbns/domain/model"
 	"github.com/n-creativesystem/rbns/domain/repository"
-	"github.com/n-creativesystem/rbns/infra/dao"
 	"github.com/n-creativesystem/rbns/infra/rdb"
 	"github.com/n-creativesystem/rbns/tests"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 )
 
 func TestOrganization(t *testing.T) {
@@ -19,16 +19,16 @@ func TestOrganization(t *testing.T) {
 	cases := tests.MocksByPostgres{
 		{
 			Name: "create",
-			Fn: func(db dao.DataBase, mock sqlmock.Sqlmock) func(t *testing.T) {
+			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
 				mock.ExpectBegin()
 				mock.ExpectExec(
 					regexp.QuoteMeta(`INSERT INTO "organizations" ("id","created_at","updated_at","name","description") VALUES ($1,$2,$3,$4,$5)`),
 				).WillReturnResult(sqlmock.NewResult(0, 1))
 				mock.ExpectCommit()
-				var repo repository.Repository = rdb.NewRepository(db)
+				var repo = rdb.NewFactory(db)
 				return func(t *testing.T) {
-					tx := repo.NewConnection().Transaction(ctx)
-					err := tx.Do(func(tx repository.Writer) error {
+					writer := repo.Writer()
+					err := writer.Do(ctx, func(tx repository.Transaction) error {
 						name, _ := model.NewName("test")
 						e, err := tx.Organization().Create(name, "organization test")
 						assert.NoError(t, err)
@@ -43,7 +43,7 @@ func TestOrganization(t *testing.T) {
 		},
 		{
 			Name: "findById",
-			Fn: func(db dao.DataBase, mock sqlmock.Sqlmock) func(t *testing.T) {
+			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
 				row := sqlmock.NewRows([]string{"id", "name", "description"}).AddRow(tests.IDs[0], "test", "organization test")
 				mock.ExpectQuery(
 					regexp.QuoteMeta(`SELECT * FROM "organizations" WHERE "organizations"."id" = $1 ORDER BY id`),
@@ -51,10 +51,11 @@ func TestOrganization(t *testing.T) {
 				mock.ExpectQuery(
 					regexp.QuoteMeta(`SELECT * FROM "users" WHERE "users"."organization_id" = $1`),
 				).WithArgs(tests.IDs[0]).WillReturnRows(sqlmock.NewRows([]string{""}))
-				var repo repository.Repository = rdb.NewRepository(db)
+				var repo = rdb.NewFactory(db)
 				return func(t *testing.T) {
+					reader := repo.Reader()
 					id, _ := model.NewID(tests.IDs[0])
-					r, err := repo.NewConnection().Organization(ctx).FindByID(id)
+					r, err := reader.Organization(ctx).FindByID(id)
 					assert.NoError(t, err)
 					assert.Equal(t, tests.IDs[0], *r.GetID())
 					assert.Equal(t, "test", *r.GetName())
@@ -64,7 +65,7 @@ func TestOrganization(t *testing.T) {
 		},
 		{
 			Name: "findByName",
-			Fn: func(db dao.DataBase, mock sqlmock.Sqlmock) func(t *testing.T) {
+			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
 				row := sqlmock.NewRows([]string{"id", "name", "description"}).AddRow(tests.IDs[0], "test", "organization test")
 				mock.ExpectQuery(
 					regexp.QuoteMeta(`SELECT * FROM "organizations" WHERE "organizations"."name" = $1`),
@@ -72,10 +73,11 @@ func TestOrganization(t *testing.T) {
 				mock.ExpectQuery(
 					regexp.QuoteMeta(`SELECT * FROM "users" WHERE "users"."organization_id" = $1`),
 				).WithArgs(tests.IDs[0]).WillReturnRows(sqlmock.NewRows([]string{""}))
-				var repo repository.Repository = rdb.NewRepository(db)
+				var repo = rdb.NewFactory(db)
 				return func(t *testing.T) {
+					reader := repo.Reader()
 					name, _ := model.NewName("organization test")
-					r, err := repo.NewConnection().Organization(ctx).FindByName(name)
+					r, err := reader.Organization(ctx).FindByName(name)
 					assert.NoError(t, err)
 					assert.Equal(t, tests.IDs[0], *r.GetID())
 					assert.Equal(t, "test", *r.GetName())
@@ -85,7 +87,7 @@ func TestOrganization(t *testing.T) {
 		},
 		{
 			Name: "findAll",
-			Fn: func(db dao.DataBase, mock sqlmock.Sqlmock) func(t *testing.T) {
+			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
 				expecteds := []struct {
 					id, name, description string
 				}{
@@ -110,9 +112,10 @@ func TestOrganization(t *testing.T) {
 				mock.ExpectQuery(
 					regexp.QuoteMeta(`SELECT * FROM "users" WHERE "users"."organization_id" IN ($1,$2)`),
 				).WithArgs(tests.IDs[0], tests.IDs[1]).WillReturnRows(sqlmock.NewRows([]string{""}))
-				var repo repository.Repository = rdb.NewRepository(db)
+				var repo = rdb.NewFactory(db)
 				return func(t *testing.T) {
-					orgs, err := repo.NewConnection().Organization(ctx).FindAll()
+					reader := repo.Reader()
+					orgs, err := reader.Organization(ctx).FindAll()
 					assert.NoError(t, err)
 					for idx, org := range orgs {
 						assert.Equal(t, expecteds[idx].id, *org.GetID())
@@ -124,16 +127,16 @@ func TestOrganization(t *testing.T) {
 		},
 		{
 			Name: "update",
-			Fn: func(db dao.DataBase, mock sqlmock.Sqlmock) func(t *testing.T) {
+			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
 				mock.ExpectBegin()
 				mock.ExpectExec(
 					regexp.QuoteMeta(`UPDATE "organizations" SET "updated_at"=$1,"name"=$2,"description"=$3 WHERE "organizations"."id" = $4`),
 				).WithArgs(sqlmock.AnyArg(), "test", "test org", tests.IDs[0]).WillReturnResult(sqlmock.NewResult(0, 1))
 				mock.ExpectCommit()
-				var repo repository.Repository = rdb.NewRepository(db)
+				var repo = rdb.NewFactory(db)
 				return func(t *testing.T) {
-					tx := repo.NewConnection().Transaction(ctx)
-					err := tx.Do(func(tx repository.Writer) error {
+					writer := repo.Writer()
+					err := writer.Do(ctx, func(tx repository.Transaction) error {
 						org, _ := model.NewOrganization(tests.IDs[0], "test", "test org")
 						return tx.Organization().Update(org)
 					})
@@ -143,16 +146,16 @@ func TestOrganization(t *testing.T) {
 		},
 		{
 			Name: "delete",
-			Fn: func(db dao.DataBase, mock sqlmock.Sqlmock) func(t *testing.T) {
+			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
 				mock.ExpectBegin()
 				mock.ExpectExec(
 					regexp.QuoteMeta(`DELETE FROM "organizations" WHERE "organizations"."id" = $1`),
 				).WithArgs(tests.IDs[0]).WillReturnResult(sqlmock.NewResult(0, 1))
 				mock.ExpectCommit()
-				var repo repository.Repository = rdb.NewRepository(db)
+				var repo = rdb.NewFactory(db)
 				return func(t *testing.T) {
-					tx := repo.NewConnection().Transaction(ctx)
-					err := tx.Do(func(tx repository.Writer) error {
+					writer := repo.Writer()
+					err := writer.Do(ctx, func(tx repository.Transaction) error {
 						id, _ := model.NewID(tests.IDs[0])
 						return tx.Organization().Delete(id)
 					})

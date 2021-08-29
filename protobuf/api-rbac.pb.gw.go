@@ -2,11 +2,11 @@
 // source: api-rbac.proto
 
 /*
-Package proto is a reverse proxy.
+Package protobuf is a reverse proxy.
 
 It translates gRPC into RESTful JSON APIs.
 */
-package proto
+package protobuf
 
 import (
 	"context"
@@ -1562,7 +1562,7 @@ func RegisterPermissionHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.protobuf.Permission/Check", runtime.WithHTTPPathPattern("/api/v1/permissions/check"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.rbns.Permission/Check", runtime.WithHTTPPathPattern("/api/v1/permissions/check"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1585,7 +1585,7 @@ func RegisterPermissionHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.protobuf.Permission/FindById", runtime.WithHTTPPathPattern("/api/v1/permissions/{id}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.rbns.Permission/FindById", runtime.WithHTTPPathPattern("/api/v1/permissions/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1608,7 +1608,7 @@ func RegisterPermissionHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.protobuf.Permission/Update", runtime.WithHTTPPathPattern("/api/v1/permissions/{id}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.rbns.Permission/Update", runtime.WithHTTPPathPattern("/api/v1/permissions/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1631,7 +1631,7 @@ func RegisterPermissionHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.protobuf.Permission/Delete", runtime.WithHTTPPathPattern("/api/v1/permissions/{id}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.rbns.Permission/Delete", runtime.WithHTTPPathPattern("/api/v1/permissions/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1654,7 +1654,7 @@ func RegisterPermissionHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.protobuf.Permission/Create", runtime.WithHTTPPathPattern("/api/v1/permissions"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.rbns.Permission/Create", runtime.WithHTTPPathPattern("/api/v1/permissions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1677,7 +1677,7 @@ func RegisterPermissionHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.protobuf.Permission/FindAll", runtime.WithHTTPPathPattern("/api/v1/permissions"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.rbns.Permission/FindAll", runtime.WithHTTPPathPattern("/api/v1/permissions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1709,7 +1709,7 @@ func RegisterRoleHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.protobuf.Role/DeletePermission", runtime.WithHTTPPathPattern("/api/v1/roles/{id}/permissions/{permissionId}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.rbns.Role/DeletePermission", runtime.WithHTTPPathPattern("/api/v1/roles/{id}/permissions/{permissionId}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1732,7 +1732,7 @@ func RegisterRoleHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.protobuf.Role/GetPermissions", runtime.WithHTTPPathPattern("/api/v1/roles/{id}/permissions"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.rbns.Role/GetPermissions", runtime.WithHTTPPathPattern("/api/v1/roles/{id}/permissions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1755,7 +1755,7 @@ func RegisterRoleHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.protobuf.Role/AddPermissions", runtime.WithHTTPPathPattern("/api/v1/roles/{id}/permissions"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.rbns.Role/AddPermissions", runtime.WithHTTPPathPattern("/api/v1/roles/{id}/permissions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1778,7 +1778,7 @@ func RegisterRoleHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.protobuf.Role/DeletePermissions", runtime.WithHTTPPathPattern("/api/v1/roles/{id}/permissions"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.rbns.Role/DeletePermissions", runtime.WithHTTPPathPattern("/api/v1/roles/{id}/permissions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1801,7 +1801,7 @@ func RegisterRoleHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.protobuf.Role/FindById", runtime.WithHTTPPathPattern("/api/v1/roles/{id}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.rbns.Role/FindById", runtime.WithHTTPPathPattern("/api/v1/roles/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1824,7 +1824,7 @@ func RegisterRoleHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.protobuf.Role/Update", runtime.WithHTTPPathPattern("/api/v1/roles/{id}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.rbns.Role/Update", runtime.WithHTTPPathPattern("/api/v1/roles/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1847,7 +1847,7 @@ func RegisterRoleHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.protobuf.Role/Delete", runtime.WithHTTPPathPattern("/api/v1/roles/{id}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.rbns.Role/Delete", runtime.WithHTTPPathPattern("/api/v1/roles/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1870,7 +1870,7 @@ func RegisterRoleHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.protobuf.Role/Create", runtime.WithHTTPPathPattern("/api/v1/roles"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.rbns.Role/Create", runtime.WithHTTPPathPattern("/api/v1/roles"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1893,7 +1893,7 @@ func RegisterRoleHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.protobuf.Role/FindAll", runtime.WithHTTPPathPattern("/api/v1/roles"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.rbns.Role/FindAll", runtime.WithHTTPPathPattern("/api/v1/roles"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1925,7 +1925,7 @@ func RegisterOrganizationHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.protobuf.Organization/FindById", runtime.WithHTTPPathPattern("/api/v1/organizations/{id}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.rbns.Organization/FindById", runtime.WithHTTPPathPattern("/api/v1/organizations/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1948,7 +1948,7 @@ func RegisterOrganizationHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.protobuf.Organization/Update", runtime.WithHTTPPathPattern("/api/v1/organizations/{id}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.rbns.Organization/Update", runtime.WithHTTPPathPattern("/api/v1/organizations/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1971,7 +1971,7 @@ func RegisterOrganizationHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.protobuf.Organization/Delete", runtime.WithHTTPPathPattern("/api/v1/organizations/{id}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.rbns.Organization/Delete", runtime.WithHTTPPathPattern("/api/v1/organizations/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1994,7 +1994,7 @@ func RegisterOrganizationHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.protobuf.Organization/Create", runtime.WithHTTPPathPattern("/api/v1/organizations"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.rbns.Organization/Create", runtime.WithHTTPPathPattern("/api/v1/organizations"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2017,7 +2017,7 @@ func RegisterOrganizationHandlerServer(ctx context.Context, mux *runtime.ServeMu
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.protobuf.Organization/FindAll", runtime.WithHTTPPathPattern("/api/v1/organizations"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.rbns.Organization/FindAll", runtime.WithHTTPPathPattern("/api/v1/organizations"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2049,7 +2049,7 @@ func RegisterUserHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.protobuf.User/FindByKey", runtime.WithHTTPPathPattern("/api/v1/organizations/{organizationId}/users/{key}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.rbns.User/FindByKey", runtime.WithHTTPPathPattern("/api/v1/organizations/{organizationId}/users/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2072,7 +2072,7 @@ func RegisterUserHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.protobuf.User/FindByOrganizationNameAndUserKey", runtime.WithHTTPPathPattern("/api/v1/organizations/name/{organizationName}/users/{key}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.rbns.User/FindByOrganizationNameAndUserKey", runtime.WithHTTPPathPattern("/api/v1/organizations/name/{organizationName}/users/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2095,7 +2095,7 @@ func RegisterUserHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.protobuf.User/Delete", runtime.WithHTTPPathPattern("/api/v1/organizations/{organizationId}/users/{key}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.rbns.User/Delete", runtime.WithHTTPPathPattern("/api/v1/organizations/{organizationId}/users/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2118,7 +2118,7 @@ func RegisterUserHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.protobuf.User/DeleteRole", runtime.WithHTTPPathPattern("/api/v1/organizations/{organizationId}/users/{key}/roles/{roleId}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.rbns.User/DeleteRole", runtime.WithHTTPPathPattern("/api/v1/organizations/{organizationId}/users/{key}/roles/{roleId}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2141,7 +2141,7 @@ func RegisterUserHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.protobuf.User/AddRoles", runtime.WithHTTPPathPattern("/api/v1/organizations/{organizationId}/users/{key}/roles"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.rbns.User/AddRoles", runtime.WithHTTPPathPattern("/api/v1/organizations/{organizationId}/users/{key}/roles"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2164,7 +2164,7 @@ func RegisterUserHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.protobuf.User/DeleteRoles", runtime.WithHTTPPathPattern("/api/v1/organizations/{organizationId}/users/{key}/roles"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.rbns.User/DeleteRoles", runtime.WithHTTPPathPattern("/api/v1/organizations/{organizationId}/users/{key}/roles"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2187,7 +2187,7 @@ func RegisterUserHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.protobuf.User/Create", runtime.WithHTTPPathPattern("/api/v1/organizations/{organizationId}/users"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/ncs.rbns.User/Create", runtime.WithHTTPPathPattern("/api/v1/organizations/{organizationId}/users"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2249,7 +2249,7 @@ func RegisterPermissionHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.protobuf.Permission/Check", runtime.WithHTTPPathPattern("/api/v1/permissions/check"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.rbns.Permission/Check", runtime.WithHTTPPathPattern("/api/v1/permissions/check"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2269,7 +2269,7 @@ func RegisterPermissionHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.protobuf.Permission/FindById", runtime.WithHTTPPathPattern("/api/v1/permissions/{id}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.rbns.Permission/FindById", runtime.WithHTTPPathPattern("/api/v1/permissions/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2289,7 +2289,7 @@ func RegisterPermissionHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.protobuf.Permission/Update", runtime.WithHTTPPathPattern("/api/v1/permissions/{id}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.rbns.Permission/Update", runtime.WithHTTPPathPattern("/api/v1/permissions/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2309,7 +2309,7 @@ func RegisterPermissionHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.protobuf.Permission/Delete", runtime.WithHTTPPathPattern("/api/v1/permissions/{id}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.rbns.Permission/Delete", runtime.WithHTTPPathPattern("/api/v1/permissions/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2329,7 +2329,7 @@ func RegisterPermissionHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.protobuf.Permission/Create", runtime.WithHTTPPathPattern("/api/v1/permissions"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.rbns.Permission/Create", runtime.WithHTTPPathPattern("/api/v1/permissions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2349,7 +2349,7 @@ func RegisterPermissionHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.protobuf.Permission/FindAll", runtime.WithHTTPPathPattern("/api/v1/permissions"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.rbns.Permission/FindAll", runtime.WithHTTPPathPattern("/api/v1/permissions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2438,7 +2438,7 @@ func RegisterRoleHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.protobuf.Role/DeletePermission", runtime.WithHTTPPathPattern("/api/v1/roles/{id}/permissions/{permissionId}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.rbns.Role/DeletePermission", runtime.WithHTTPPathPattern("/api/v1/roles/{id}/permissions/{permissionId}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2458,7 +2458,7 @@ func RegisterRoleHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.protobuf.Role/GetPermissions", runtime.WithHTTPPathPattern("/api/v1/roles/{id}/permissions"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.rbns.Role/GetPermissions", runtime.WithHTTPPathPattern("/api/v1/roles/{id}/permissions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2478,7 +2478,7 @@ func RegisterRoleHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.protobuf.Role/AddPermissions", runtime.WithHTTPPathPattern("/api/v1/roles/{id}/permissions"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.rbns.Role/AddPermissions", runtime.WithHTTPPathPattern("/api/v1/roles/{id}/permissions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2498,7 +2498,7 @@ func RegisterRoleHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.protobuf.Role/DeletePermissions", runtime.WithHTTPPathPattern("/api/v1/roles/{id}/permissions"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.rbns.Role/DeletePermissions", runtime.WithHTTPPathPattern("/api/v1/roles/{id}/permissions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2518,7 +2518,7 @@ func RegisterRoleHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.protobuf.Role/FindById", runtime.WithHTTPPathPattern("/api/v1/roles/{id}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.rbns.Role/FindById", runtime.WithHTTPPathPattern("/api/v1/roles/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2538,7 +2538,7 @@ func RegisterRoleHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.protobuf.Role/Update", runtime.WithHTTPPathPattern("/api/v1/roles/{id}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.rbns.Role/Update", runtime.WithHTTPPathPattern("/api/v1/roles/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2558,7 +2558,7 @@ func RegisterRoleHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.protobuf.Role/Delete", runtime.WithHTTPPathPattern("/api/v1/roles/{id}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.rbns.Role/Delete", runtime.WithHTTPPathPattern("/api/v1/roles/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2578,7 +2578,7 @@ func RegisterRoleHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.protobuf.Role/Create", runtime.WithHTTPPathPattern("/api/v1/roles"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.rbns.Role/Create", runtime.WithHTTPPathPattern("/api/v1/roles"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2598,7 +2598,7 @@ func RegisterRoleHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.protobuf.Role/FindAll", runtime.WithHTTPPathPattern("/api/v1/roles"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.rbns.Role/FindAll", runtime.WithHTTPPathPattern("/api/v1/roles"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2699,7 +2699,7 @@ func RegisterOrganizationHandlerClient(ctx context.Context, mux *runtime.ServeMu
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.protobuf.Organization/FindById", runtime.WithHTTPPathPattern("/api/v1/organizations/{id}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.rbns.Organization/FindById", runtime.WithHTTPPathPattern("/api/v1/organizations/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2719,7 +2719,7 @@ func RegisterOrganizationHandlerClient(ctx context.Context, mux *runtime.ServeMu
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.protobuf.Organization/Update", runtime.WithHTTPPathPattern("/api/v1/organizations/{id}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.rbns.Organization/Update", runtime.WithHTTPPathPattern("/api/v1/organizations/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2739,7 +2739,7 @@ func RegisterOrganizationHandlerClient(ctx context.Context, mux *runtime.ServeMu
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.protobuf.Organization/Delete", runtime.WithHTTPPathPattern("/api/v1/organizations/{id}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.rbns.Organization/Delete", runtime.WithHTTPPathPattern("/api/v1/organizations/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2759,7 +2759,7 @@ func RegisterOrganizationHandlerClient(ctx context.Context, mux *runtime.ServeMu
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.protobuf.Organization/Create", runtime.WithHTTPPathPattern("/api/v1/organizations"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.rbns.Organization/Create", runtime.WithHTTPPathPattern("/api/v1/organizations"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2779,7 +2779,7 @@ func RegisterOrganizationHandlerClient(ctx context.Context, mux *runtime.ServeMu
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.protobuf.Organization/FindAll", runtime.WithHTTPPathPattern("/api/v1/organizations"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.rbns.Organization/FindAll", runtime.WithHTTPPathPattern("/api/v1/organizations"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2864,7 +2864,7 @@ func RegisterUserHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.protobuf.User/FindByKey", runtime.WithHTTPPathPattern("/api/v1/organizations/{organizationId}/users/{key}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.rbns.User/FindByKey", runtime.WithHTTPPathPattern("/api/v1/organizations/{organizationId}/users/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2884,7 +2884,7 @@ func RegisterUserHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.protobuf.User/FindByOrganizationNameAndUserKey", runtime.WithHTTPPathPattern("/api/v1/organizations/name/{organizationName}/users/{key}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.rbns.User/FindByOrganizationNameAndUserKey", runtime.WithHTTPPathPattern("/api/v1/organizations/name/{organizationName}/users/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2904,7 +2904,7 @@ func RegisterUserHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.protobuf.User/Delete", runtime.WithHTTPPathPattern("/api/v1/organizations/{organizationId}/users/{key}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.rbns.User/Delete", runtime.WithHTTPPathPattern("/api/v1/organizations/{organizationId}/users/{key}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2924,7 +2924,7 @@ func RegisterUserHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.protobuf.User/DeleteRole", runtime.WithHTTPPathPattern("/api/v1/organizations/{organizationId}/users/{key}/roles/{roleId}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.rbns.User/DeleteRole", runtime.WithHTTPPathPattern("/api/v1/organizations/{organizationId}/users/{key}/roles/{roleId}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2944,7 +2944,7 @@ func RegisterUserHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.protobuf.User/AddRoles", runtime.WithHTTPPathPattern("/api/v1/organizations/{organizationId}/users/{key}/roles"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.rbns.User/AddRoles", runtime.WithHTTPPathPattern("/api/v1/organizations/{organizationId}/users/{key}/roles"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2964,7 +2964,7 @@ func RegisterUserHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.protobuf.User/DeleteRoles", runtime.WithHTTPPathPattern("/api/v1/organizations/{organizationId}/users/{key}/roles"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.rbns.User/DeleteRoles", runtime.WithHTTPPathPattern("/api/v1/organizations/{organizationId}/users/{key}/roles"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2984,7 +2984,7 @@ func RegisterUserHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.protobuf.User/Create", runtime.WithHTTPPathPattern("/api/v1/organizations/{organizationId}/users"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/ncs.rbns.User/Create", runtime.WithHTTPPathPattern("/api/v1/organizations/{organizationId}/users"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return

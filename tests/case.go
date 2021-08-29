@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/n-creativesystem/rbns/infra/dao"
 	"github.com/n-creativesystem/rbns/tests/mock"
+	"gorm.io/gorm"
 )
 
 var IDs = []string{"01FA2P4T4V2FANWFBV1DFWJ8VY",
@@ -35,7 +35,7 @@ func (c Cases) Run(t *testing.T) {
 
 type MockByPostgres struct {
 	Name string
-	Fn   func(db dao.DataBase, mock sqlmock.Sqlmock) func(t *testing.T)
+	Fn   func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T)
 }
 
 type MocksByPostgres []MockByPostgres

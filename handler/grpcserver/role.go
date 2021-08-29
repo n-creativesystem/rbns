@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/n-creativesystem/rbns/domain/model"
-	"github.com/n-creativesystem/rbns/proto"
+	"github.com/n-creativesystem/rbns/protobuf"
 	"github.com/n-creativesystem/rbns/protoconv"
 	"github.com/n-creativesystem/rbns/service"
 	"google.golang.org/grpc/codes"
@@ -13,22 +13,22 @@ import (
 )
 
 type roleServer struct {
-	*proto.UnimplementedRoleServer
+	*protobuf.UnimplementedRoleServer
 	svc service.RoleService
 }
 
-var _ proto.RoleServer = (*roleServer)(nil)
+var _ protobuf.RoleServer = (*roleServer)(nil)
 
-func newRoleServer(svc service.RoleService) proto.RoleServer {
+func newRoleServer(svc service.RoleService) protobuf.RoleServer {
 	return &roleServer{svc: svc}
 }
 
-func (s *roleServer) Create(ctx context.Context, in *proto.RoleEntities) (*proto.RoleEntities, error) {
-	inRoles := make([]*proto.RoleEntity, len(in.GetRoles()))
+func (s *roleServer) Create(ctx context.Context, in *protobuf.RoleEntities) (*protobuf.RoleEntities, error) {
+	inRoles := make([]*protobuf.RoleEntity, len(in.GetRoles()))
 	copy(inRoles, in.GetRoles())
 	if len(inRoles) == 0 {
-		return &proto.RoleEntities{
-			Roles: make([]*proto.RoleEntity, 0),
+		return &protobuf.RoleEntities{
+			Roles: make([]*protobuf.RoleEntity, 0),
 		}, nil
 	}
 	names := make([]string, len(inRoles))
@@ -41,8 +41,8 @@ func (s *roleServer) Create(ctx context.Context, in *proto.RoleEntities) (*proto
 	if err != nil {
 		return nil, err
 	}
-	out := &proto.RoleEntities{
-		Roles: make([]*proto.RoleEntity, len(roles)),
+	out := &protobuf.RoleEntities{
+		Roles: make([]*protobuf.RoleEntity, len(roles)),
 	}
 	for idx, role := range roles {
 		out.Roles[idx] = protoconv.NewRoleEntityByModel(role)
@@ -50,7 +50,7 @@ func (s *roleServer) Create(ctx context.Context, in *proto.RoleEntities) (*proto
 	return out, nil
 }
 
-func (s *roleServer) FindById(ctx context.Context, in *proto.RoleKey) (*proto.RoleEntity, error) {
+func (s *roleServer) FindById(ctx context.Context, in *protobuf.RoleKey) (*protobuf.RoleEntity, error) {
 	role, err := s.svc.FindById(ctx, in.GetId())
 	if err != nil {
 		if err == model.ErrNoData {
@@ -61,7 +61,7 @@ func (s *roleServer) FindById(ctx context.Context, in *proto.RoleKey) (*proto.Ro
 	return protoconv.NewRoleEntityByModel(*role), nil
 }
 
-func (s *roleServer) FindAll(ctx context.Context, in *emptypb.Empty) (*proto.RoleEntities, error) {
+func (s *roleServer) FindAll(ctx context.Context, in *emptypb.Empty) (*protobuf.RoleEntities, error) {
 	roles, err := s.svc.FindAll(ctx)
 	if err != nil {
 		if err == model.ErrNoData {
@@ -69,8 +69,8 @@ func (s *roleServer) FindAll(ctx context.Context, in *emptypb.Empty) (*proto.Rol
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	entities := &proto.RoleEntities{
-		Roles: make([]*proto.RoleEntity, len(roles)),
+	entities := &protobuf.RoleEntities{
+		Roles: make([]*protobuf.RoleEntity, len(roles)),
 	}
 	for i, role := range roles {
 		entities.Roles[i] = protoconv.NewRoleEntityByModel(role)
@@ -78,7 +78,7 @@ func (s *roleServer) FindAll(ctx context.Context, in *emptypb.Empty) (*proto.Rol
 	return entities, nil
 }
 
-func (s *roleServer) Update(ctx context.Context, in *proto.RoleUpdateEntity) (*emptypb.Empty, error) {
+func (s *roleServer) Update(ctx context.Context, in *protobuf.RoleUpdateEntity) (*emptypb.Empty, error) {
 	err := s.svc.Update(ctx, in.GetId(), in.GetName(), in.GetDescription())
 	if err != nil {
 		if err == model.ErrNoData {
@@ -89,7 +89,7 @@ func (s *roleServer) Update(ctx context.Context, in *proto.RoleUpdateEntity) (*e
 	return &emptypb.Empty{}, nil
 }
 
-func (s *roleServer) Delete(ctx context.Context, in *proto.RoleKey) (*emptypb.Empty, error) {
+func (s *roleServer) Delete(ctx context.Context, in *protobuf.RoleKey) (*emptypb.Empty, error) {
 	err := s.svc.Delete(ctx, in.GetId())
 	if err != nil {
 		if err == model.ErrNoData {
@@ -100,7 +100,7 @@ func (s *roleServer) Delete(ctx context.Context, in *proto.RoleKey) (*emptypb.Em
 	return &emptypb.Empty{}, nil
 }
 
-func (s *roleServer) GetPermissions(ctx context.Context, in *proto.RoleKey) (*proto.PermissionEntities, error) {
+func (s *roleServer) GetPermissions(ctx context.Context, in *protobuf.RoleKey) (*protobuf.PermissionEntities, error) {
 	permissions, err := s.svc.GetPermissions(ctx, in.GetId())
 	if err != nil {
 		if err == model.ErrNoData {
@@ -108,8 +108,8 @@ func (s *roleServer) GetPermissions(ctx context.Context, in *proto.RoleKey) (*pr
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	res := proto.PermissionEntities{
-		Permissions: make([]*proto.PermissionEntity, len(permissions)),
+	res := protobuf.PermissionEntities{
+		Permissions: make([]*protobuf.PermissionEntity, len(permissions)),
 	}
 	for idx, permission := range permissions {
 		res.Permissions[idx] = protoconv.NewPermissionEntityByModel(permission)
@@ -117,7 +117,7 @@ func (s *roleServer) GetPermissions(ctx context.Context, in *proto.RoleKey) (*pr
 	return &res, nil
 }
 
-func (s *roleServer) AddPermissions(ctx context.Context, in *proto.RoleReleationPermissions) (*emptypb.Empty, error) {
+func (s *roleServer) AddPermissions(ctx context.Context, in *protobuf.RoleReleationPermissions) (*emptypb.Empty, error) {
 	permissionIds := make([]string, len(in.GetPermissions()))
 	if len(permissionIds) == 0 {
 		return &emptypb.Empty{}, nil
@@ -134,10 +134,10 @@ func (s *roleServer) AddPermissions(ctx context.Context, in *proto.RoleReleation
 	return &emptypb.Empty{}, nil
 }
 
-func (s *roleServer) DeletePermission(ctx context.Context, in *proto.RoleReleationPermission) (*emptypb.Empty, error) {
-	return s.DeletePermissions(ctx, &proto.RoleReleationPermissions{
+func (s *roleServer) DeletePermission(ctx context.Context, in *protobuf.RoleReleationPermission) (*emptypb.Empty, error) {
+	return s.DeletePermissions(ctx, &protobuf.RoleReleationPermissions{
 		Id: in.Id,
-		Permissions: []*proto.PermissionKey{
+		Permissions: []*protobuf.PermissionKey{
 			{
 				Id: in.PermissionId,
 			},
@@ -145,7 +145,7 @@ func (s *roleServer) DeletePermission(ctx context.Context, in *proto.RoleReleati
 	})
 }
 
-func (s *roleServer) DeletePermissions(ctx context.Context, in *proto.RoleReleationPermissions) (*emptypb.Empty, error) {
+func (s *roleServer) DeletePermissions(ctx context.Context, in *protobuf.RoleReleationPermissions) (*emptypb.Empty, error) {
 	permissionIds := make([]string, len(in.GetPermissions()))
 	if len(permissionIds) == 0 {
 		return &emptypb.Empty{}, nil

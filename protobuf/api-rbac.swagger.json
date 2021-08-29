@@ -36,7 +36,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobuforganizationEntities"
+              "$ref": "#/definitions/rbnsorganizationEntities"
             }
           },
           "default": {
@@ -57,7 +57,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobuforganizationEntity"
+              "$ref": "#/definitions/rbnsorganizationEntity"
             }
           },
           "default": {
@@ -73,7 +73,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/protobuforganizationEntity"
+              "$ref": "#/definitions/rbnsorganizationEntity"
             }
           }
         ],
@@ -90,7 +90,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufuserEntity"
+              "$ref": "#/definitions/rbnsuserEntity"
             }
           },
           "default": {
@@ -127,7 +127,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobuforganizationEntity"
+              "$ref": "#/definitions/rbnsorganizationEntity"
             }
           },
           "default": {
@@ -262,13 +262,13 @@
                 "roles": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/definitions/protobufroleEntity"
+                    "$ref": "#/definitions/rbnsroleEntity"
                   }
                 },
                 "permissions": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/definitions/protobufpermissionEntity"
+                    "$ref": "#/definitions/rbnspermissionEntity"
                   }
                 }
               }
@@ -288,7 +288,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufuserEntity"
+              "$ref": "#/definitions/rbnsuserEntity"
             }
           },
           "default": {
@@ -393,7 +393,7 @@
                 "roles": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/definitions/protobufroleKey"
+                    "$ref": "#/definitions/rbnsroleKey"
                   }
                 }
               }
@@ -444,7 +444,7 @@
                 "roles": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/definitions/protobufroleKey"
+                    "$ref": "#/definitions/rbnsroleKey"
                   }
                 }
               }
@@ -507,7 +507,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufpermissionEntities"
+              "$ref": "#/definitions/rbnspermissionEntities"
             }
           },
           "default": {
@@ -528,7 +528,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufpermissionEntities"
+              "$ref": "#/definitions/rbnspermissionEntities"
             }
           },
           "default": {
@@ -544,7 +544,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/protobufpermissionEntities"
+              "$ref": "#/definitions/rbnspermissionEntities"
             }
           }
         ],
@@ -561,7 +561,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufpermissionCheckResult"
+              "$ref": "#/definitions/rbnspermissionCheckResult"
             }
           },
           "default": {
@@ -577,7 +577,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/protobufpermissionCheckRequest"
+              "$ref": "#/definitions/rbnspermissionCheckRequest"
             }
           }
         ],
@@ -594,7 +594,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufpermissionEntity"
+              "$ref": "#/definitions/rbnspermissionEntity"
             }
           },
           "default": {
@@ -699,7 +699,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufroleEntities"
+              "$ref": "#/definitions/rbnsroleEntities"
             }
           },
           "default": {
@@ -720,7 +720,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufroleEntities"
+              "$ref": "#/definitions/rbnsroleEntities"
             }
           },
           "default": {
@@ -736,7 +736,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/protobufroleEntities"
+              "$ref": "#/definitions/rbnsroleEntities"
             }
           }
         ],
@@ -753,7 +753,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufroleEntity"
+              "$ref": "#/definitions/rbnsroleEntity"
             }
           },
           "default": {
@@ -858,7 +858,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufpermissionEntities"
+              "$ref": "#/definitions/rbnspermissionEntities"
             }
           },
           "default": {
@@ -914,7 +914,7 @@
                 "permissions": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/definitions/protobufpermissionKey"
+                    "$ref": "#/definitions/rbnspermissionKey"
                   }
                 }
               }
@@ -959,7 +959,7 @@
                 "permissions": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/definitions/protobufpermissionKey"
+                    "$ref": "#/definitions/rbnspermissionKey"
                   }
                 }
               }
@@ -1022,18 +1022,18 @@
         }
       }
     },
-    "protobuforganizationEntities": {
+    "rbnsorganizationEntities": {
       "type": "object",
       "properties": {
         "organizations": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/protobuforganizationEntity"
+            "$ref": "#/definitions/rbnsorganizationEntity"
           }
         }
       }
     },
-    "protobuforganizationEntity": {
+    "rbnsorganizationEntity": {
       "type": "object",
       "properties": {
         "id": {
@@ -1048,12 +1048,12 @@
         "users": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/protobufuserEntity"
+            "$ref": "#/definitions/rbnsuserEntity"
           }
         }
       }
     },
-    "protobuforganizationUser": {
+    "rbnsorganizationUser": {
       "type": "object",
       "properties": {
         "userKey": {
@@ -1070,7 +1070,7 @@
         }
       }
     },
-    "protobufpermissionCheckRequest": {
+    "rbnspermissionCheckRequest": {
       "type": "object",
       "properties": {
         "userKey": {
@@ -1087,7 +1087,7 @@
         }
       }
     },
-    "protobufpermissionCheckResult": {
+    "rbnspermissionCheckResult": {
       "type": "object",
       "properties": {
         "result": {
@@ -1098,18 +1098,18 @@
         }
       }
     },
-    "protobufpermissionEntities": {
+    "rbnspermissionEntities": {
       "type": "object",
       "properties": {
         "permissions": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/protobufpermissionEntity"
+            "$ref": "#/definitions/rbnspermissionEntity"
           }
         }
       }
     },
-    "protobufpermissionEntity": {
+    "rbnspermissionEntity": {
       "type": "object",
       "properties": {
         "id": {
@@ -1123,7 +1123,7 @@
         }
       }
     },
-    "protobufpermissionKey": {
+    "rbnspermissionKey": {
       "type": "object",
       "properties": {
         "id": {
@@ -1131,18 +1131,18 @@
         }
       }
     },
-    "protobufroleEntities": {
+    "rbnsroleEntities": {
       "type": "object",
       "properties": {
         "roles": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/protobufroleEntity"
+            "$ref": "#/definitions/rbnsroleEntity"
           }
         }
       }
     },
-    "protobufroleEntity": {
+    "rbnsroleEntity": {
       "type": "object",
       "properties": {
         "id": {
@@ -1157,18 +1157,18 @@
         "permissions": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/protobufpermissionEntity"
+            "$ref": "#/definitions/rbnspermissionEntity"
           }
         },
         "organizationUsers": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/protobuforganizationUser"
+            "$ref": "#/definitions/rbnsorganizationUser"
           }
         }
       }
     },
-    "protobufroleKey": {
+    "rbnsroleKey": {
       "type": "object",
       "properties": {
         "id": {
@@ -1176,7 +1176,7 @@
         }
       }
     },
-    "protobufuserEntity": {
+    "rbnsuserEntity": {
       "type": "object",
       "properties": {
         "key": {
@@ -1188,13 +1188,13 @@
         "roles": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/protobufroleEntity"
+            "$ref": "#/definitions/rbnsroleEntity"
           }
         },
         "permissions": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/protobufpermissionEntity"
+            "$ref": "#/definitions/rbnspermissionEntity"
           }
         }
       }

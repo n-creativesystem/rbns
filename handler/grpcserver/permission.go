@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/n-creativesystem/rbns/domain/model"
-	"github.com/n-creativesystem/rbns/proto"
+	"github.com/n-creativesystem/rbns/protobuf"
 	"github.com/n-creativesystem/rbns/protoconv"
 	"github.com/n-creativesystem/rbns/service"
 	"google.golang.org/grpc/codes"
@@ -13,23 +13,23 @@ import (
 )
 
 type permissionServer struct {
-	*proto.UnimplementedPermissionServer
+	*protobuf.UnimplementedPermissionServer
 	svc service.PermissionService
 }
 
-var _ proto.PermissionServer = (*permissionServer)(nil)
+var _ protobuf.PermissionServer = (*permissionServer)(nil)
 
-func newPermissionServer(srv service.PermissionService) proto.PermissionServer {
+func newPermissionServer(srv service.PermissionService) protobuf.PermissionServer {
 	return &permissionServer{svc: srv}
 }
 
 // Permission
-func (s *permissionServer) Create(ctx context.Context, in *proto.PermissionEntities) (*proto.PermissionEntities, error) {
-	inPermissions := make([]*proto.PermissionEntity, len(in.GetPermissions()))
+func (s *permissionServer) Create(ctx context.Context, in *protobuf.PermissionEntities) (*protobuf.PermissionEntities, error) {
+	inPermissions := make([]*protobuf.PermissionEntity, len(in.GetPermissions()))
 	copy(inPermissions, in.GetPermissions())
 	if len(inPermissions) == 0 {
-		return &proto.PermissionEntities{
-			Permissions: make([]*proto.PermissionEntity, 0),
+		return &protobuf.PermissionEntities{
+			Permissions: make([]*protobuf.PermissionEntity, 0),
 		}, nil
 	}
 	names := make([]string, len(inPermissions))
@@ -45,8 +45,8 @@ func (s *permissionServer) Create(ctx context.Context, in *proto.PermissionEntit
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	out := &proto.PermissionEntities{
-		Permissions: make([]*proto.PermissionEntity, len(permissions)),
+	out := &protobuf.PermissionEntities{
+		Permissions: make([]*protobuf.PermissionEntity, len(permissions)),
 	}
 	for idx, permission := range permissions {
 		out.Permissions[idx] = protoconv.NewPermissionEntityByModel(permission)
@@ -54,7 +54,7 @@ func (s *permissionServer) Create(ctx context.Context, in *proto.PermissionEntit
 	return out, err
 }
 
-func (s *permissionServer) FindById(ctx context.Context, in *proto.PermissionKey) (*proto.PermissionEntity, error) {
+func (s *permissionServer) FindById(ctx context.Context, in *protobuf.PermissionKey) (*protobuf.PermissionEntity, error) {
 	permission, err := s.svc.FindById(ctx, in.GetId())
 	if err != nil {
 		if err == model.ErrNoData {
@@ -65,7 +65,7 @@ func (s *permissionServer) FindById(ctx context.Context, in *proto.PermissionKey
 	return protoconv.NewPermissionEntityByModel(*permission), nil
 }
 
-func (s *permissionServer) FindAll(ctx context.Context, in *emptypb.Empty) (*proto.PermissionEntities, error) {
+func (s *permissionServer) FindAll(ctx context.Context, in *emptypb.Empty) (*protobuf.PermissionEntities, error) {
 	permissions, err := s.svc.FindAll(ctx)
 	if err != nil {
 		if err == model.ErrNoData {
@@ -73,8 +73,8 @@ func (s *permissionServer) FindAll(ctx context.Context, in *emptypb.Empty) (*pro
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	out := &proto.PermissionEntities{
-		Permissions: make([]*proto.PermissionEntity, len(permissions)),
+	out := &protobuf.PermissionEntities{
+		Permissions: make([]*protobuf.PermissionEntity, len(permissions)),
 	}
 	for idx, permission := range permissions {
 		out.Permissions[idx] = protoconv.NewPermissionEntityByModel(permission)
@@ -82,7 +82,7 @@ func (s *permissionServer) FindAll(ctx context.Context, in *emptypb.Empty) (*pro
 	return out, nil
 }
 
-func (s *permissionServer) Update(ctx context.Context, in *proto.PermissionEntity) (*emptypb.Empty, error) {
+func (s *permissionServer) Update(ctx context.Context, in *protobuf.PermissionEntity) (*emptypb.Empty, error) {
 	err := s.svc.Update(ctx, in.GetId(), in.GetName(), in.GetDescription())
 	if err != nil {
 		if err == model.ErrNoData {
@@ -93,7 +93,7 @@ func (s *permissionServer) Update(ctx context.Context, in *proto.PermissionEntit
 	return &emptypb.Empty{}, nil
 }
 
-func (s *permissionServer) Delete(ctx context.Context, in *proto.PermissionKey) (*emptypb.Empty, error) {
+func (s *permissionServer) Delete(ctx context.Context, in *protobuf.PermissionKey) (*emptypb.Empty, error) {
 	err := s.svc.Delete(ctx, in.GetId())
 	if err != nil {
 		if err == model.ErrNoData {
@@ -104,8 +104,8 @@ func (s *permissionServer) Delete(ctx context.Context, in *proto.PermissionKey) 
 	return &emptypb.Empty{}, nil
 }
 
-func (s *permissionServer) Check(ctx context.Context, in *proto.PermissionCheckRequest) (*proto.PermissionCheckResult, error) {
-	result := &proto.PermissionCheckResult{
+func (s *permissionServer) Check(ctx context.Context, in *protobuf.PermissionCheckRequest) (*protobuf.PermissionCheckResult, error) {
+	result := &protobuf.PermissionCheckResult{
 		Result:  false,
 		Message: "",
 	}
