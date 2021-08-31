@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"syscall"
@@ -19,6 +20,7 @@ var (
 		Short: "Role based N Security(RBAC)",
 		Long:  "Role based N Security(RBAC)",
 	}
+	SignalReceived = errors.New("signal received")
 )
 
 func Execute() error {
@@ -78,7 +80,7 @@ func signal(ctx context.Context) error {
 	case <-ctx.Done():
 		sig.Reset()
 		return nil
-	case s := <-osNotify:
-		return fmt.Errorf("signal received: %v", s)
+	case _ = <-osNotify:
+		return SignalReceived
 	}
 }

@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"io"
 	"math"
 	"time"
 
@@ -11,7 +12,20 @@ import (
 	"google.golang.org/grpc/keepalive"
 )
 
-type GRPCClient struct {
+type GRPCClient interface {
+	Target() string
+}
+
+type RBNS interface {
+	Permissions(ctx context.Context) Permissions
+	Roles(ctx context.Context) Roles
+	Organizations(ctx context.Context) Organizations
+	Users(ctx context.Context) Users
+	io.Closer
+	GRPCClient
+}
+
+type clientImpl struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 	conn   *grpc.ClientConn
@@ -22,15 +36,15 @@ type GRPCClient struct {
 	userClient         protobuf.UserClient
 }
 
-func NewGRPCClient(grpcAddress string) (*GRPCClient, error) {
-	return NewGRPCClientWithContext(grpcAddress, context.Background())
+func New(grpcAddress string) (RBNS, error) {
+	return NewWithContext(grpcAddress, context.Background())
 }
 
-func NewGRPCClientWithContext(grpcAddress string, baseCtx context.Context) (*GRPCClient, error) {
-	return NewGRPCClientWithContextTLS(grpcAddress, baseCtx, "", "")
+func NewWithContext(grpcAddress string, baseCtx context.Context) (RBNS, error) {
+	return NewWithContextTLS(grpcAddress, baseCtx, "", "")
 }
 
-func NewGRPCClientWithContextTLS(grpcAddress string, baseCtx context.Context, certFile, commonName string) (*GRPCClient, error) {
+func NewWithContextTLS(grpcAddress string, baseCtx context.Context, certFile, commonName string) (RBNS, error) {
 	dialOpts := []grpc.DialOption{
 		grpc.WithDefaultCallOptions(
 			grpc.MaxCallSendMsgSize(math.MaxInt32),
@@ -57,7 +71,7 @@ func NewGRPCClientWithContextTLS(grpcAddress string, baseCtx context.Context, ce
 		cancel()
 		return nil, err
 	}
-	return &GRPCClient{
+	return &clientImpl{
 		ctx:                ctx,
 		cancel:             cancel,
 		conn:               conn,
@@ -68,7 +82,7 @@ func NewGRPCClientWithContextTLS(grpcAddress string, baseCtx context.Context, ce
 	}, nil
 }
 
-func (c *GRPCClient) Close() error {
+func (c *clientImpl) Close() error {
 	c.cancel()
 	if c.conn != nil {
 		return c.conn.Close()
@@ -76,34 +90,34 @@ func (c *GRPCClient) Close() error {
 	return c.ctx.Err()
 }
 
-func (c *GRPCClient) Target() string {
+func (c *clientImpl) Target() string {
 	return c.conn.Target()
 }
 
-func (c *GRPCClient) Permissions() Permissions {
+func (c *clientImpl) Permissions(ctx context.Context) Permissions {
 	return &permissionClient{
-		ctx:    c.ctx,
+		ctx:    ctx,
 		client: c.permissionClient,
 	}
 }
 
-func (c *GRPCClient) Roles() Roles {
+func (c *clientImpl) Roles(ctx context.Context) Roles {
 	return &roleClient{
-		ctx:    c.ctx,
+		ctx:    ctx,
 		client: c.roleClient,
 	}
 }
 
-func (c *GRPCClient) Organizations() Organizations {
+func (c *clientImpl) Organizations(ctx context.Context) Organizations {
 	return &organizationClient{
-		ctx:    c.ctx,
+		ctx:    ctx,
 		client: c.organizationClient,
 	}
 }
 
-func (c *GRPCClient) Users() Users {
+func (c *clientImpl) Users(ctx context.Context) Users {
 	return &userClient{
-		ctx:    c.ctx,
+		ctx:    ctx,
 		client: c.userClient,
 	}
 }

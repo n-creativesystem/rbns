@@ -31,6 +31,7 @@ type userClient struct {
 }
 
 func (c *userClient) FindByKey(in *protobuf.UserKey, opts ...grpc.CallOption) (*protobuf.UserEntity, error) {
+
 	return c.client.FindByKey(c.ctx, in, opts...)
 }
 

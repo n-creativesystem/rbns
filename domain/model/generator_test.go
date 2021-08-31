@@ -1,4 +1,4 @@
-package entity
+package model
 
 import (
 	"sync"
@@ -13,7 +13,7 @@ func TestULIDGenerate(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			ul := generate()
+			ul := Generate()
 			logrus.Println(ul)
 		}()
 	}

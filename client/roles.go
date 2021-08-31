@@ -67,5 +67,8 @@ func (c *roleClient) Create(in *protobuf.RoleEntities, opts ...grpc.CallOption) 
 }
 
 func (c *roleClient) FindAll(in *emptypb.Empty, opts ...grpc.CallOption) (*protobuf.RoleEntities, error) {
+	if in == nil {
+		in = &emptypb.Empty{}
+	}
 	return c.client.FindAll(c.ctx, in, opts...)
 }

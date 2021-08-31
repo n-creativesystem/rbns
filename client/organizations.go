@@ -8,6 +8,10 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
+const (
+	defaultOrganizationName = "default"
+)
+
 type Organizations interface {
 	// FindById is application id and organization id
 	FindById(in *protobuf.OrganizationKey, opts ...grpc.CallOption) (*protobuf.OrganizationEntity, error)
@@ -31,10 +35,16 @@ func (c *organizationClient) FindById(in *protobuf.OrganizationKey, opts ...grpc
 }
 
 func (c *organizationClient) FindAll(in *emptypb.Empty, opts ...grpc.CallOption) (*protobuf.OrganizationEntities, error) {
+	if in == nil {
+		in = &emptypb.Empty{}
+	}
 	return c.client.FindAll(c.ctx, in, opts...)
 }
 
 func (c *organizationClient) Update(in *protobuf.OrganizationUpdateEntity, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	if in.Name == "" {
+		in.Name = defaultOrganizationName
+	}
 	return c.client.Update(c.ctx, in, opts...)
 }
 
@@ -43,5 +53,8 @@ func (c *organizationClient) Delete(in *protobuf.OrganizationKey, opts ...grpc.C
 }
 
 func (c *organizationClient) Create(in *protobuf.OrganizationEntity, opts ...grpc.CallOption) (*protobuf.OrganizationEntity, error) {
+	if in.Name == "" {
+		in.Name = defaultOrganizationName
+	}
 	return c.client.Create(c.ctx, in, opts...)
 }

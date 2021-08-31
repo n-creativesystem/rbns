@@ -94,23 +94,7 @@ func init() {
 	runCmd.PersistentFlags().IntVar(&httpSrv.port, "gateway-port", 8080, "http port")
 	runCmd.PersistentFlags().IntVar(&gRPCSrv.port, "grpc-port", 8888, "grpc port")
 	runCmd.PersistentFlags().StringVar(&storageType, "storage-type", "postgres", "persistent storage type")
-	// runCmd.PersistentFlags().BoolVar(&debug, "debug", true, "debug mode")
-	// runCmd.PersistentFlags().StringVar(&whiteList, "whitelist", "", "ip address whitelist(CIDR)")
-	// runCmd.PersistentFlags().BoolVar(&secure, "secure", false, "api key guard")
-	// runCmd.PersistentFlags().BoolVar(&ui.enable, "ui", true, "setting is web ui")
-	// runCmd.PersistentFlags().StringVar(&ui.prefix, "uiPrefix", "/", "static file prefix")
-	// runCmd.PersistentFlags().StringVar(&database.dialector, "dialector", "postgres", "database driver dialector")
-	// runCmd.PersistentFlags().StringVar(&database.masterDSN, "masterDSN", os.Getenv(consts.MASTER_DSN), "master database source name")
-	// runCmd.PersistentFlags().StringVar(&database.slaveDSN, "slaveDSN", os.Getenv(consts.SLAVE_DSN), "slave database source name")
-	// runCmd.PersistentFlags().IntVar(&database.maxIdleConns, "maxIdleConns", 10, "database max idle connections")
-	// runCmd.PersistentFlags().IntVar(&database.maxOpenConns, "maxOpenConns", 100, "database max open connections")
-	// runCmd.PersistentFlags().IntVar(&database.maxLifeTime, "maxLifeTime", 1, "database connection life time")
-	// runCmd.PersistentFlags().StringVar(&ui.root, "staticRoot", "./static", "web ui static root")
-	// runCmd.PersistentFlags().BoolVar(&ui.indexes, "staticIndexes", false, "web ui static allow indexes")
 	runCmd.PersistentFlags().StringVar(&ui.baseURL, "baseURL", "/", "base url")
-	// runCmd.PersistentFlags().StringVar(&apiKey, "apiKey", "", "api key")
-	// runCmd.PersistentFlags().StringVar(&database.dbType, "databaseType", "rdb", "database type")
-	// runCmd.PersistentFlags().StringVar(&omitHeaders, "omitHeaders", "", "loging omit header")
 }
 
 func run(ctx context.Context, reader repository.Reader, writer repository.Writer, log *logrus.Logger) error {
@@ -156,7 +140,13 @@ func run(ctx context.Context, reader repository.Reader, writer repository.Writer
 		<-ctx.Done()
 		return ctx.Err()
 	})
-	return eg.Wait()
+	if err := eg.Wait(); err != nil {
+		if err == SignalReceived {
+			return nil
+		}
+		return err
+	}
+	return nil
 }
 
 func runRest(ctx context.Context, li net.Listener, log *logrus.Logger) error {

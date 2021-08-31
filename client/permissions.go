@@ -49,5 +49,8 @@ func (c *permissionClient) Create(in *protobuf.PermissionEntities, opts ...grpc.
 }
 
 func (c *permissionClient) FindAll(in *emptypb.Empty, opts ...grpc.CallOption) (*protobuf.PermissionEntities, error) {
+	if in == nil {
+		in = &emptypb.Empty{}
+	}
 	return c.client.FindAll(c.ctx, in, opts...)
 }
