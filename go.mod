@@ -13,7 +13,6 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.5.0
 	github.com/iancoleman/strcase v0.2.0 // indirect
 	github.com/jackc/pgconn v1.10.0
-	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/kr/text v0.2.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/lyft/protoc-gen-star v0.6.0 // indirect
