@@ -32,22 +32,26 @@ func UnaryServerInterceptor(client RBNS, mp MethodPermissions, rbacFunc Organiza
 				permissions = append(permissions, v...)
 			}
 		}
-		newCtx, userKey, organizationName, err = rbacFunc(ctx)
-		if err != nil {
-			return nil, err
-		}
-		result, err := client.Permissions(newCtx).Check(&protobuf.PermissionCheckRequest{
-			UserKey:          userKey,
-			OrganizationName: organizationName,
-			PermissionNames:  permissions,
-		})
-		if err != nil {
-			return nil, status.Error(codes.PermissionDenied, err.Error())
-		}
-		if result.Result {
+		if len(permissions) > 0 {
+			newCtx, userKey, organizationName, err = rbacFunc(ctx)
+			if err != nil {
+				return nil, err
+			}
+			result, err := client.Permissions(newCtx).Check(&protobuf.PermissionCheckRequest{
+				UserKey:          userKey,
+				OrganizationName: organizationName,
+				PermissionNames:  permissions,
+			})
+			if err != nil {
+				return nil, status.Error(codes.PermissionDenied, err.Error())
+			}
+			if result.Result {
+				return handler(newCtx, req)
+			}
+			return nil, status.Error(codes.PermissionDenied, codes.PermissionDenied.String())
+		} else {
 			return handler(newCtx, req)
 		}
-		return nil, status.Error(codes.PermissionDenied, codes.PermissionDenied.String())
 	}
 }
 
@@ -65,23 +69,29 @@ func StreamServerInterceptor(client RBNS, mp MethodPermissions, rbacFunc Organiz
 				permissions = append(permissions, v...)
 			}
 		}
-		newCtx, userKey, organizationName, err = rbacFunc(stream.Context())
-		if err != nil {
-			return err
-		}
-		result, err := client.Permissions(newCtx).Check(&protobuf.PermissionCheckRequest{
-			UserKey:          userKey,
-			OrganizationName: organizationName,
-			PermissionNames:  permissions,
-		})
-		if err != nil {
-			return err
-		}
-		if result.Result {
+		if len(permissions) > 0 {
+			newCtx, userKey, organizationName, err = rbacFunc(stream.Context())
+			if err != nil {
+				return err
+			}
+			result, err := client.Permissions(newCtx).Check(&protobuf.PermissionCheckRequest{
+				UserKey:          userKey,
+				OrganizationName: organizationName,
+				PermissionNames:  permissions,
+			})
+			if err != nil {
+				return err
+			}
+			if result.Result {
+				wrapped := grpc_middleware.WrapServerStream(stream)
+				wrapped.WrappedContext = newCtx
+				return handler(srv, wrapped)
+			}
+			return status.Error(codes.PermissionDenied, codes.PermissionDenied.String())
+		} else {
 			wrapped := grpc_middleware.WrapServerStream(stream)
 			wrapped.WrappedContext = newCtx
 			return handler(srv, wrapped)
 		}
-		return status.Error(codes.PermissionDenied, codes.PermissionDenied.String())
 	}
 }
