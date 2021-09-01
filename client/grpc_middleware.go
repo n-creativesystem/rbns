@@ -15,7 +15,7 @@ type MethodPermissions map[string][]string
 type OrganizationUserFunc func(ctx context.Context) (newCtx context.Context, userKey string, organizationName string, err error)
 
 type ServiceRBACFuncOverride interface {
-	OrganizationUserFuncOverride(ctx context.Context, fullMethodName string) (newCtx context.Context, userKey string, organizationName string, err error)
+	OrganizationUserFuncOverride(ctx context.Context, fullMethodName string) []string
 }
 
 func UnaryServerInterceptor(client RBNS, mp MethodPermissions, rbacFunc OrganizationUserFunc) grpc.UnaryServerInterceptor {
@@ -24,14 +24,15 @@ func UnaryServerInterceptor(client RBNS, mp MethodPermissions, rbacFunc Organiza
 		var userKey, organizationName string
 		var err error
 		var permissions []string
-		if v, ok := mp[info.FullMethod]; ok {
-			permissions = append(permissions, v...)
-		}
 		if overrideSrv, ok := info.Server.(ServiceRBACFuncOverride); ok {
-			newCtx, userKey, organizationName, err = overrideSrv.OrganizationUserFuncOverride(ctx, info.FullMethod)
+			p := overrideSrv.OrganizationUserFuncOverride(ctx, info.FullMethod)
+			permissions = append(permissions, p...)
 		} else {
-			newCtx, userKey, organizationName, err = rbacFunc(ctx)
+			if v, ok := mp[info.FullMethod]; ok {
+				permissions = append(permissions, v...)
+			}
 		}
+		newCtx, userKey, organizationName, err = rbacFunc(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -56,14 +57,15 @@ func StreamServerInterceptor(client RBNS, mp MethodPermissions, rbacFunc Organiz
 		var userKey, organizationName string
 		var err error
 		var permissions []string
-		if v, ok := mp[info.FullMethod]; ok {
-			permissions = append(permissions, v...)
-		}
 		if overrideSrv, ok := srv.(ServiceRBACFuncOverride); ok {
-			newCtx, userKey, organizationName, err = overrideSrv.OrganizationUserFuncOverride(stream.Context(), info.FullMethod)
+			p := overrideSrv.OrganizationUserFuncOverride(stream.Context(), info.FullMethod)
+			permissions = append(permissions, p...)
 		} else {
-			newCtx, userKey, organizationName, err = rbacFunc(stream.Context())
+			if v, ok := mp[info.FullMethod]; ok {
+				permissions = append(permissions, v...)
+			}
 		}
+		newCtx, userKey, organizationName, err = rbacFunc(stream.Context())
 		if err != nil {
 			return err
 		}
