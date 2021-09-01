@@ -1,5 +1,5 @@
-DSN: 'postgres://rbac-user:rbac-user@api-rbac-postgres-dev:5432/rbac-user'
-SLAVE_DSN: 'postgres://rbac-user:rbac-user@api-rbac-postgres-dev:5432/rbac-user'
+DSN: 'postgres://rbac-user:rbac-user@api-rbac-postgres-dev:5432/postgres'
+SLAVE_DSN: 'postgres://rbac-user:rbac-user@api-rbac-postgres-dev:5432/postgres'
 MAX_IDLE_CONNS: 100
 MAX_OPEN_CONNS: 10
 MAX_LIFE_TIME: 1h

@@ -12,6 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 type ApiKeyManagements struct {
@@ -94,5 +95,6 @@ func New(reader repository.Reader, writer repository.Writer, logger *logrus.Logg
 	protobuf.RegisterResourceServer(server, reSrv)
 	envoyAuthzRegister(server, authSrv)
 	healthRegister(server)
+	reflection.Register(server)
 	return server
 }
