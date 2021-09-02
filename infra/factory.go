@@ -25,8 +25,8 @@ func NewFactory(typ string) (storage.Factory, map[string]interface{}, error) {
 	}
 	v.AddConfigPath(filepath.Join(homedir, ".rbns"))
 	v.AddConfigPath("/etc/rbns")
-	v.SetConfigFile("storage.yaml")
-	v.SetConfigType("yaml")
+	v.AddConfigPath("./")
+	v.SetConfigName("storage")
 	if err := v.ReadInConfig(); err != nil {
 		return nil, nil, err
 	}
