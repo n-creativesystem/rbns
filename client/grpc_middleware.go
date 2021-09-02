@@ -4,7 +4,6 @@ import (
 	"context"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	"github.com/n-creativesystem/rbns/protobuf"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -21,8 +20,6 @@ type ServiceRBACFuncOverride interface {
 func UnaryServerInterceptor(client RBNS, mp MethodPermissions, rbacFunc OrganizationUserFunc) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		var newCtx context.Context
-		var userKey, organizationName string
-		var err error
 		var permissions []string
 		if overrideSrv, ok := info.Server.(ServiceRBACFuncOverride); ok {
 			p := overrideSrv.OrganizationUserFuncOverride(ctx, info.FullMethod)
@@ -33,22 +30,13 @@ func UnaryServerInterceptor(client RBNS, mp MethodPermissions, rbacFunc Organiza
 			}
 		}
 		if len(permissions) > 0 {
-			newCtx, userKey, organizationName, err = rbacFunc(ctx)
-			if err != nil {
+			if newCtx, result, err := CheckPermissions(ctx, client, rbacFunc, permissions...); err != nil {
 				return nil, err
-			}
-			result, err := client.Permissions(newCtx).Check(&protobuf.PermissionCheckRequest{
-				UserKey:          userKey,
-				OrganizationName: organizationName,
-				PermissionNames:  permissions,
-			})
-			if err != nil {
-				return nil, status.Error(codes.PermissionDenied, err.Error())
-			}
-			if result.Result {
+			} else if result {
 				return handler(newCtx, req)
+			} else {
+				return nil, status.Error(codes.PermissionDenied, codes.PermissionDenied.String())
 			}
-			return nil, status.Error(codes.PermissionDenied, codes.PermissionDenied.String())
 		} else {
 			return handler(newCtx, req)
 		}
@@ -58,8 +46,6 @@ func UnaryServerInterceptor(client RBNS, mp MethodPermissions, rbacFunc Organiza
 func StreamServerInterceptor(client RBNS, mp MethodPermissions, rbacFunc OrganizationUserFunc) grpc.StreamServerInterceptor {
 	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		var newCtx context.Context
-		var userKey, organizationName string
-		var err error
 		var permissions []string
 		if overrideSrv, ok := srv.(ServiceRBACFuncOverride); ok {
 			p := overrideSrv.OrganizationUserFuncOverride(stream.Context(), info.FullMethod)
@@ -70,24 +56,15 @@ func StreamServerInterceptor(client RBNS, mp MethodPermissions, rbacFunc Organiz
 			}
 		}
 		if len(permissions) > 0 {
-			newCtx, userKey, organizationName, err = rbacFunc(stream.Context())
-			if err != nil {
+			if newCtx, result, err := CheckPermissions(stream.Context(), client, rbacFunc, permissions...); err != nil {
 				return err
-			}
-			result, err := client.Permissions(newCtx).Check(&protobuf.PermissionCheckRequest{
-				UserKey:          userKey,
-				OrganizationName: organizationName,
-				PermissionNames:  permissions,
-			})
-			if err != nil {
-				return err
-			}
-			if result.Result {
+			} else if result {
 				wrapped := grpc_middleware.WrapServerStream(stream)
 				wrapped.WrappedContext = newCtx
 				return handler(srv, wrapped)
+			} else {
+				return status.Error(codes.PermissionDenied, codes.PermissionDenied.String())
 			}
-			return status.Error(codes.PermissionDenied, codes.PermissionDenied.String())
 		} else {
 			wrapped := grpc_middleware.WrapServerStream(stream)
 			wrapped.WrappedContext = newCtx
