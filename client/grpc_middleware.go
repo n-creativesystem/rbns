@@ -19,7 +19,6 @@ type ServiceRBACFuncOverride interface {
 
 func UnaryServerInterceptor(client RBNS, mp MethodPermissions, rbacFunc OrganizationUserFunc) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		var newCtx context.Context
 		var permissions []string
 		if overrideSrv, ok := info.Server.(ServiceRBACFuncOverride); ok {
 			p := overrideSrv.OrganizationUserFuncOverride(ctx, info.FullMethod)
@@ -38,14 +37,13 @@ func UnaryServerInterceptor(client RBNS, mp MethodPermissions, rbacFunc Organiza
 				return nil, status.Error(codes.PermissionDenied, codes.PermissionDenied.String())
 			}
 		} else {
-			return handler(newCtx, req)
+			return handler(ctx, req)
 		}
 	}
 }
 
 func StreamServerInterceptor(client RBNS, mp MethodPermissions, rbacFunc OrganizationUserFunc) grpc.StreamServerInterceptor {
 	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-		var newCtx context.Context
 		var permissions []string
 		if overrideSrv, ok := srv.(ServiceRBACFuncOverride); ok {
 			p := overrideSrv.OrganizationUserFuncOverride(stream.Context(), info.FullMethod)
@@ -67,7 +65,7 @@ func StreamServerInterceptor(client RBNS, mp MethodPermissions, rbacFunc Organiz
 			}
 		} else {
 			wrapped := grpc_middleware.WrapServerStream(stream)
-			wrapped.WrappedContext = newCtx
+			wrapped.WrappedContext = stream.Context()
 			return handler(srv, wrapped)
 		}
 	}
