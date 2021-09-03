@@ -691,6 +691,118 @@
         ]
       }
     },
+    "/api/v1/resources": {
+      "get": {
+        "operationId": "Resource_FindAll",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rbnsresourceResponses"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Resource"
+        ]
+      },
+      "post": {
+        "operationId": "Resource_Save",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rbnsresourceSaveRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Resource"
+        ]
+      }
+    },
+    "/api/v1/resources/{id}": {
+      "get": {
+        "operationId": "Resource_Find",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rbnsresourceResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Resource"
+        ]
+      }
+    },
+    "/api/v1/resources/{id}/exists": {
+      "get": {
+        "operationId": "Resource_Exists",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rbnsresourceExistsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Resource"
+        ]
+      }
+    },
     "/api/v1/roles": {
       "get": {
         "summary": "FindAll is find roles",
@@ -1128,6 +1240,59 @@
       "properties": {
         "id": {
           "type": "string"
+        }
+      }
+    },
+    "rbnsresourceExistsResponse": {
+      "type": "object",
+      "properties": {
+        "isExists": {
+          "type": "boolean"
+        }
+      }
+    },
+    "rbnsresourceResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "permissions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rbnspermissionEntity"
+          }
+        }
+      }
+    },
+    "rbnsresourceResponses": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rbnsresourceResponse"
+          }
+        }
+      }
+    },
+    "rbnsresourceSaveRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "permissionNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },

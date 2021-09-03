@@ -202,12 +202,34 @@ service User {
 }
 
 service Resource {
-    rpc Save (saveRequest) returns (google.protobuf.Empty) {
-        option (google.api.http) = {};
+
+    rpc Find(resourceFindRequest) returns (resourceResponse) {
+        option (google.api.http) = {
+            get: "/api/v1/resources/{id}"
+        };
     }
-    rpc Authz (authzRequest) returns (google.protobuf.Empty) {
-        option (google.api.http) = {};
+
+    rpc Exists (resourceFindRequest) returns (resourceExistsResponse) {
+        option (google.api.http) = {
+            get: "/api/v1/resources/{id}/exists"
+        };
     }
+
+    rpc Save (resourceSaveRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/api/v1/resources"
+            body: "*"
+        };
+    }
+    
+    rpc FindAll(google.protobuf.Empty) returns (resourceResponses) {
+        option (google.api.http) = {
+            get: "/api/v1/resources"
+        };
+    }
+
+    // Migration 存在しない場合のみリソースを作成
+    rpc Migration (resourceSaveRequest) returns (google.protobuf.Empty) {}
 }
 
 message userKey {
@@ -324,11 +346,28 @@ message organizationKey {
     string id = 1;
 }
 
+message resourceSaveRequest {
+    string id = 1 [(validate.rules).string = {min_len: 1}];
+    string description = 2;
+    repeated string permissionNames = 3 [(validate.rules).repeated.min_items = 1];
+}
 
-message saveRequest {
-    string method = 1 [(validate.rules).string = {min_len: 1}];
-    string uri = 2 [(validate.rules).string = {min_len: 1}];
-    repeated string permissions = 3;
+message resourceFindRequest {
+    string id = 1 [(validate.rules).string = {min_len: 1}];
+}
+
+message resourceExistsResponse {
+    bool isExists = 1;
+}
+
+message resourceResponse {
+    string id = 1 [(validate.rules).string = {min_len: 1}];
+    string description = 2;
+    repeated permissionEntity permissions = 3;
+}
+
+message resourceResponses {
+    repeated resourceResponse response = 1;
 }
 
 message authzRequest {

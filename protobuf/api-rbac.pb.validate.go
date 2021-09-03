@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/golang/protobuf/ptypes"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 // ensure the imports are used
@@ -30,7 +30,7 @@ var (
 	_ = time.Duration(0)
 	_ = (*url.URL)(nil)
 	_ = (*mail.Address)(nil)
-	_ = ptypes.DynamicAny{}
+	_ = anypb.Any{}
 )
 
 // Validate checks the field values on UserKey with the rules defined in the
@@ -280,9 +280,19 @@ func (m *OrganizationUser) Validate() error {
 
 	// no validation rules for OrganizationId
 
-	// no validation rules for OrganizationName
+	if utf8.RuneCountInString(m.GetOrganizationName()) < 1 {
+		return OrganizationUserValidationError{
+			field:  "OrganizationName",
+			reason: "value length must be at least 1 runes",
+		}
+	}
 
-	// no validation rules for OrganizationDescription
+	if utf8.RuneCountInString(m.GetOrganizationDescription()) < 1 {
+		return OrganizationUserValidationError{
+			field:  "OrganizationDescription",
+			reason: "value length must be at least 1 runes",
+		}
+	}
 
 	return nil
 }
@@ -350,7 +360,12 @@ func (m *UserRole) Validate() error {
 
 	// no validation rules for Key
 
-	// no validation rules for OrganizationId
+	if utf8.RuneCountInString(m.GetOrganizationId()) < 1 {
+		return UserRoleValidationError{
+			field:  "OrganizationId",
+			reason: "value length must be at least 1 runes",
+		}
+	}
 
 	for idx, item := range m.GetRoles() {
 		_, _ = idx, item
@@ -432,11 +447,26 @@ func (m *UserRoleDelete) Validate() error {
 		return nil
 	}
 
-	// no validation rules for Key
+	if utf8.RuneCountInString(m.GetKey()) < 1 {
+		return UserRoleDeleteValidationError{
+			field:  "Key",
+			reason: "value length must be at least 1 runes",
+		}
+	}
 
-	// no validation rules for OrganizationId
+	if utf8.RuneCountInString(m.GetOrganizationId()) < 1 {
+		return UserRoleDeleteValidationError{
+			field:  "OrganizationId",
+			reason: "value length must be at least 1 runes",
+		}
+	}
 
-	// no validation rules for RoleId
+	if utf8.RuneCountInString(m.GetRoleId()) < 1 {
+		return UserRoleDeleteValidationError{
+			field:  "RoleId",
+			reason: "value length must be at least 1 runes",
+		}
+	}
 
 	return nil
 }
@@ -505,9 +535,19 @@ func (m *PermissionEntity) Validate() error {
 
 	// no validation rules for Id
 
-	// no validation rules for Name
+	if utf8.RuneCountInString(m.GetName()) < 1 {
+		return PermissionEntityValidationError{
+			field:  "Name",
+			reason: "value length must be at least 1 runes",
+		}
+	}
 
-	// no validation rules for Description
+	if utf8.RuneCountInString(m.GetDescription()) < 1 {
+		return PermissionEntityValidationError{
+			field:  "Description",
+			reason: "value length must be at least 1 runes",
+		}
+	}
 
 	return nil
 }
@@ -723,9 +763,26 @@ func (m *PermissionCheckRequest) Validate() error {
 		return nil
 	}
 
-	// no validation rules for UserKey
+	if utf8.RuneCountInString(m.GetUserKey()) < 1 {
+		return PermissionCheckRequestValidationError{
+			field:  "UserKey",
+			reason: "value length must be at least 1 runes",
+		}
+	}
 
-	// no validation rules for OrganizationName
+	if utf8.RuneCountInString(m.GetOrganizationName()) < 1 {
+		return PermissionCheckRequestValidationError{
+			field:  "OrganizationName",
+			reason: "value length must be at least 1 runes",
+		}
+	}
+
+	if len(m.GetPermissionNames()) < 1 {
+		return PermissionCheckRequestValidationError{
+			field:  "PermissionNames",
+			reason: "value must contain at least 1 item(s)",
+		}
+	}
 
 	return nil
 }
@@ -866,9 +923,19 @@ func (m *RoleEntity) Validate() error {
 
 	// no validation rules for Id
 
-	// no validation rules for Name
+	if utf8.RuneCountInString(m.GetName()) < 1 {
+		return RoleEntityValidationError{
+			field:  "Name",
+			reason: "value length must be at least 1 runes",
+		}
+	}
 
-	// no validation rules for Description
+	if utf8.RuneCountInString(m.GetDescription()) < 1 {
+		return RoleEntityValidationError{
+			field:  "Description",
+			reason: "value length must be at least 1 runes",
+		}
+	}
 
 	for idx, item := range m.GetPermissions() {
 		_, _ = idx, item
@@ -967,9 +1034,19 @@ func (m *RoleUpdateEntity) Validate() error {
 
 	// no validation rules for Id
 
-	// no validation rules for Name
+	if utf8.RuneCountInString(m.GetName()) < 1 {
+		return RoleUpdateEntityValidationError{
+			field:  "Name",
+			reason: "value length must be at least 1 runes",
+		}
+	}
 
-	// no validation rules for Description
+	if utf8.RuneCountInString(m.GetDescription()) < 1 {
+		return RoleUpdateEntityValidationError{
+			field:  "Description",
+			reason: "value length must be at least 1 runes",
+		}
+	}
 
 	return nil
 }
@@ -1339,9 +1416,19 @@ func (m *OrganizationEntity) Validate() error {
 
 	// no validation rules for Id
 
-	// no validation rules for Name
+	if utf8.RuneCountInString(m.GetName()) < 1 {
+		return OrganizationEntityValidationError{
+			field:  "Name",
+			reason: "value length must be at least 1 runes",
+		}
+	}
 
-	// no validation rules for Description
+	if utf8.RuneCountInString(m.GetDescription()) < 1 {
+		return OrganizationEntityValidationError{
+			field:  "Description",
+			reason: "value length must be at least 1 runes",
+		}
+	}
 
 	for idx, item := range m.GetUsers() {
 		_, _ = idx, item
@@ -1427,9 +1514,19 @@ func (m *OrganizationUpdateEntity) Validate() error {
 
 	// no validation rules for Id
 
-	// no validation rules for Name
+	if utf8.RuneCountInString(m.GetName()) < 1 {
+		return OrganizationUpdateEntityValidationError{
+			field:  "Name",
+			reason: "value length must be at least 1 runes",
+		}
+	}
 
-	// no validation rules for Description
+	if utf8.RuneCountInString(m.GetDescription()) < 1 {
+		return OrganizationUpdateEntityValidationError{
+			field:  "Description",
+			reason: "value length must be at least 1 runes",
+		}
+	}
 
 	return nil
 }
@@ -1639,24 +1736,36 @@ var _ interface {
 	ErrorName() string
 } = OrganizationKeyValidationError{}
 
-// Validate checks the field values on SaveRequest with the rules defined in
-// the proto definition for this message. If any rules are violated, an error
-// is returned.
-func (m *SaveRequest) Validate() error {
+// Validate checks the field values on ResourceSaveRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *ResourceSaveRequest) Validate() error {
 	if m == nil {
 		return nil
 	}
 
-	// no validation rules for Method
+	if utf8.RuneCountInString(m.GetId()) < 1 {
+		return ResourceSaveRequestValidationError{
+			field:  "Id",
+			reason: "value length must be at least 1 runes",
+		}
+	}
 
-	// no validation rules for Uri
+	// no validation rules for Description
+
+	if len(m.GetPermissionNames()) < 1 {
+		return ResourceSaveRequestValidationError{
+			field:  "PermissionNames",
+			reason: "value must contain at least 1 item(s)",
+		}
+	}
 
 	return nil
 }
 
-// SaveRequestValidationError is the validation error returned by
-// SaveRequest.Validate if the designated constraints aren't met.
-type SaveRequestValidationError struct {
+// ResourceSaveRequestValidationError is the validation error returned by
+// ResourceSaveRequest.Validate if the designated constraints aren't met.
+type ResourceSaveRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -1664,22 +1773,24 @@ type SaveRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e SaveRequestValidationError) Field() string { return e.field }
+func (e ResourceSaveRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e SaveRequestValidationError) Reason() string { return e.reason }
+func (e ResourceSaveRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e SaveRequestValidationError) Cause() error { return e.cause }
+func (e ResourceSaveRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e SaveRequestValidationError) Key() bool { return e.key }
+func (e ResourceSaveRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e SaveRequestValidationError) ErrorName() string { return "SaveRequestValidationError" }
+func (e ResourceSaveRequestValidationError) ErrorName() string {
+	return "ResourceSaveRequestValidationError"
+}
 
 // Error satisfies the builtin error interface
-func (e SaveRequestValidationError) Error() string {
+func (e ResourceSaveRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -1691,14 +1802,14 @@ func (e SaveRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sSaveRequest.%s: %s%s",
+		"invalid %sResourceSaveRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = SaveRequestValidationError{}
+var _ error = ResourceSaveRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -1706,7 +1817,321 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = SaveRequestValidationError{}
+} = ResourceSaveRequestValidationError{}
+
+// Validate checks the field values on ResourceFindRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *ResourceFindRequest) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if utf8.RuneCountInString(m.GetId()) < 1 {
+		return ResourceFindRequestValidationError{
+			field:  "Id",
+			reason: "value length must be at least 1 runes",
+		}
+	}
+
+	return nil
+}
+
+// ResourceFindRequestValidationError is the validation error returned by
+// ResourceFindRequest.Validate if the designated constraints aren't met.
+type ResourceFindRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ResourceFindRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ResourceFindRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ResourceFindRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ResourceFindRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ResourceFindRequestValidationError) ErrorName() string {
+	return "ResourceFindRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ResourceFindRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sResourceFindRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ResourceFindRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ResourceFindRequestValidationError{}
+
+// Validate checks the field values on ResourceExistsResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *ResourceExistsResponse) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for IsExists
+
+	return nil
+}
+
+// ResourceExistsResponseValidationError is the validation error returned by
+// ResourceExistsResponse.Validate if the designated constraints aren't met.
+type ResourceExistsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ResourceExistsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ResourceExistsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ResourceExistsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ResourceExistsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ResourceExistsResponseValidationError) ErrorName() string {
+	return "ResourceExistsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ResourceExistsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sResourceExistsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ResourceExistsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ResourceExistsResponseValidationError{}
+
+// Validate checks the field values on ResourceResponse with the rules defined
+// in the proto definition for this message. If any rules are violated, an
+// error is returned.
+func (m *ResourceResponse) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if utf8.RuneCountInString(m.GetId()) < 1 {
+		return ResourceResponseValidationError{
+			field:  "Id",
+			reason: "value length must be at least 1 runes",
+		}
+	}
+
+	// no validation rules for Description
+
+	for idx, item := range m.GetPermissions() {
+		_, _ = idx, item
+
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ResourceResponseValidationError{
+					field:  fmt.Sprintf("Permissions[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// ResourceResponseValidationError is the validation error returned by
+// ResourceResponse.Validate if the designated constraints aren't met.
+type ResourceResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ResourceResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ResourceResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ResourceResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ResourceResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ResourceResponseValidationError) ErrorName() string { return "ResourceResponseValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ResourceResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sResourceResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ResourceResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ResourceResponseValidationError{}
+
+// Validate checks the field values on ResourceResponses with the rules defined
+// in the proto definition for this message. If any rules are violated, an
+// error is returned.
+func (m *ResourceResponses) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	for idx, item := range m.GetResponse() {
+		_, _ = idx, item
+
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ResourceResponsesValidationError{
+					field:  fmt.Sprintf("Response[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// ResourceResponsesValidationError is the validation error returned by
+// ResourceResponses.Validate if the designated constraints aren't met.
+type ResourceResponsesValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ResourceResponsesValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ResourceResponsesValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ResourceResponsesValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ResourceResponsesValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ResourceResponsesValidationError) ErrorName() string {
+	return "ResourceResponsesValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ResourceResponsesValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sResourceResponses.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ResourceResponsesValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ResourceResponsesValidationError{}
 
 // Validate checks the field values on AuthzRequest with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
@@ -1716,13 +2141,33 @@ func (m *AuthzRequest) Validate() error {
 		return nil
 	}
 
-	// no validation rules for Method
+	if utf8.RuneCountInString(m.GetMethod()) < 1 {
+		return AuthzRequestValidationError{
+			field:  "Method",
+			reason: "value length must be at least 1 runes",
+		}
+	}
 
-	// no validation rules for Uri
+	if utf8.RuneCountInString(m.GetUri()) < 1 {
+		return AuthzRequestValidationError{
+			field:  "Uri",
+			reason: "value length must be at least 1 runes",
+		}
+	}
 
-	// no validation rules for OrganizationName
+	if utf8.RuneCountInString(m.GetOrganizationName()) < 1 {
+		return AuthzRequestValidationError{
+			field:  "OrganizationName",
+			reason: "value length must be at least 1 runes",
+		}
+	}
 
-	// no validation rules for UserKey
+	if utf8.RuneCountInString(m.GetUserKey()) < 1 {
+		return AuthzRequestValidationError{
+			field:  "UserKey",
+			reason: "value length must be at least 1 runes",
+		}
+	}
 
 	return nil
 }

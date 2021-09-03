@@ -1245,8 +1245,12 @@ var User_ServiceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ResourceClient interface {
-	Save(ctx context.Context, in *SaveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	Authz(ctx context.Context, in *AuthzRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Find(ctx context.Context, in *ResourceFindRequest, opts ...grpc.CallOption) (*ResourceResponse, error)
+	Exists(ctx context.Context, in *ResourceFindRequest, opts ...grpc.CallOption) (*ResourceExistsResponse, error)
+	Save(ctx context.Context, in *ResourceSaveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	FindAll(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ResourceResponses, error)
+	// Migration 存在しない場合のみリソースを作成
+	Migration(ctx context.Context, in *ResourceSaveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type resourceClient struct {
@@ -1257,7 +1261,25 @@ func NewResourceClient(cc grpc.ClientConnInterface) ResourceClient {
 	return &resourceClient{cc}
 }
 
-func (c *resourceClient) Save(ctx context.Context, in *SaveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *resourceClient) Find(ctx context.Context, in *ResourceFindRequest, opts ...grpc.CallOption) (*ResourceResponse, error) {
+	out := new(ResourceResponse)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Resource/Find", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *resourceClient) Exists(ctx context.Context, in *ResourceFindRequest, opts ...grpc.CallOption) (*ResourceExistsResponse, error) {
+	out := new(ResourceExistsResponse)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Resource/Exists", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *resourceClient) Save(ctx context.Context, in *ResourceSaveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/ncs.rbns.Resource/Save", in, out, opts...)
 	if err != nil {
@@ -1266,9 +1288,18 @@ func (c *resourceClient) Save(ctx context.Context, in *SaveRequest, opts ...grpc
 	return out, nil
 }
 
-func (c *resourceClient) Authz(ctx context.Context, in *AuthzRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *resourceClient) FindAll(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ResourceResponses, error) {
+	out := new(ResourceResponses)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Resource/FindAll", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *resourceClient) Migration(ctx context.Context, in *ResourceSaveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Resource/Authz", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Resource/Migration", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1279,8 +1310,12 @@ func (c *resourceClient) Authz(ctx context.Context, in *AuthzRequest, opts ...gr
 // All implementations must embed UnimplementedResourceServer
 // for forward compatibility
 type ResourceServer interface {
-	Save(context.Context, *SaveRequest) (*emptypb.Empty, error)
-	Authz(context.Context, *AuthzRequest) (*emptypb.Empty, error)
+	Find(context.Context, *ResourceFindRequest) (*ResourceResponse, error)
+	Exists(context.Context, *ResourceFindRequest) (*ResourceExistsResponse, error)
+	Save(context.Context, *ResourceSaveRequest) (*emptypb.Empty, error)
+	FindAll(context.Context, *emptypb.Empty) (*ResourceResponses, error)
+	// Migration 存在しない場合のみリソースを作成
+	Migration(context.Context, *ResourceSaveRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedResourceServer()
 }
 
@@ -1288,11 +1323,20 @@ type ResourceServer interface {
 type UnimplementedResourceServer struct {
 }
 
-func (UnimplementedResourceServer) Save(context.Context, *SaveRequest) (*emptypb.Empty, error) {
+func (UnimplementedResourceServer) Find(context.Context, *ResourceFindRequest) (*ResourceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Find not implemented")
+}
+func (UnimplementedResourceServer) Exists(context.Context, *ResourceFindRequest) (*ResourceExistsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Exists not implemented")
+}
+func (UnimplementedResourceServer) Save(context.Context, *ResourceSaveRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Save not implemented")
 }
-func (UnimplementedResourceServer) Authz(context.Context, *AuthzRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Authz not implemented")
+func (UnimplementedResourceServer) FindAll(context.Context, *emptypb.Empty) (*ResourceResponses, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FindAll not implemented")
+}
+func (UnimplementedResourceServer) Migration(context.Context, *ResourceSaveRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Migration not implemented")
 }
 func (UnimplementedResourceServer) mustEmbedUnimplementedResourceServer() {}
 
@@ -1307,8 +1351,44 @@ func RegisterResourceServer(s grpc.ServiceRegistrar, srv ResourceServer) {
 	s.RegisterService(&Resource_ServiceDesc, srv)
 }
 
+func _Resource_Find_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResourceFindRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceServer).Find(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ncs.rbns.Resource/Find",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceServer).Find(ctx, req.(*ResourceFindRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Resource_Exists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResourceFindRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceServer).Exists(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ncs.rbns.Resource/Exists",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceServer).Exists(ctx, req.(*ResourceFindRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Resource_Save_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SaveRequest)
+	in := new(ResourceSaveRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1320,25 +1400,43 @@ func _Resource_Save_Handler(srv interface{}, ctx context.Context, dec func(inter
 		FullMethod: "/ncs.rbns.Resource/Save",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceServer).Save(ctx, req.(*SaveRequest))
+		return srv.(ResourceServer).Save(ctx, req.(*ResourceSaveRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Resource_Authz_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AuthzRequest)
+func _Resource_FindAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ResourceServer).Authz(ctx, in)
+		return srv.(ResourceServer).FindAll(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/ncs.rbns.Resource/Authz",
+		FullMethod: "/ncs.rbns.Resource/FindAll",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceServer).Authz(ctx, req.(*AuthzRequest))
+		return srv.(ResourceServer).FindAll(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Resource_Migration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResourceSaveRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceServer).Migration(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ncs.rbns.Resource/Migration",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceServer).Migration(ctx, req.(*ResourceSaveRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1351,12 +1449,24 @@ var Resource_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*ResourceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
+			MethodName: "Find",
+			Handler:    _Resource_Find_Handler,
+		},
+		{
+			MethodName: "Exists",
+			Handler:    _Resource_Exists_Handler,
+		},
+		{
 			MethodName: "Save",
 			Handler:    _Resource_Save_Handler,
 		},
 		{
-			MethodName: "Authz",
-			Handler:    _Resource_Authz_Handler,
+			MethodName: "FindAll",
+			Handler:    _Resource_FindAll_Handler,
+		},
+		{
+			MethodName: "Migration",
+			Handler:    _Resource_Migration_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
