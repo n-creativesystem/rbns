@@ -1,0 +1,21 @@
+{
+  "name": "rbns",
+  "version": "1.0.0",
+  "description": "frontend cli tools",
+  "bin": {
+    "rbns": "./bin/rbns"
+  },
+  "files": [
+    "assets",
+    "bin",
+    "lib",
+    "templates"
+  ],
+  "author": {
+    "name": "Nozomi Nisinohara",
+    "email": "nozomi_nishinohara@n-creativesystem.com",
+    "url": "https://n-creativesystem.com"
+  },
+  "license": "MIT",
+  "private": true
+}

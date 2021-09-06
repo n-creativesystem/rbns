@@ -8,7 +8,6 @@ require (
 	github.com/envoyproxy/protoc-gen-validate v0.6.1
 	github.com/gin-gonic/gin v1.7.3
 	github.com/go-playground/validator/v10 v10.6.1 // indirect
-	github.com/gogo/googleapis v1.4.1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.5.0
 	github.com/iancoleman/strcase v0.2.0 // indirect
@@ -30,7 +29,6 @@ require (
 	golang.org/x/net v0.0.0-20210614182718-04defd469f4e // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
-	google.golang.org/genproto v0.0.0-20210828152312-66f60bf46e71
 	google.golang.org/grpc v1.40.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
 	google.golang.org/protobuf v1.27.1

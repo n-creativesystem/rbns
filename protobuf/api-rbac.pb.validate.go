@@ -1819,16 +1819,16 @@ var _ interface {
 	ErrorName() string
 } = ResourceSaveRequestValidationError{}
 
-// Validate checks the field values on ResourceFindRequest with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, an error is returned.
-func (m *ResourceFindRequest) Validate() error {
+// Validate checks the field values on ResourceKey with the rules defined in
+// the proto definition for this message. If any rules are violated, an error
+// is returned.
+func (m *ResourceKey) Validate() error {
 	if m == nil {
 		return nil
 	}
 
 	if utf8.RuneCountInString(m.GetId()) < 1 {
-		return ResourceFindRequestValidationError{
+		return ResourceKeyValidationError{
 			field:  "Id",
 			reason: "value length must be at least 1 runes",
 		}
@@ -1837,9 +1837,9 @@ func (m *ResourceFindRequest) Validate() error {
 	return nil
 }
 
-// ResourceFindRequestValidationError is the validation error returned by
-// ResourceFindRequest.Validate if the designated constraints aren't met.
-type ResourceFindRequestValidationError struct {
+// ResourceKeyValidationError is the validation error returned by
+// ResourceKey.Validate if the designated constraints aren't met.
+type ResourceKeyValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -1847,24 +1847,22 @@ type ResourceFindRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e ResourceFindRequestValidationError) Field() string { return e.field }
+func (e ResourceKeyValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e ResourceFindRequestValidationError) Reason() string { return e.reason }
+func (e ResourceKeyValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e ResourceFindRequestValidationError) Cause() error { return e.cause }
+func (e ResourceKeyValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e ResourceFindRequestValidationError) Key() bool { return e.key }
+func (e ResourceKeyValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e ResourceFindRequestValidationError) ErrorName() string {
-	return "ResourceFindRequestValidationError"
-}
+func (e ResourceKeyValidationError) ErrorName() string { return "ResourceKeyValidationError" }
 
 // Error satisfies the builtin error interface
-func (e ResourceFindRequestValidationError) Error() string {
+func (e ResourceKeyValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -1876,14 +1874,14 @@ func (e ResourceFindRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sResourceFindRequest.%s: %s%s",
+		"invalid %sResourceKey.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = ResourceFindRequestValidationError{}
+var _ error = ResourceKeyValidationError{}
 
 var _ interface {
 	Field() string
@@ -1891,7 +1889,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = ResourceFindRequestValidationError{}
+} = ResourceKeyValidationError{}
 
 // Validate checks the field values on ResourceExistsResponse with the rules
 // defined in the proto definition for this message. If any rules are
@@ -2059,13 +2057,13 @@ func (m *ResourceResponses) Validate() error {
 		return nil
 	}
 
-	for idx, item := range m.GetResponse() {
+	for idx, item := range m.GetResources() {
 		_, _ = idx, item
 
 		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return ResourceResponsesValidationError{
-					field:  fmt.Sprintf("Response[%v]", idx),
+					field:  fmt.Sprintf("Resources[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -2132,6 +2130,163 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ResourceResponsesValidationError{}
+
+// Validate checks the field values on ResourceReleationPermission with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *ResourceReleationPermission) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for Id
+
+	// no validation rules for PermissionId
+
+	return nil
+}
+
+// ResourceReleationPermissionValidationError is the validation error returned
+// by ResourceReleationPermission.Validate if the designated constraints
+// aren't met.
+type ResourceReleationPermissionValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ResourceReleationPermissionValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ResourceReleationPermissionValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ResourceReleationPermissionValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ResourceReleationPermissionValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ResourceReleationPermissionValidationError) ErrorName() string {
+	return "ResourceReleationPermissionValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ResourceReleationPermissionValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sResourceReleationPermission.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ResourceReleationPermissionValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ResourceReleationPermissionValidationError{}
+
+// Validate checks the field values on ResourceReleationPermissions with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *ResourceReleationPermissions) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for Id
+
+	for idx, item := range m.GetPermissions() {
+		_, _ = idx, item
+
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ResourceReleationPermissionsValidationError{
+					field:  fmt.Sprintf("Permissions[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// ResourceReleationPermissionsValidationError is the validation error returned
+// by ResourceReleationPermissions.Validate if the designated constraints
+// aren't met.
+type ResourceReleationPermissionsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ResourceReleationPermissionsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ResourceReleationPermissionsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ResourceReleationPermissionsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ResourceReleationPermissionsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ResourceReleationPermissionsValidationError) ErrorName() string {
+	return "ResourceReleationPermissionsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ResourceReleationPermissionsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sResourceReleationPermissions.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ResourceReleationPermissionsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ResourceReleationPermissionsValidationError{}
 
 // Validate checks the field values on AuthzRequest with the rules defined in
 // the proto definition for this message. If any rules are violated, an error

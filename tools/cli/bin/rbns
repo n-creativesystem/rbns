@@ -1,0 +1,36 @@
+#!/usr/bin/env node
+const command = [
+    'new'
+]
+
+let cmd = process.argv[2]
+
+if (cmd) {
+    if (cmd.length === 1) {
+        const mapToCmd = {
+            n: 'new'
+        }
+        cmd = mapToCmd[cmd]
+    }
+    if (command.includes(cmd)) {
+        process.argv.splice(2, 1)
+    } else {
+        if (cmd === '-v' || cmd === '--version') {
+            console.log(require('../package.json').version);
+            process.exit(0)
+        }
+
+        if (cmd == '-h' || cmd === '--help') {
+            cmd = 'help'
+        } else if (cmd.indexOf('-') === 0) {
+            console.warn('Command must come before the options');
+            cmd = 'help'
+        } else {
+            cmd = 'help'
+        }
+    }
+} else {
+    cmd = 'help'
+}
+
+require(`./rbns-${cmd}`)

@@ -5,6 +5,8 @@ import OrganizationTabSettings from './organizationTabs/Settings'
 import OrganizationTabUsers from './organizationTabs/Users'
 import DialogUsers from './organizationTabs/DialogUsers'
 import UserTabRoles from './userTabs/Role'
+import ResourceTabSettings from './resourceTabs/Settings'
+import ResourceTabPermissions from './resourceTabs/Permissions'
 
 export {
   RoleTabSettings,
@@ -13,5 +15,7 @@ export {
   OrganizationTabUsers,
   DialogUsers,
   UserTabRoles,
-  RoleTabUsers
+  RoleTabUsers,
+  ResourceTabSettings,
+  ResourceTabPermissions
 }

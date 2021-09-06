@@ -23,7 +23,7 @@ cross-build: deps
 		done; \
 	done
 
-protoc:
+protoc: protoc/dev
 	@protoc -I./protobuf \
 		--go-grpc_out=./protobuf \
 		--go-grpc_opt=paths=source_relative \
@@ -52,11 +52,22 @@ build/backend: backend
 	docker build -t ${IMAGE_NAME} -f backend.dockerfile .
 
 
-developments:
-	go mod tidy
-	go install \
-	github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
-    github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 \
-    google.golang.org/protobuf/cmd/protoc-gen-go \
-    google.golang.org/grpc/cmd/protoc-gen-go-grpc \
-    github.com/envoyproxy/protoc-gen-validate
+protoc/dev:
+	@go mod tidy
+	@go install \
+		github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
+		github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 \
+		google.golang.org/protobuf/cmd/protoc-gen-go \
+		google.golang.org/grpc/cmd/protoc-gen-go-grpc \
+		github.com/envoyproxy/protoc-gen-validate
+
+.PHONY: protobuf
+protobuf:
+	@git tag protobuf/v$(version)
+
+.PHONY: client
+client:
+	@git tag client/v$(version)
+
+build/test:
+	go build -o client/tests/rbns

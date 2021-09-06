@@ -70,3 +70,17 @@ func NewUserEntityByModel(user model.User) *protobuf.UserEntity {
 		Permissions: permissions,
 	}
 }
+
+func NewResourceByModel(resource model.Resource) *protobuf.ResourceResponse {
+	result := &protobuf.ResourceResponse{
+		Id:          resource.ID,
+		Description: resource.Description,
+		Permissions: make([]*protobuf.PermissionEntity, 0, len(resource.Permissions)),
+	}
+	permissions := resource.Permissions.Copy()
+	for _, permission := range permissions {
+		p := NewPermissionEntityByModel(permission)
+		result.Permissions = append(result.Permissions, p)
+	}
+	return result
+}

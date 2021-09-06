@@ -1,0 +1,27 @@
+#!/usr/bin/env node
+
+console.log();
+
+console.log(
+    require('fs').readFileSync(
+        require('path').join(__dirname, '../assets/logo.art'),
+        'utf-8'
+    )
+);
+
+console.log('   Running rbns v' + require('../package.json').version);
+
+console.log(`
+    Example usage
+      $ rbns <command> <option>
+    
+    Help for a command
+      $ rbns <command> --help
+      $ rbns <command> -h
+    
+    Options
+      --version, -v Print RBNS App CLI version
+    
+    Commands
+      new n template vue file
+`);

@@ -54,6 +54,22 @@ export default new Router({
             }
           ]
         },
+        {
+          path: 'resources',
+          component: () => import('@page/Parent'),
+          children: [
+            {
+              path: '/',
+              name: 'resources',
+              component: () => import('@page/Resources')
+            },
+            {
+              path: ':id',
+              name: 'resourceId',
+              component: () => import('@page/Resource')
+            }
+          ]
+        }
       ]
     },
     {

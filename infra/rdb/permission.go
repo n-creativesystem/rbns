@@ -1,6 +1,8 @@
 package rdb
 
 import (
+	"errors"
+
 	"github.com/n-creativesystem/rbns/domain/model"
 	"github.com/n-creativesystem/rbns/domain/repository"
 	"github.com/n-creativesystem/rbns/infra/rdb/entity"
@@ -53,9 +55,12 @@ func (r *permission) FindByID(id model.ID) (*model.Permission, error) {
 func (r *permission) FindByName(name model.Name) (*model.Permission, error) {
 	session := r.db
 	var permission entity.Permission
-	err := session.Where(&entity.Permission{Name: *name.Value()}).Find(&permission).Error
-	if err != nil {
-		return nil, model.NewDBErr(err)
+	if err := session.Where(&entity.Permission{Name: *name.Value()}).Find(&permission).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, model.ErrNoData
+		} else {
+			return nil, model.NewDBErr(err)
+		}
 	}
 	if permission.ID == "" {
 		return nil, model.ErrNoData

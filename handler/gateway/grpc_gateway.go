@@ -149,5 +149,6 @@ func endpoints() []endpoint {
 		protobuf.RegisterRoleHandlerFromEndpoint,
 		protobuf.RegisterUserHandlerFromEndpoint,
 		protobuf.RegisterOrganizationHandlerFromEndpoint,
+		protobuf.RegisterResourceHandlerFromEndpoint,
 	}
 }

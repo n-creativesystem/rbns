@@ -129,7 +129,7 @@ func (f *rdbFactory) Initialize(mp map[string]interface{}, logger *logrus.Logger
 	}
 	migration, _ := mp["migration"].(bool)
 	if migration {
-		if err := f.db.AutoMigrate(entity.Permission{}, entity.Role{}, entity.RolePermission{}, entity.Organization{}, entity.User{}, entity.UserRole{}); err != nil {
+		if err := f.db.AutoMigrate(entity.Permission{}, entity.Role{}, entity.RolePermission{}, entity.Organization{}, entity.User{}, entity.UserRole{}, entity.Resource{}, entity.ResourcePermissions{}); err != nil {
 			return err
 		}
 	}

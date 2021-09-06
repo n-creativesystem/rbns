@@ -21,6 +21,7 @@ type RBNS interface {
 	Roles(ctx context.Context) Roles
 	Organizations(ctx context.Context) Organizations
 	Users(ctx context.Context) Users
+	Resource(ctx context.Context) Resource
 	io.Closer
 	GRPCClient
 }
@@ -34,6 +35,7 @@ type clientImpl struct {
 	roleClient         protobuf.RoleClient
 	organizationClient protobuf.OrganizationClient
 	userClient         protobuf.UserClient
+	resourceClient     protobuf.ResourceClient
 }
 
 func New(grpcAddress string) (RBNS, error) {
@@ -79,6 +81,7 @@ func NewWithContextTLS(grpcAddress string, baseCtx context.Context, certFile, co
 		roleClient:         protobuf.NewRoleClient(conn),
 		organizationClient: protobuf.NewOrganizationClient(conn),
 		userClient:         protobuf.NewUserClient(conn),
+		resourceClient:     protobuf.NewResourceClient(conn),
 	}, nil
 }
 
@@ -119,5 +122,12 @@ func (c *clientImpl) Users(ctx context.Context) Users {
 	return &userClient{
 		ctx:    ctx,
 		client: c.userClient,
+	}
+}
+
+func (c *clientImpl) Resource(ctx context.Context) Resource {
+	return &resource{
+		ctx:    ctx,
+		client: c.resourceClient,
 	}
 }

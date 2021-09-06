@@ -1245,9 +1245,20 @@ var User_ServiceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ResourceClient interface {
-	Find(ctx context.Context, in *ResourceFindRequest, opts ...grpc.CallOption) (*ResourceResponse, error)
-	Exists(ctx context.Context, in *ResourceFindRequest, opts ...grpc.CallOption) (*ResourceExistsResponse, error)
-	Save(ctx context.Context, in *ResourceSaveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// DeletePermission is delete permission to the resource
+	DeletePermission(ctx context.Context, in *ResourceReleationPermission, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// GetPermissions is get permission to the resource
+	GetPermissions(ctx context.Context, in *ResourceKey, opts ...grpc.CallOption) (*PermissionEntities, error)
+	// AddPermissions is add permission to the resource
+	AddPermissions(ctx context.Context, in *ResourceReleationPermissions, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// DeletePermissions is delete permission to the resource
+	DeletePermissions(ctx context.Context, in *ResourceReleationPermissions, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// Find is find resource
+	Find(ctx context.Context, in *ResourceKey, opts ...grpc.CallOption) (*ResourceResponse, error)
+	Update(ctx context.Context, in *ResourceSaveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Delete(ctx context.Context, in *ResourceKey, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Exists(ctx context.Context, in *ResourceKey, opts ...grpc.CallOption) (*ResourceExistsResponse, error)
+	Create(ctx context.Context, in *ResourceSaveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	FindAll(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ResourceResponses, error)
 	// Migration 存在しない場合のみリソースを作成
 	Migration(ctx context.Context, in *ResourceSaveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -1261,7 +1272,43 @@ func NewResourceClient(cc grpc.ClientConnInterface) ResourceClient {
 	return &resourceClient{cc}
 }
 
-func (c *resourceClient) Find(ctx context.Context, in *ResourceFindRequest, opts ...grpc.CallOption) (*ResourceResponse, error) {
+func (c *resourceClient) DeletePermission(ctx context.Context, in *ResourceReleationPermission, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Resource/DeletePermission", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *resourceClient) GetPermissions(ctx context.Context, in *ResourceKey, opts ...grpc.CallOption) (*PermissionEntities, error) {
+	out := new(PermissionEntities)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Resource/GetPermissions", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *resourceClient) AddPermissions(ctx context.Context, in *ResourceReleationPermissions, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Resource/AddPermissions", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *resourceClient) DeletePermissions(ctx context.Context, in *ResourceReleationPermissions, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Resource/DeletePermissions", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *resourceClient) Find(ctx context.Context, in *ResourceKey, opts ...grpc.CallOption) (*ResourceResponse, error) {
 	out := new(ResourceResponse)
 	err := c.cc.Invoke(ctx, "/ncs.rbns.Resource/Find", in, out, opts...)
 	if err != nil {
@@ -1270,7 +1317,25 @@ func (c *resourceClient) Find(ctx context.Context, in *ResourceFindRequest, opts
 	return out, nil
 }
 
-func (c *resourceClient) Exists(ctx context.Context, in *ResourceFindRequest, opts ...grpc.CallOption) (*ResourceExistsResponse, error) {
+func (c *resourceClient) Update(ctx context.Context, in *ResourceSaveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Resource/Update", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *resourceClient) Delete(ctx context.Context, in *ResourceKey, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Resource/Delete", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *resourceClient) Exists(ctx context.Context, in *ResourceKey, opts ...grpc.CallOption) (*ResourceExistsResponse, error) {
 	out := new(ResourceExistsResponse)
 	err := c.cc.Invoke(ctx, "/ncs.rbns.Resource/Exists", in, out, opts...)
 	if err != nil {
@@ -1279,9 +1344,9 @@ func (c *resourceClient) Exists(ctx context.Context, in *ResourceFindRequest, op
 	return out, nil
 }
 
-func (c *resourceClient) Save(ctx context.Context, in *ResourceSaveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *resourceClient) Create(ctx context.Context, in *ResourceSaveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Resource/Save", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Resource/Create", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1310,9 +1375,20 @@ func (c *resourceClient) Migration(ctx context.Context, in *ResourceSaveRequest,
 // All implementations must embed UnimplementedResourceServer
 // for forward compatibility
 type ResourceServer interface {
-	Find(context.Context, *ResourceFindRequest) (*ResourceResponse, error)
-	Exists(context.Context, *ResourceFindRequest) (*ResourceExistsResponse, error)
-	Save(context.Context, *ResourceSaveRequest) (*emptypb.Empty, error)
+	// DeletePermission is delete permission to the resource
+	DeletePermission(context.Context, *ResourceReleationPermission) (*emptypb.Empty, error)
+	// GetPermissions is get permission to the resource
+	GetPermissions(context.Context, *ResourceKey) (*PermissionEntities, error)
+	// AddPermissions is add permission to the resource
+	AddPermissions(context.Context, *ResourceReleationPermissions) (*emptypb.Empty, error)
+	// DeletePermissions is delete permission to the resource
+	DeletePermissions(context.Context, *ResourceReleationPermissions) (*emptypb.Empty, error)
+	// Find is find resource
+	Find(context.Context, *ResourceKey) (*ResourceResponse, error)
+	Update(context.Context, *ResourceSaveRequest) (*emptypb.Empty, error)
+	Delete(context.Context, *ResourceKey) (*emptypb.Empty, error)
+	Exists(context.Context, *ResourceKey) (*ResourceExistsResponse, error)
+	Create(context.Context, *ResourceSaveRequest) (*emptypb.Empty, error)
 	FindAll(context.Context, *emptypb.Empty) (*ResourceResponses, error)
 	// Migration 存在しない場合のみリソースを作成
 	Migration(context.Context, *ResourceSaveRequest) (*emptypb.Empty, error)
@@ -1323,14 +1399,32 @@ type ResourceServer interface {
 type UnimplementedResourceServer struct {
 }
 
-func (UnimplementedResourceServer) Find(context.Context, *ResourceFindRequest) (*ResourceResponse, error) {
+func (UnimplementedResourceServer) DeletePermission(context.Context, *ResourceReleationPermission) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeletePermission not implemented")
+}
+func (UnimplementedResourceServer) GetPermissions(context.Context, *ResourceKey) (*PermissionEntities, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPermissions not implemented")
+}
+func (UnimplementedResourceServer) AddPermissions(context.Context, *ResourceReleationPermissions) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddPermissions not implemented")
+}
+func (UnimplementedResourceServer) DeletePermissions(context.Context, *ResourceReleationPermissions) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeletePermissions not implemented")
+}
+func (UnimplementedResourceServer) Find(context.Context, *ResourceKey) (*ResourceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Find not implemented")
 }
-func (UnimplementedResourceServer) Exists(context.Context, *ResourceFindRequest) (*ResourceExistsResponse, error) {
+func (UnimplementedResourceServer) Update(context.Context, *ResourceSaveRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+}
+func (UnimplementedResourceServer) Delete(context.Context, *ResourceKey) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedResourceServer) Exists(context.Context, *ResourceKey) (*ResourceExistsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Exists not implemented")
 }
-func (UnimplementedResourceServer) Save(context.Context, *ResourceSaveRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Save not implemented")
+func (UnimplementedResourceServer) Create(context.Context, *ResourceSaveRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
 }
 func (UnimplementedResourceServer) FindAll(context.Context, *emptypb.Empty) (*ResourceResponses, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FindAll not implemented")
@@ -1351,8 +1445,80 @@ func RegisterResourceServer(s grpc.ServiceRegistrar, srv ResourceServer) {
 	s.RegisterService(&Resource_ServiceDesc, srv)
 }
 
+func _Resource_DeletePermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResourceReleationPermission)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceServer).DeletePermission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ncs.rbns.Resource/DeletePermission",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceServer).DeletePermission(ctx, req.(*ResourceReleationPermission))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Resource_GetPermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResourceKey)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceServer).GetPermissions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ncs.rbns.Resource/GetPermissions",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceServer).GetPermissions(ctx, req.(*ResourceKey))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Resource_AddPermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResourceReleationPermissions)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceServer).AddPermissions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ncs.rbns.Resource/AddPermissions",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceServer).AddPermissions(ctx, req.(*ResourceReleationPermissions))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Resource_DeletePermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResourceReleationPermissions)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceServer).DeletePermissions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ncs.rbns.Resource/DeletePermissions",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceServer).DeletePermissions(ctx, req.(*ResourceReleationPermissions))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Resource_Find_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ResourceFindRequest)
+	in := new(ResourceKey)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1364,13 +1530,49 @@ func _Resource_Find_Handler(srv interface{}, ctx context.Context, dec func(inter
 		FullMethod: "/ncs.rbns.Resource/Find",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceServer).Find(ctx, req.(*ResourceFindRequest))
+		return srv.(ResourceServer).Find(ctx, req.(*ResourceKey))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Resource_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResourceSaveRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceServer).Update(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ncs.rbns.Resource/Update",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceServer).Update(ctx, req.(*ResourceSaveRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Resource_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResourceKey)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ncs.rbns.Resource/Delete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceServer).Delete(ctx, req.(*ResourceKey))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Resource_Exists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ResourceFindRequest)
+	in := new(ResourceKey)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1382,25 +1584,25 @@ func _Resource_Exists_Handler(srv interface{}, ctx context.Context, dec func(int
 		FullMethod: "/ncs.rbns.Resource/Exists",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceServer).Exists(ctx, req.(*ResourceFindRequest))
+		return srv.(ResourceServer).Exists(ctx, req.(*ResourceKey))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Resource_Save_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Resource_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ResourceSaveRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ResourceServer).Save(ctx, in)
+		return srv.(ResourceServer).Create(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/ncs.rbns.Resource/Save",
+		FullMethod: "/ncs.rbns.Resource/Create",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceServer).Save(ctx, req.(*ResourceSaveRequest))
+		return srv.(ResourceServer).Create(ctx, req.(*ResourceSaveRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1449,16 +1651,40 @@ var Resource_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*ResourceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
+			MethodName: "DeletePermission",
+			Handler:    _Resource_DeletePermission_Handler,
+		},
+		{
+			MethodName: "GetPermissions",
+			Handler:    _Resource_GetPermissions_Handler,
+		},
+		{
+			MethodName: "AddPermissions",
+			Handler:    _Resource_AddPermissions_Handler,
+		},
+		{
+			MethodName: "DeletePermissions",
+			Handler:    _Resource_DeletePermissions_Handler,
+		},
+		{
 			MethodName: "Find",
 			Handler:    _Resource_Find_Handler,
+		},
+		{
+			MethodName: "Update",
+			Handler:    _Resource_Update_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _Resource_Delete_Handler,
 		},
 		{
 			MethodName: "Exists",
 			Handler:    _Resource_Exists_Handler,
 		},
 		{
-			MethodName: "Save",
-			Handler:    _Resource_Save_Handler,
+			MethodName: "Create",
+			Handler:    _Resource_Create_Handler,
 		},
 		{
 			MethodName: "FindAll",

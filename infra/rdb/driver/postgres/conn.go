@@ -44,5 +44,4 @@ func NewDBErr(err error) error {
 		return status.Error(http.StatusNotFound, model.ErrNoData.Error())
 	}
 	return model.NewDBErr(err)
-
 }

@@ -203,25 +203,66 @@ service User {
 
 service Resource {
 
-    rpc Find(resourceFindRequest) returns (resourceResponse) {
+    // DeletePermission is delete permission to the resource
+    rpc DeletePermission (resourceReleationPermission) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/api/v1/resources/{id}/permissions/{permissionId}"
+        };
+    }
+    // GetPermissions is get permission to the resource
+    rpc GetPermissions (resourceKey) returns (permissionEntities) {
+        option (google.api.http) = {
+            get: "/api/v1/resources/{id}/permissions"
+        };
+    }
+    // AddPermissions is add permission to the resource
+    rpc AddPermissions (resourceReleationPermissions) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/api/v1/resources/{id}/permissions"
+            body: "*"
+        };
+    }
+    // DeletePermissions is delete permission to the resource
+    rpc DeletePermissions (resourceReleationPermissions) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/api/v1/resources/{id}/permissions"
+            body: "*"
+        };
+    }
+
+    // Find is find resource
+    rpc Find(resourceKey) returns (resourceResponse) {
         option (google.api.http) = {
             get: "/api/v1/resources/{id}"
         };
     }
 
-    rpc Exists (resourceFindRequest) returns (resourceExistsResponse) {
+    rpc Update (resourceSaveRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/api/v1/resources/{id}"
+            body: "*"
+        };
+    }
+
+    rpc Delete (resourceKey) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/api/v1/resources/{id}"
+        };
+    }
+
+    rpc Exists (resourceKey) returns (resourceExistsResponse) {
         option (google.api.http) = {
             get: "/api/v1/resources/{id}/exists"
         };
     }
 
-    rpc Save (resourceSaveRequest) returns (google.protobuf.Empty) {
+    rpc Create (resourceSaveRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/api/v1/resources"
             body: "*"
         };
     }
-    
+
     rpc FindAll(google.protobuf.Empty) returns (resourceResponses) {
         option (google.api.http) = {
             get: "/api/v1/resources"
@@ -352,7 +393,7 @@ message resourceSaveRequest {
     repeated string permissionNames = 3 [(validate.rules).repeated.min_items = 1];
 }
 
-message resourceFindRequest {
+message resourceKey {
     string id = 1 [(validate.rules).string = {min_len: 1}];
 }
 
@@ -367,7 +408,17 @@ message resourceResponse {
 }
 
 message resourceResponses {
-    repeated resourceResponse response = 1;
+    repeated resourceResponse resources = 1;
+}
+
+message resourceReleationPermission {
+    string id = 1;
+    string permissionId = 2;
+}
+
+message resourceReleationPermissions {
+    string id = 1;
+    repeated permissionKey permissions = 2;
 }
 
 message authzRequest {

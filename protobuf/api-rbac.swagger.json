@@ -713,7 +713,7 @@
         ]
       },
       "post": {
-        "operationId": "Resource_Save",
+        "operationId": "Resource_Create",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -745,6 +745,7 @@
     },
     "/api/v1/resources/{id}": {
       "get": {
+        "summary": "Find is find resource",
         "operationId": "Resource_Find",
         "responses": {
           "200": {
@@ -766,6 +767,81 @@
             "in": "path",
             "required": true,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "Resource"
+        ]
+      },
+      "delete": {
+        "operationId": "Resource_Delete",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Resource"
+        ]
+      },
+      "put": {
+        "operationId": "Resource_Update",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "permissionNames": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
           }
         ],
         "tags": [
@@ -793,6 +869,164 @@
         "parameters": [
           {
             "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Resource"
+        ]
+      }
+    },
+    "/api/v1/resources/{id}/permissions": {
+      "get": {
+        "summary": "GetPermissions is get permission to the resource",
+        "operationId": "Resource_GetPermissions",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rbnspermissionEntities"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Resource"
+        ]
+      },
+      "delete": {
+        "summary": "DeletePermissions is delete permission to the resource",
+        "operationId": "Resource_DeletePermissions",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "permissions": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/rbnspermissionKey"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Resource"
+        ]
+      },
+      "put": {
+        "summary": "AddPermissions is add permission to the resource",
+        "operationId": "Resource_AddPermissions",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "permissions": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/rbnspermissionKey"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Resource"
+        ]
+      }
+    },
+    "/api/v1/resources/{id}/permissions/{permissionId}": {
+      "delete": {
+        "summary": "DeletePermission is delete permission to the resource",
+        "operationId": "Resource_DeletePermission",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "permissionId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1271,7 +1505,7 @@
     "rbnsresourceResponses": {
       "type": "object",
       "properties": {
-        "response": {
+        "resources": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/rbnsresourceResponse"

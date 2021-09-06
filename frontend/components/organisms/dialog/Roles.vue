@@ -27,7 +27,7 @@
     },
     props: {
       value: Boolean,
-      ommitIds: Array,
+      omitIds: Array,
       selection: Array,
     },
     computed: {
@@ -58,7 +58,7 @@
           .then((result) => {
             if (result.data.roles) {
               this.items = result.data.roles.filter(
-                (i) => !(this.ommitIds || []).some((id) => i.id === id)
+                (i) => !(this.omitIds || []).some((id) => i.id === id)
               )
             }
           })

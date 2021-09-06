@@ -16,11 +16,16 @@ module.exports = {
   devServer: {
     proxy: {
       '^/api/v1': {
-        target: 'http://api-rbac-dev:8080',
+        target: 'http://localhost:8080',
+        secure: false
+      },
+      'settings.json': {
+        target: 'http://localhost:8080',
         secure: false
       }
     },
-    disableHostCheck: true
+    disableHostCheck: true,
+    port: 8081
   },
   configureWebpack: {
     resolve: {
@@ -45,6 +50,6 @@ module.exports = {
       })
     ]
   },
-  outputDir: 'static',
-  publicPath: './static'
+  // outputDir: 'static',
+  // publicPath: './static'
 }

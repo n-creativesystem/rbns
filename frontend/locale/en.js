@@ -111,6 +111,34 @@ export default {
       }
     }
   },
+  resource: {
+    dialog: {
+      title: 'Resource selection',
+      add: 'Add resource',
+      create: {
+        title: 'Create resource'
+      }
+    },
+    form: {
+      title: 'List of resources',
+      caption: 'A list of registered resources.',
+      add: 'Creating a resources'
+    },
+    entity: {
+      id: 'Resource id',
+      description: 'Description'
+    },
+    tabs: {
+      settings: 'settings',
+      permissions: 'permissions',
+    },
+    info: {
+      permission: {
+        message: 'Add permissions to this resource.',
+        text: 'Add permissions'
+      }
+    }
+  },
   inputs: {
     Name: 'name',
     Description: 'description',
@@ -119,6 +147,7 @@ export default {
   menu: {
     permission: 'Definition of permissions',
     role: 'Role definition',
-    organization: 'Organization definition'
+    organization: 'Organization definition',
+    resource: 'Resource definition'
   }
 }

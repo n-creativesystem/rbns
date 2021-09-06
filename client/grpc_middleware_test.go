@@ -1,11 +1,17 @@
 package client_test
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"net"
+	"os"
+	"os/exec"
 	"testing"
+	"time"
 
 	"github.com/n-creativesystem/rbns/client"
+	"github.com/n-creativesystem/rbns/protobuf"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/interop"
@@ -30,7 +36,35 @@ func serve(sOpt ...grpc.ServerOption) *grpc.Server {
 	return s
 }
 
+func mockServer(b *bytes.Buffer) (*exec.Cmd, error) {
+	cmd := exec.Command("tests/rbns", "run")
+	cmd.Stdout = b
+	cmd.Stderr = b
+	cmd.Env = os.Environ()
+	if err := cmd.Start(); err != nil {
+		return nil, err
+	}
+	done := make(chan error, 1)
+	go func() {
+		done <- cmd.Wait()
+	}()
+
+	fmt.Println("sleep")
+	time.Sleep(1 * time.Second)
+	return cmd, nil
+}
+
 func TestMiddleware(t *testing.T) {
+	var b bytes.Buffer
+	cmd, err := mockServer(&b)
+	if !assert.NoError(t, err) {
+		return
+	}
+	defer func() {
+		if cmd != nil {
+			_ = cmd.Process.Kill()
+		}
+	}()
 	lis = bufconn.Listen(bufSize)
 	c, err := client.New("localhost:8888")
 	if !assert.NoError(t, err) {
@@ -71,4 +105,28 @@ func TestMiddleware(t *testing.T) {
 	client := pb.NewTestServiceClient(conn)
 	// gRPCのメソッド呼び出し
 	interop.DoEmptyUnaryCall(client)
+}
+
+func TestMigration(t *testing.T) {
+	var b bytes.Buffer
+	cmd, err := mockServer(&b)
+	if !assert.NoError(t, err) {
+		return
+	}
+	defer func() {
+		if cmd != nil {
+			_ = cmd.Process.Kill()
+		}
+	}()
+	ctx := context.Background()
+	client, _ := client.New("localhost:8888")
+	r := client.Resource(ctx)
+	if err := r.Migration(&protobuf.ResourceSaveRequest{
+		Id:              "uri:post:test",
+		Description:     "",
+		PermissionNames: []string{"create:test", "update:test"},
+	}); !assert.NoError(t, err) {
+		return
+	}
+	fmt.Printf("%s\n", b.String())
 }
