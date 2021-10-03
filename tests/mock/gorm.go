@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/n-creativesystem/rbns/infra/dao"
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -14,11 +13,7 @@ type MockDB struct {
 	DB *gorm.DB
 }
 
-var (
-	_ dao.DataBase = (*MockDB)(nil)
-)
-
-func NewPostgresMock() (*MockDB, sqlmock.Sqlmock) {
+func NewPostgresMock() (*gorm.DB, sqlmock.Sqlmock) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		logrus.Fatalln(err)
@@ -29,7 +24,7 @@ func NewPostgresMock() (*MockDB, sqlmock.Sqlmock) {
 	if err != nil {
 		logrus.Fatalln(err)
 	}
-	return &MockDB{DB: mockDB.Debug()}, mock
+	return mockDB.Debug(), mock
 }
 
 func (m *MockDB) Session(ctx context.Context) *gorm.DB {

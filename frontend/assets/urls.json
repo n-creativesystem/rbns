@@ -4,7 +4,8 @@
       "permissions": "/api/v1/permissions",
       "roles": "/api/v1/roles",
       "organizations": "/api/v1/organizations",
-      "users": "/api/v1/organizations/{0}/users/{1}"
+      "users": "/api/v1/organizations/{0}/users/{1}",
+      "resources": "/api/v1/resources"
     }
   }
 }

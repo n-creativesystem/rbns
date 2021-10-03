@@ -2,27 +2,27 @@ package protoconv
 
 import (
 	"github.com/n-creativesystem/rbns/domain/model"
-	"github.com/n-creativesystem/rbns/proto"
+	"github.com/n-creativesystem/rbns/protobuf"
 )
 
-func NewRoleEntityByModel(role model.Role) *proto.RoleEntity {
+func NewRoleEntityByModel(role model.Role) *protobuf.RoleEntity {
 	mPermissions := role.GetPermissions()
-	permissions := make([]*proto.PermissionEntity, len(mPermissions))
+	permissions := make([]*protobuf.PermissionEntity, len(mPermissions))
 	for idx, permission := range mPermissions {
 		permissions[idx] = NewPermissionEntityByModel(permission)
 	}
 	mOrganizationRoles := role.GetOrganizationUserRoles()
-	userKeys := make([]*proto.OrganizationUser, len(mOrganizationRoles))
+	userKeys := make([]*protobuf.OrganizationUser, len(mOrganizationRoles))
 	for idx, orgUserRole := range mOrganizationRoles {
 		org := orgUserRole.GetOrganization()
-		userKeys[idx] = &proto.OrganizationUser{
+		userKeys[idx] = &protobuf.OrganizationUser{
 			UserKey:                 orgUserRole.GetUserKey(),
 			OrganizationId:          *org.GetID(),
 			OrganizationName:        *org.GetName(),
 			OrganizationDescription: org.GetDescription(),
 		}
 	}
-	return &proto.RoleEntity{
+	return &protobuf.RoleEntity{
 		Id:                *role.GetID(),
 		Name:              *role.GetName(),
 		Description:       role.GetDescription(),
@@ -31,21 +31,21 @@ func NewRoleEntityByModel(role model.Role) *proto.RoleEntity {
 	}
 }
 
-func NewPermissionEntityByModel(permission model.Permission) *proto.PermissionEntity {
-	return &proto.PermissionEntity{
+func NewPermissionEntityByModel(permission model.Permission) *protobuf.PermissionEntity {
+	return &protobuf.PermissionEntity{
 		Id:          *permission.GetID(),
 		Name:        *permission.GetName(),
 		Description: permission.GetDescription(),
 	}
 }
 
-func NewOrganizationEntityByModel(organization model.Organization) *proto.OrganizationEntity {
+func NewOrganizationEntityByModel(organization model.Organization) *protobuf.OrganizationEntity {
 	mUsers := organization.GetUsers()
-	users := make([]*proto.UserEntity, len(mUsers))
+	users := make([]*protobuf.UserEntity, len(mUsers))
 	for idx, user := range mUsers {
 		users[idx] = NewUserEntityByModel(user)
 	}
-	return &proto.OrganizationEntity{
+	return &protobuf.OrganizationEntity{
 		Id:          *organization.GetID(),
 		Name:        *organization.GetName(),
 		Description: organization.GetDescription(),
@@ -53,20 +53,34 @@ func NewOrganizationEntityByModel(organization model.Organization) *proto.Organi
 	}
 }
 
-func NewUserEntityByModel(user model.User) *proto.UserEntity {
+func NewUserEntityByModel(user model.User) *protobuf.UserEntity {
 	mRoles := user.GetRole()
-	roles := make([]*proto.RoleEntity, len(mRoles))
+	roles := make([]*protobuf.RoleEntity, len(mRoles))
 	for idx, role := range mRoles {
 		roles[idx] = NewRoleEntityByModel(role)
 	}
 	mPermissions := user.GetPermission()
-	permissions := make([]*proto.PermissionEntity, len(mPermissions))
+	permissions := make([]*protobuf.PermissionEntity, len(mPermissions))
 	for idx, permission := range mPermissions {
 		permissions[idx] = NewPermissionEntityByModel(permission)
 	}
-	return &proto.UserEntity{
+	return &protobuf.UserEntity{
 		Key:         user.GetKey(),
 		Roles:       roles,
 		Permissions: permissions,
 	}
+}
+
+func NewResourceByModel(resource model.Resource) *protobuf.ResourceResponse {
+	result := &protobuf.ResourceResponse{
+		Id:          resource.ID,
+		Description: resource.Description,
+		Permissions: make([]*protobuf.PermissionEntity, 0, len(resource.Permissions)),
+	}
+	permissions := resource.Permissions.Copy()
+	for _, permission := range permissions {
+		p := NewPermissionEntityByModel(permission)
+		result.Permissions = append(result.Permissions, p)
+	}
+	return result
 }

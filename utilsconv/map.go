@@ -17,8 +17,9 @@ func NewMap(values ...string) Map {
 }
 
 func (m *Map) Exists(value string) bool {
-	_, ok := m.value[strings.ToLower(value)]
-	return ok
+	return false
+	// _, ok := m.value[strings.ToLower(value)]
+	// return ok
 }
 
 func (m *Map) Add(value string) {

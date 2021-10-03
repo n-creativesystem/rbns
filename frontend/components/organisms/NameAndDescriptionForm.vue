@@ -5,6 +5,8 @@
       :name-class="nameClass"
       :description.sync="innerDescription"
       :description-class="descriptionClass"
+      :name-attrs="nameAttrs"
+      :description-attrs="descriptionAttrs"
     >
       <div :class="submitClass">
         <slot name="before-submit"></slot>
@@ -27,11 +29,13 @@
         type: String,
         default: 'col-12 col-md-4',
       },
+      nameAttrs: Object,
       description: String,
       descriptionClass: {
         type: String,
         default: 'col-12 col-md-4',
       },
+      descriptionAttrs: Object,
       btnText: String,
       submitClass: {
         type: String,

@@ -3,20 +3,20 @@ package repository
 import "context"
 
 type Repository interface {
-	NewConnection() Connection
+	NewConnection() Reader
 }
 
-type Connection interface {
+type Reader interface {
 	Permission(ctx context.Context) Permission
 	Role(ctx context.Context) Role
 	Organization(ctx context.Context) Organization
 	User(ctx context.Context) User
 	Resource(ctx context.Context) Resource
-	Transaction(ctx context.Context) Tx
+	// Transaction(ctx context.Context) Tx
 }
 
-type Tx interface {
-	Do(fn func(tx Transaction) error) error
+type Writer interface {
+	Do(ctx context.Context, fn func(tx Transaction) error) error
 }
 
 type Transaction interface {

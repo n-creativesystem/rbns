@@ -9,6 +9,7 @@
           id="name"
           :counter="255"
           v-model="innerName"
+          v-bind="nameAttrs || {}"
         ></required-text>
         <slot name="after-name"></slot>
       </div>
@@ -20,6 +21,7 @@
           id="description"
           :counter="255"
           v-model="innerDescription"
+          v-bind="descriptionAttrs || {}"
         ></required-text>
         <slot name="after-description"></slot>
       </div>
@@ -37,11 +39,13 @@
         type: String,
         default: 'col-12 col-md-4',
       },
+      nameAttrs: Object,
       description: String,
       descriptionClass: {
         type: String,
         default: 'col-12 col-md-4',
       },
+      descriptionAttrs: Object,
     },
     computed: {
       innerName: {

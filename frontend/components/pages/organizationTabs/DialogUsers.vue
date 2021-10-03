@@ -51,7 +51,7 @@
     },
     props: {
       value: Boolean,
-      ommitIds: Array,
+      omitIds: Array,
       selection: Array,
       userId: String,
       editMode: {
@@ -100,8 +100,8 @@
           .then((result) => {
             if (result.data.roles) {
               this.items = result.data.roles.filter((i) =>
-                this.ommitIds && this.ommitIds.length > 0
-                  ? this.ommitIds.some((id) => i.id !== id)
+                this.omitIds && this.omitIds.length > 0
+                  ? this.omitIds.some((id) => i.id !== id)
                   : true
               )
             }

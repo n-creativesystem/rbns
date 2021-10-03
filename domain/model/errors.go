@@ -1,9 +1,11 @@
 package model
 
 import (
+	"errors"
 	"net/http"
 
 	"google.golang.org/grpc/status"
+	"gorm.io/gorm"
 )
 
 type ModelError struct {
@@ -36,6 +38,19 @@ var (
 	// ErrAlreadyExists `Already exists`
 	ErrAlreadyExists = status.Error(http.StatusConflict, "Already exists")
 )
+
+func IsNoData(err error) bool {
+	if err == nil {
+		return false
+	}
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return true
+	}
+	if errors.Is(err, ErrNoData) {
+		return true
+	}
+	return false
+}
 
 type DBErr struct {
 	err error

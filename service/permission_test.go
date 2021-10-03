@@ -6,11 +6,10 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/n-creativesystem/rbns/domain/repository"
-	"github.com/n-creativesystem/rbns/infra"
-	"github.com/n-creativesystem/rbns/infra/dao"
+	"github.com/n-creativesystem/rbns/infra/rdb"
 	"github.com/n-creativesystem/rbns/tests"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 )
 
 func TestPermission(t *testing.T) {
@@ -18,7 +17,7 @@ func TestPermission(t *testing.T) {
 	cases := tests.MocksByPostgres{
 		{
 			Name: "create",
-			Fn: func(db dao.DataBase, mock sqlmock.Sqlmock) func(t *testing.T) {
+			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
 				expecteds := []struct {
 					name, description string
 				}{
@@ -39,8 +38,8 @@ func TestPermission(t *testing.T) {
 						description: "delete user permission",
 					},
 				}
-				var repo repository.Repository = infra.NewRepository(db)
-				pSrv := newPermissionService(repo)
+				repo := rdb.NewFactory(db)
+				pSrv := NewPermissionService(repo.Reader(), repo.Writer())
 				mock.ExpectBegin()
 				mock.ExpectExec(
 					regexp.QuoteMeta(`INSERT INTO "permissions" ("id","created_at","updated_at","name","description") VALUES ($1,$2,$3,$4,$5),($6,$7,$8,$9,$10),($11,$12,$13,$14,$15),($16,$17,$18,$19,$20)`),
@@ -62,9 +61,9 @@ func TestPermission(t *testing.T) {
 		},
 		{
 			Name: "findById",
-			Fn: func(db dao.DataBase, mock sqlmock.Sqlmock) func(t *testing.T) {
-				var repo repository.Repository = infra.NewRepository(db)
-				pSrv := newPermissionService(repo)
+			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
+				repo := rdb.NewFactory(db)
+				pSrv := NewPermissionService(repo.Reader(), repo.Writer())
 				mock.ExpectQuery(
 					regexp.QuoteMeta(`SELECT * FROM "permissions" WHERE "permissions"."id" = $1`),
 				).WillReturnRows(sqlmock.NewRows([]string{"id", "name", "description"}).AddRow("1", "create:user", "create user permission"))
@@ -78,7 +77,7 @@ func TestPermission(t *testing.T) {
 		},
 		{
 			Name: "findAll",
-			Fn: func(db dao.DataBase, mock sqlmock.Sqlmock) func(t *testing.T) {
+			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
 				expecteds := []struct {
 					id                string
 					name, description string
@@ -108,8 +107,8 @@ func TestPermission(t *testing.T) {
 				for _, e := range expecteds {
 					row.AddRow(e.id, e.name, e.description)
 				}
-				var repo repository.Repository = infra.NewRepository(db)
-				pSrv := newPermissionService(repo)
+				repo := rdb.NewFactory(db)
+				pSrv := NewPermissionService(repo.Reader(), repo.Writer())
 				mock.ExpectQuery(
 					regexp.QuoteMeta(`SELECT * FROM "permissions" ORDER BY id`),
 				).WillReturnRows(row)
@@ -127,9 +126,9 @@ func TestPermission(t *testing.T) {
 		},
 		{
 			Name: "update",
-			Fn: func(db dao.DataBase, mock sqlmock.Sqlmock) func(t *testing.T) {
-				var repo repository.Repository = infra.NewRepository(db)
-				pSrv := newPermissionService(repo)
+			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
+				repo := rdb.NewFactory(db)
+				pSrv := NewPermissionService(repo.Reader(), repo.Writer())
 				mock.ExpectBegin()
 				mock.ExpectExec(
 					regexp.QuoteMeta(`UPDATE "permissions" SET "updated_at"=$1,"name"=$2,"description"=$3 WHERE "permissions"."id" = $4`),

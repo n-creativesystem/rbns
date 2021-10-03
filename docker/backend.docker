@@ -6,20 +6,22 @@ WORKDIR /src/
 COPY go.mod go.sum Makefile ./
 
 RUN apk update \
-    && apk add make git \
-    && go mod download
+    && apk add make git
 
 COPY auth auth
-COPY config config
-COPY di di
+COPY client client
+COPY cmd cmd
+COPY consts consts
 COPY domain domain
 COPY handler handler
 COPY infra infra
 COPY logger logger
-COPY proto proto
+COPY protobuf protobuf
 COPY protoconv protoconv
 COPY service service
+COPY storage storage
 COPY utilsconv utilsconv
 COPY *.go ./
 
-RUN make build
+RUN go mod download \
+    && make build

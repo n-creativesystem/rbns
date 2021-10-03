@@ -1,0 +1,76 @@
+#!/usr/bin/env node
+
+const parseArgs = require('minimist')
+const argv = parseArgs(process.argv.slice(2), {
+    alias: {
+        h: 'help'
+    },
+    boolean: ['h']
+})
+
+function showHelp() {
+    console.log(`
+    Description
+        storeのテンプレートを生成します。
+    Usage
+        $ rbns new <s|store> <store_module_name>
+    
+    # Examples:
+
+    # Create store
+    $ rbns new store myStore
+
+    Options
+        --help, -h          Display this message
+    `)
+    process.exit(0)
+}
+
+if (argv.help) {
+    showHelp()
+}
+
+
+let [type, ...names] = argv._
+const path = require('path')
+const fs = require('fs')
+const fse = require('fs-extra')
+const appPaths = require('../lib/app-paths')
+
+function showError(message, param) {
+    console.log()
+    console.warn(`${message}: ${param}`);
+    showHelp()
+}
+
+if (!['s', 'store'].includes(type)) {
+    showError('Invalid asset type', type)
+}
+
+if (type.length == 1) {
+    const fullCmd = {
+        s: 'store'
+    }
+    type = fullCmd[type]
+}
+
+const mapping = {
+    store: function (name) {
+        const folder = appPaths.resolve.store(name)
+        if (fs.existsSync(folder)) {
+            console.warn(`${folder} already exists.`, 'SKIPPED');
+            console.log();
+            return
+        } else {
+            fse.mkdirp(folder)
+            fse.copy(
+                appPaths.resolve.cli(path.join('templates/app/' + type)),
+                folder
+            )
+        }
+    }
+}
+const asset = mapping[type]
+names.forEach(name => {
+    asset(name)
+})

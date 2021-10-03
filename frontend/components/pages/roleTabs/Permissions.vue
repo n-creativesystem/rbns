@@ -10,7 +10,7 @@
       <dialog-permissions
         v-model="dialog"
         @click="onDialogClick"
-        :ommit-ids="innerIds"
+        :omit-ids="innerIds"
         :selection.sync="selection"
       ></dialog-permissions>
       <n-data-table

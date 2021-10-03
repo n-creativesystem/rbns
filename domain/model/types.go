@@ -96,16 +96,20 @@ func (r requiredString) Value() *string {
 	return &v
 }
 
-func newName(name string) (*requiredString, error) {
-	if name == "" {
+func newRequiredString(value string) (*requiredString, error) {
+	if value == "" {
 		return nil, ErrRequired
 	}
-	v := requiredString(name)
+	v := requiredString(value)
 	return &v, nil
 }
 
+func newName(name string) (*requiredString, error) {
+	return newRequiredString(name)
+}
+
 func newKey(key string) (*requiredString, error) {
-	return newName(key)
+	return newRequiredString(key)
 }
 
 func NewName(name string) (Name, error) {

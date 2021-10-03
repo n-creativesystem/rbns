@@ -1,112 +1,56 @@
 package logger
 
 import (
-	"context"
 	"fmt"
 	"io"
-	"os"
-	"path"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/n-creativesystem/rbns/utilsconv"
 	"github.com/sirupsen/logrus"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
-var (
-	omitHeaders = utilsconv.NewMap("authorization")
-)
-
-func init() {
-	omitHead := os.Getenv("OMIT_HEADERS")
-	headers := strings.Split(omitHead, ",")
-	omitHeaders.Adds(headers...)
+type writer struct {
+	gin.ResponseWriter
+	buffer []byte
 }
 
-type handlerLogConfig struct {
-	logLevel logrus.Level
+func (w *writer) String() string {
+	return string(w.buffer)
 }
 
-type HandlerLogOption func(conf *handlerLogConfig)
-
-func WithGinDebug(level logrus.Level) HandlerLogOption {
-	return func(conf *handlerLogConfig) {
-		conf.logLevel = level
+func (w *writer) Write(p []byte) (int, error) {
+	n, err := w.ResponseWriter.Write(p)
+	if err != nil {
+		return n, err
 	}
+	w.buffer = append(w.buffer, p...)
+	return n, err
 }
 
-type handlerLogger struct {
-	*logrus.Entry
-}
-
-var _ io.Writer = (*handlerLogger)(nil)
-
-var logPool *sync.Pool
-
-func init() {
-	logPool = &sync.Pool{
-		New: func() interface{} {
-			log := New()
-			return &handlerLogger{
-				Entry: logrus.NewEntry(log),
-			}
-		},
-	}
-}
-
-func NewHandlerLogger() *handlerLogger {
-	return logPool.Get().(*handlerLogger)
-}
-
-func (l *handlerLogger) SetLevel(level logrus.Level) {
-	l.Logger.SetLevel(level)
-}
-
-func (l *handlerLogger) Write(p []byte) (n int, err error) {
-	l.Logger.Info(string(p))
-	return len(p), nil
-}
-
-func RestLogger(opts ...HandlerLogOption) gin.HandlerFunc {
-	conf := &handlerLogConfig{
-		logLevel: logrus.InfoLevel,
-	}
-	for _, opt := range opts {
-		opt(conf)
-	}
+func RestLogger(logger *logrus.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		log := NewHandlerLogger()
-		log.SetLevel(conf.logLevel)
-
+		SetLogger(c, logger)
+		w := &writer{
+			ResponseWriter: c.Writer,
+			buffer:         []byte{},
+		}
+		c.Writer = w
 		start := time.Now()
 		path := c.Request.URL.Path
 		raw := c.Request.URL.RawQuery
-		ctx := c.Request.Context()
 		fields := logrus.Fields{}
-		if conf.logLevel == logrus.DebugLevel {
-			mpHeader := c.Request.Header.Clone()
-			for key, value := range mpHeader {
-				if len(value) >= 0 {
-					key = strings.ToLower(key)
-					if !omitHeaders.Exists(key) {
-						k := fmt.Sprintf("req_%s", key)
-						v := strings.ToLower(strings.Join(value, ", "))
-						fields[k] = v
-					}
-				}
+		mpHeader := c.Request.Header.Clone()
+		for key, value := range mpHeader {
+			if len(value) >= 0 {
+				k := fmt.Sprintf("req-%s", strings.ToLower(key))
+				v := strings.ToLower(strings.Join(value, ", "))
+				fields[k] = v
 			}
 		}
-		*log.Entry = *log.WithFields(fields)
-		newCtx := ToContext(ctx, log)
-		*c.Request = *c.Request.WithContext(newCtx)
 		c.Next()
 		for i, err := range c.Errors {
-			log.Errorf("idx: %d error: %v", i, err)
+			logger.Errorf("idx: %d error: %v", i, err)
 		}
 		param := gin.LogFormatterParams{
 			Request: c.Request,
@@ -140,80 +84,48 @@ func RestLogger(opts ...HandlerLogOption) gin.HandlerFunc {
 		for key, value := range mp {
 			fields[key] = value
 		}
-		if conf.logLevel == logrus.DebugLevel {
-			mpHeader := c.Writer.Header().Clone()
-			for key, value := range mpHeader {
-				if len(value) >= 0 {
-					key = strings.ToLower(key)
-					if !omitHeaders.Exists(key) {
-						k := fmt.Sprintf("res_%s", key)
-						v := strings.ToLower(strings.Join(value, ", "))
-						fields[k] = v
-					}
-				}
+		mpHeader = c.Writer.Header().Clone()
+		for key, value := range mpHeader {
+			if len(value) >= 0 {
+				k := fmt.Sprintf("res-%s", strings.ToLower(key))
+				v := strings.ToLower(strings.Join(value, ", "))
+				fields[k] = v
 			}
 		}
-		log.WithFields(fields).Info("incoming request")
-		logPool.Put(log)
-	}
-}
-
-func codeFunc(err error) codes.Code {
-	return status.Code(err)
-}
-
-func GrpcLogger(opts ...HandlerLogOption) grpc.UnaryServerInterceptor {
-	conf := &handlerLogConfig{
-		logLevel: logrus.InfoLevel,
-	}
-	for _, opt := range opts {
-		opt(conf)
-	}
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-		log := NewHandlerLogger()
-		log.SetLevel(conf.logLevel)
-		fullMethodString := info.FullMethod
-		service := path.Dir(fullMethodString)[1:]
-		method := path.Base(fullMethodString)
-		start := time.Now()
-		fields := logrus.Fields{
-			"grpc.key":     "[API-RBAC]",
-			"grpc.start":   start.Format(TimestampFormat),
-			"grpc.service": service,
-			"grpc.method":  method,
+		if c.Writer.Status() > 299 {
+			logger.WithFields(fields).Info(w.String())
+		} else {
+			logger.WithFields(fields).Info("incoming request")
 		}
-		if d, ok := ctx.Deadline(); ok {
-			fields["grpc.request.deadline"] = d.Format(TimestampFormat)
-		}
-		newCtx := ToContext(ctx, log)
-		resp, err = handler(newCtx, req)
-		code := codeFunc(err)
-		timestamp := time.Now()
-		latency := timestamp.Sub(start)
-		fields["grpc.code"] = code.String()
-		fields["grpc.latency"] = latency
-		if err != nil {
-			fields[logrus.ErrorKey] = err
-		}
-		log.WithContext(newCtx).WithFields(fields).Info("finished unary call with code " + code.String())
-		logPool.Put(log)
-		return
 	}
 }
 
-type ctxLoggerMarker struct{}
-
-var logKey = &ctxLoggerMarker{}
-
-func FromContext(ctx context.Context) *handlerLogger {
-	if val, ok := ctx.Value(logKey).(*handlerLogger); ok && val != nil {
-		return val
-	}
-	log := NewHandlerLogger()
-	log.SetLevel(logrus.DebugLevel)
-	return log
+type writeLogger struct {
+	log *logrus.Logger
 }
 
-func ToContext(ctx context.Context, log *handlerLogger) context.Context {
-	return context.WithValue(ctx, logKey, log)
+func (log *writeLogger) Write(p []byte) (int, error) {
+	log.log.Info(string(p))
+	return len(p), nil
+}
+
+func NewWriter(log *logrus.Logger) io.Writer {
+	return &writeLogger{
+		log: log,
+	}
+}
+
+const (
+	logKey = "logger"
+)
+
+func GetLogger(c *gin.Context) *logrus.Logger {
+	if v, ok := c.Get(logKey); ok {
+		return v.(*logrus.Logger)
+	}
+	return logrus.StandardLogger()
+}
+
+func SetLogger(c *gin.Context, logger *logrus.Logger) {
+	c.Set(logKey, logger)
 }

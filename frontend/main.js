@@ -8,9 +8,13 @@ import store from './store'
 import { i18n } from '@plugins/i18n'
 
 (async () => {
-  const res = await fetch('settings.json')
-  const data = await res.json()
-  window.VUE_APP_RBNS_API_ENDPOINT = data.base_url
+  try {
+    const res = await fetch('settings.json')
+    const data = await res.json()
+    window.VUE_APP_RBNS_API_ENDPOINT = data.base_url
+  } catch (_) {
+    console.log();
+  }
   Vue.use(plugin)
 
   Vue.config.productionTip = false

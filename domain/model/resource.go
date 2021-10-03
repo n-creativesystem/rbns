@@ -1,31 +1,22 @@
 package model
 
 type Resource struct {
-	node Node
+	ID          string
+	Description string
+	Permissions Permissions
 }
 
-func NewResourceByMethod(method string, uri, permissions []string) *Resource {
-	node := Node{}
-	for _, u := range uri {
-		node.Add(method, u, permissions...)
+func NewResource(id string, permissions ...Permission) *Resource {
+	p := make(Permissions, 0, len(permissions))
+	for _, permission := range permissions {
+		p = append(p, permission)
 	}
 	return &Resource{
-		node: node,
+		ID:          id,
+		Permissions: p,
 	}
 }
 
-func NewResource(method, uri string, permissions ...string) *Resource {
-	return NewResourceByMethod(method, []string{uri}, permissions)
-}
-
-func (r *Resource) Check(method, uri string, user *User) bool {
-	permissions := r.node.Get(method, uri)
-	for _, permission := range permissions {
-		for _, up := range user.permissions {
-			if *up.name.Value() == permission {
-				return true
-			}
-		}
-	}
-	return false
+func (r *Resource) Add(permission Permission) {
+	r.Permissions = append(r.Permissions, permission)
 }

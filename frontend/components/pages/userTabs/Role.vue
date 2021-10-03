@@ -9,7 +9,7 @@
     <dialog-roles
       v-model="dialog"
       @click="onDialogClick"
-      :ommit-ids="ommitIds"
+      :omit-ids="omitIds"
       :selection.sync="selection"
     ></dialog-roles>
     <n-data-table
@@ -92,8 +92,12 @@
       },
     },
     computed: {
-      ommitIds() {
-        return this.user.roles.map((role) => role.id)
+      omitIds() {
+        if (this.user && this.user.roles) {
+          return this.user.roles.map((role) => role.id)
+        } else {
+          return []
+        }
       },
       headers() {
         return [

@@ -23,11 +23,11 @@ export default {
     form: {
       add: {
         title: '権限の追加',
-        caption: 'リソースが使用する権限を定義します。'
+        caption: 'リソースやロールが使用する権限を定義します。'
       },
       list: {
         title: '権限の一覧',
-        caption: 'リソースが使用するすべての権限です。'
+        caption: 'リソースやロールが使用するすべての権限です。'
       }
     }
   },
@@ -50,7 +50,7 @@ export default {
     },
     form: {
       title: 'ロールの一覧',
-      caption: 'リソースが使用するロールです。',
+      caption: 'ユーザーが使用するロールです。',
       add: 'ロールの作成'
     },
     info: {
@@ -111,6 +111,34 @@ export default {
       }
     }
   },
+  resource: {
+    dialog: {
+      title: 'リソースの選択',
+      add: 'リソースの追加',
+      create: {
+        title: 'リソースの作成'
+      }
+    },
+    form: {
+      title: 'リソースの一覧',
+      caption: '登録されているリソースの一覧です。',
+      add: 'リソースの作成'
+    },
+    entity: {
+      id: 'リソースID',
+      description: '記述'
+    },
+    tabs: {
+      settings: '設定',
+      permissions: '権限',
+    },
+    info: {
+      permission: {
+        message: 'このリソースに権限を追加します。',
+        text: '権限の追加'
+      }
+    }
+  },
   inputs: {
     Name: '名称',
     Description: '記述',
@@ -119,6 +147,7 @@ export default {
   menu: {
     permission: '権限の定義',
     role: 'ロールの定義',
-    organization: '組織の定義'
+    organization: '組織の定義',
+    resource: 'リソースの定義'
   },
 }

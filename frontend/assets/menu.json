@@ -16,5 +16,11 @@
     "href": "/organizations",
     "icon": "mdi-domain",
     "key": "organizations"
+  },
+  {
+    "title": "resource",
+    "href": "/resources",
+    "icon": "mdi-semantic-web",
+    "key": "resources"
   }
 ]

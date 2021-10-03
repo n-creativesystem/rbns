@@ -3,31 +3,31 @@ package service
 import (
 	"context"
 
-	"github.com/n-creativesystem/rbns/di"
 	"github.com/n-creativesystem/rbns/domain/model"
 	"github.com/n-creativesystem/rbns/domain/repository"
 )
 
-func init() {
-	di.MustRegister(newOrganizationService)
-}
-
 type OrganizationService interface {
 	Create(ctx context.Context, name, description string) (*model.Organization, error)
 	FindById(ctx context.Context, strId string) (*model.Organization, error)
+	FindByName(ctx context.Context, name string) (*model.Organization, error)
 	FindAll(ctx context.Context) (model.Organizations, error)
 	Update(ctx context.Context, strId, name, description string) error
 	Delete(ctx context.Context, strId string) error
 }
 
 type organizationService struct {
-	repo repository.Repository
+	reader repository.Reader
+	writer repository.Writer
 }
 
 var _ OrganizationService = (*organizationService)(nil)
 
-func newOrganizationService(repo repository.Repository) OrganizationService {
-	return &organizationService{repo: repo}
+func NewOrganizationService(reader repository.Reader, writer repository.Writer) OrganizationService {
+	return &organizationService{
+		reader: reader,
+		writer: writer,
+	}
 }
 
 // Organization
@@ -37,8 +37,7 @@ func (srv *organizationService) Create(ctx context.Context, name, description st
 	if err != nil {
 		return nil, err
 	}
-	tx := srv.repo.NewConnection().Transaction(ctx)
-	err = tx.Do(func(tx repository.Transaction) error {
+	err = srv.writer.Do(ctx, func(tx repository.Transaction) error {
 		orgRepo := tx.Organization()
 		org, err := orgRepo.Create(orgName, description)
 		if err != nil {
@@ -51,7 +50,7 @@ func (srv *organizationService) Create(ctx context.Context, name, description st
 }
 
 func (srv *organizationService) FindById(ctx context.Context, strId string) (*model.Organization, error) {
-	orgRepo := srv.repo.NewConnection().Organization(ctx)
+	orgRepo := srv.reader.Organization(ctx)
 	id, err := model.NewID(strId)
 	if err != nil {
 		return nil, err
@@ -63,8 +62,21 @@ func (srv *organizationService) FindById(ctx context.Context, strId string) (*mo
 	return organization, nil
 }
 
+func (srv *organizationService) FindByName(ctx context.Context, name string) (*model.Organization, error) {
+	orgRepo := srv.reader.Organization(ctx)
+	id, err := model.NewName(name)
+	if err != nil {
+		return nil, err
+	}
+	organization, err := orgRepo.FindByName(id)
+	if err != nil {
+		return nil, err
+	}
+	return organization, nil
+}
+
 func (srv *organizationService) FindAll(ctx context.Context) (model.Organizations, error) {
-	orgRepo := srv.repo.NewConnection().Organization(ctx)
+	orgRepo := srv.reader.Organization(ctx)
 	organizations, err := orgRepo.FindAll()
 	if err != nil {
 		return nil, err
@@ -77,8 +89,8 @@ func (srv *organizationService) Update(ctx context.Context, strId, name, descrip
 	if err != nil {
 		return err
 	}
-	tx := srv.repo.NewConnection().Transaction(ctx)
-	if err := tx.Do(func(tx repository.Transaction) error { return tx.Organization().Update(mOrg) }); err != nil {
+	tx := srv.writer
+	if err := tx.Do(ctx, func(tx repository.Transaction) error { return tx.Organization().Update(mOrg) }); err != nil {
 		return err
 	}
 	return nil
@@ -89,8 +101,8 @@ func (srv *organizationService) Delete(ctx context.Context, strId string) error 
 	if err != nil {
 		return err
 	}
-	tx := srv.repo.NewConnection().Transaction(ctx)
-	if err := tx.Do(func(tx repository.Transaction) error { return tx.Organization().Delete(id) }); err != nil {
+	tx := srv.writer
+	if err := tx.Do(ctx, func(tx repository.Transaction) error { return tx.Organization().Delete(id) }); err != nil {
 		return err
 	}
 	return nil

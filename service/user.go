@@ -3,14 +3,9 @@ package service
 import (
 	"context"
 
-	"github.com/n-creativesystem/rbns/di"
 	"github.com/n-creativesystem/rbns/domain/model"
 	"github.com/n-creativesystem/rbns/domain/repository"
 )
-
-func init() {
-	di.MustRegister(newUserService)
-}
 
 type UserService interface {
 	Create(ctx context.Context, userKey, organizationId string, roleIds ...string) error
@@ -21,17 +16,21 @@ type UserService interface {
 }
 
 type userService struct {
-	repo repository.Repository
+	reader repository.Reader
+	writer repository.Writer
 }
 
 var _ UserService = (*userService)(nil)
 
-func newUserService(repo repository.Repository) UserService {
-	return &userService{repo: repo}
+func NewUserService(reader repository.Reader, writer repository.Writer) UserService {
+	return &userService{
+		reader: reader,
+		writer: writer,
+	}
 }
 
 // User
-func (srv *userService) Create(ctx context.Context, userKey, organizationId string, roleIds ...string) error {
+func (svc *userService) Create(ctx context.Context, userKey, organizationId string, roleIds ...string) error {
 	orgId, err := model.NewID(organizationId)
 	if err != nil {
 		return err
@@ -40,8 +39,7 @@ func (srv *userService) Create(ctx context.Context, userKey, organizationId stri
 	if err != nil {
 		return err
 	}
-	tx := srv.repo.NewConnection().Transaction(ctx)
-	err = tx.Do(func(tx repository.Transaction) error {
+	err = svc.writer.Do(ctx, func(tx repository.Transaction) error {
 		mRole := model.Roles{}
 		for _, roleId := range roleIds {
 			if id, err := model.NewID(roleId); err == nil {
@@ -65,7 +63,7 @@ func (srv *userService) Create(ctx context.Context, userKey, organizationId stri
 	return nil
 }
 
-func (srv *userService) Delete(ctx context.Context, userKey, organizationId string) error {
+func (svc *userService) Delete(ctx context.Context, userKey, organizationId string) error {
 	orgId, err := model.NewID(organizationId)
 	if err != nil {
 		return err
@@ -74,14 +72,13 @@ func (srv *userService) Delete(ctx context.Context, userKey, organizationId stri
 	if err != nil {
 		return err
 	}
-	tx := srv.repo.NewConnection().Transaction(ctx)
-	err = tx.Do(func(tx repository.Transaction) error {
+	err = svc.writer.Do(ctx, func(tx repository.Transaction) error {
 		return tx.User().Delete(orgId, key)
 	})
 	return err
 }
 
-func (srv *userService) FindByKey(ctx context.Context, userKey, organizationId string) (*model.User, error) {
+func (svc *userService) FindByKey(ctx context.Context, userKey, organizationId string) (*model.User, error) {
 	orgId, err := model.NewID(organizationId)
 	if err != nil {
 		return nil, err
@@ -90,7 +87,7 @@ func (srv *userService) FindByKey(ctx context.Context, userKey, organizationId s
 	if err != nil {
 		return nil, err
 	}
-	userRepo := srv.repo.NewConnection().User(ctx)
+	userRepo := svc.reader.User(ctx)
 	u, err := userRepo.FindByKey(orgId, key)
 	if err != nil {
 		return nil, err
@@ -98,7 +95,7 @@ func (srv *userService) FindByKey(ctx context.Context, userKey, organizationId s
 	return u, nil
 }
 
-func (srv *userService) AddRole(ctx context.Context, userKey, organizationId string, roleIds []string) error {
+func (svc *userService) AddRole(ctx context.Context, userKey, organizationId string, roleIds []string) error {
 	orgId, err := model.NewID(organizationId)
 	if err != nil {
 		return err
@@ -107,8 +104,7 @@ func (srv *userService) AddRole(ctx context.Context, userKey, organizationId str
 	if err != nil {
 		return err
 	}
-	tx := srv.repo.NewConnection().Transaction(ctx)
-	err = tx.Do(func(tx repository.Transaction) error {
+	err = svc.writer.Do(ctx, func(tx repository.Transaction) error {
 		mRole := model.Roles{}
 		for _, roleId := range roleIds {
 			if id, err := model.NewID(roleId); err == nil {
@@ -129,7 +125,7 @@ func (srv *userService) AddRole(ctx context.Context, userKey, organizationId str
 	return nil
 }
 
-func (srv *userService) DeleteRole(ctx context.Context, userKey, organizationId string, roleIds []string) error {
+func (svc *userService) DeleteRole(ctx context.Context, userKey, organizationId string, roleIds []string) error {
 	orgId, err := model.NewID(organizationId)
 	if err != nil {
 		return err
@@ -138,8 +134,7 @@ func (srv *userService) DeleteRole(ctx context.Context, userKey, organizationId 
 	if err != nil {
 		return err
 	}
-	tx := srv.repo.NewConnection().Transaction(ctx)
-	err = tx.Do(func(tx repository.Transaction) error {
+	err = svc.writer.Do(ctx, func(tx repository.Transaction) error {
 		for _, roleId := range roleIds {
 			if id, err := model.NewID(roleId); err != nil {
 				return err

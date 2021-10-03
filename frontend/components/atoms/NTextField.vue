@@ -1,6 +1,6 @@
 <template>
   <v-text-field
-    clearable
+    :clearable="$attrs.readonly ? false : true"
     outlined
     v-bind="$attrs"
     v-model="innverValue"
