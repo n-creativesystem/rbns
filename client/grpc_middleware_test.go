@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/n-creativesystem/rbns/client"
-	"github.com/n-creativesystem/rbns/protobuf"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/interop"
@@ -37,7 +36,7 @@ func serve(sOpt ...grpc.ServerOption) *grpc.Server {
 }
 
 func mockServer(b *bytes.Buffer) (*exec.Cmd, error) {
-	cmd := exec.Command("tests/rbns", "run")
+	cmd := exec.Command("tests/rbns", "run", "--storage-type", "inmemory")
 	cmd.Stdout = b
 	cmd.Stderr = b
 	cmd.Env = os.Environ()
@@ -121,12 +120,41 @@ func TestMigration(t *testing.T) {
 	ctx := context.Background()
 	client, _ := client.New("localhost:8888")
 	r := client.Resource(ctx)
-	if err := r.Migration(&protobuf.ResourceSaveRequest{
-		Id:              "uri:post:test",
-		Description:     "",
-		PermissionNames: []string{"create:test", "update:test"},
-	}); !assert.NoError(t, err) {
+	if err := r.Migration("uri:post:test", "", []string{"create:test", "update:test"}); !assert.NoError(t, err) {
 		return
+	}
+	fmt.Printf("%s\n", b.String())
+}
+
+func TestResource(t *testing.T) {
+	var b bytes.Buffer
+	cmd, err := mockServer(&b)
+	if !assert.NoError(t, err) {
+		return
+	}
+	defer func() {
+		if cmd != nil {
+			_ = cmd.Process.Kill()
+		}
+	}()
+	ctx := context.Background()
+	client, _ := client.New("localhost:8888")
+	r := client.Resource(ctx)
+	if err := r.Save("test", "test-description", []string{}); !assert.NoError(t, err) {
+		return
+	}
+	resp, err := r.Find("test")
+	if !assert.NoError(t, err) {
+		return
+	}
+	assert.Equal(t, "test-description", resp.Description)
+	if err := r.Delete("test"); !assert.NoError(t, err) {
+		return
+	}
+	if existsResp, err := r.Exists("test"); !assert.NoError(t, err) {
+		return
+	} else {
+		assert.False(t, existsResp.IsExists)
 	}
 	fmt.Printf("%s\n", b.String())
 }

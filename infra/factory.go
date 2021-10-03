@@ -7,6 +7,7 @@ import (
 	"github.com/n-creativesystem/rbns/infra/rdb"
 	"github.com/n-creativesystem/rbns/infra/rdb/driver/mysql"
 	"github.com/n-creativesystem/rbns/infra/rdb/driver/postgres"
+	"github.com/n-creativesystem/rbns/infra/rdb/driver/sqlite3"
 	"github.com/n-creativesystem/rbns/storage"
 	"github.com/spf13/viper"
 )
@@ -44,6 +45,9 @@ func NewFactory(typ string) (storage.Factory, map[string]interface{}, error) {
 		db, _ := mysql.New(dsn)
 		factory = rdb.NewFactory(db)
 	case inMemoryStorageType:
+		dsn := "file::memory:?cache=shared"
+		db, _ := sqlite3.New(dsn)
+		factory = rdb.NewFactory(db)
 	}
 	mp := v.AllSettings()
 	return factory, mp, nil

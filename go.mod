@@ -12,6 +12,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.5.0
 	github.com/iancoleman/strcase v0.2.0 // indirect
 	github.com/jackc/pgconn v1.10.0
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/lyft/protoc-gen-star v0.6.0 // indirect
@@ -35,6 +36,7 @@ require (
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gorm.io/driver/mysql v1.1.1
 	gorm.io/driver/postgres v1.1.0
+	gorm.io/driver/sqlite v1.1.4
 	gorm.io/gorm v1.21.12
 	gorm.io/plugin/dbresolver v1.1.0
 )
