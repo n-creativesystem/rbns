@@ -14,11 +14,11 @@ func parseSAML(headerName string, claimNames []string) gin.HandlerFunc {
 		payload := c.GetHeader(headerName) // "x-saml-payload"
 		buf, err := base64.RawURLEncoding.DecodeString(payload)
 		if err != nil {
-			log.Error(err)
+			log.Error(err, "")
 		}
 		mp := map[string]interface{}{}
 		if err := json.Unmarshal(buf, &mp); err != nil {
-			log.Error(err)
+			log.Error(err, "")
 		}
 		m := mp
 		for _, key := range claimNames {
@@ -26,9 +26,9 @@ func parseSAML(headerName string, claimNames []string) gin.HandlerFunc {
 				m = v
 				continue
 			}
-			if v, ok := m[key]; ok {
-				log.Info(v)
-			}
+			// if v, ok := m[key]; ok {
+			// 	log.Info(v)
+			// }
 		}
 	}
 }

@@ -1,31 +1,31 @@
 version: '3.8'
 services:
-  api-rbac:
-    image: test:rbns
-    tty: true
-    container_name: api-rbac
-    environment:
-      TZ: Asia/Tokyo
-      UI: 'true'
-      SECURE: 'false'
-      HTTP_PORT: 8080
-      BASE_URL: /admin/permissions
-      MASTER_DSN: 'host=api-rbac-postgres-dev user=rbac-user password=rbac-user dbname=postgres port=5432 sslmode=disable'
-    networks:
-      - rbns-net
-  api-rbac-envoy:
-    image: envoyproxy/envoy-alpine:v1.19-latest
-    container_name: api-rbac-envoy
-    volumes:
-      - ./envoy:/etc/envoy
-      - ./ssl:/ssl
-    networks:
-      - rbns-net
-      - envoy-net
-    environment:
-      TZ: Asia/Tokyo
-    ports:
-      - 8443
+  # api-rbac:
+  #   image: test:rbns
+  #   tty: true
+  #   container_name: api-rbac
+  #   environment:
+  #     TZ: Asia/Tokyo
+  #     UI: 'true'
+  #     SECURE: 'false'
+  #     HTTP_PORT: 8080
+  #     BASE_URL: /admin/permissions
+  #     MASTER_DSN: 'host=api-rbac-postgres-dev user=rbac-user password=rbac-user dbname=postgres port=5432 sslmode=disable'
+  #   networks:
+  #     - rbns-net
+  # api-rbac-envoy:
+  #   image: envoyproxy/envoy-alpine:v1.19-latest
+  #   container_name: api-rbac-envoy
+  #   volumes:
+  #     - ./envoy:/etc/envoy
+  #     - ./ssl:/ssl
+  #   networks:
+  #     - rbns-net
+  #     - envoy-net
+  #   environment:
+  #     TZ: Asia/Tokyo
+  #   ports:
+  #     - 8443
   api-rbac-dev:
     build: .devcontainer
     tty: true
@@ -54,20 +54,31 @@ services:
       TZ: Asia/Tokyo
     ports:
       - 58383:5432
-  api-rbac-mysql-dev:
-    image: mysql:8
-    command: --default-authentication-plugin=mysql_native_password
+  api-rbac-postgres-test:
+    image: postgres:11-alpine
     networks:
       - rbns-net
-    container_name: api-rbac-mysql-dev
+    container_name: api-rbac-postgres-test
     environment:
-      MYSQL_ROOT_PASSWORD: rbac-root
-      MYSQL_USER: rbac-user
-      MYSQL_PASSWORD: rbac-user
-      MYSQL_DATABASE: rbac-db
+      POSTGRES_USER: rbac-user
+      POSTGRES_PASSWORD: rbac-user
       TZ: Asia/Tokyo
     ports:
-      - 58384:3306
+      - 5432
+  # api-rbac-mysql-dev:
+  #   image: mysql:8
+  #   command: --default-authentication-plugin=mysql_native_password
+  #   networks:
+  #     - rbns-net
+  #   container_name: api-rbac-mysql-dev
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: rbac-root
+  #     MYSQL_USER: rbac-user
+  #     MYSQL_PASSWORD: rbac-user
+  #     MYSQL_DATABASE: rbac-db
+  #     TZ: Asia/Tokyo
+  #   ports:
+  #     - 58384:3306
 networks:
   default:
     name: bridge

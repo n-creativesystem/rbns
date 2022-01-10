@@ -3,17 +3,17 @@ package gateway
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"math"
 	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/n-creativesystem/rbns/config"
 	"github.com/n-creativesystem/rbns/handler/gateway/marshaler"
 	"github.com/n-creativesystem/rbns/logger"
 	"github.com/n-creativesystem/rbns/protobuf"
-	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/keepalive"
@@ -44,28 +44,18 @@ func withMetadata(ctx context.Context, req *http.Request) metadata.MD {
 		return default_
 	}
 	return metadata.New(map[string]string{
-		XTenantID:  f(XTenantID, "default"),
+		XTenantID:  f(XTenantID, "fake"),
 		XIndexKey:  f(XIndexKey, "index"),
 		XRequestID: req.Header.Get(XRequestID),
 	})
 }
 
 type GRPCGateway struct {
-	grpcAddress string
-	mux         http.Handler
-	logger      *logrus.Logger
+	mux http.Handler
 }
 
-type config struct {
-	saml              bool
-	saml_payload_name string
-	role              string
-}
-
-func New(grpcAddress, certFile, commonName, baseURL string, log *logrus.Logger) (*GRPCGateway, error) {
-	if baseURL == "" {
-		baseURL = "/"
-	}
+func New(conf *config.Config) (*GRPCGateway, error) {
+	grpcAddress, certFile, commonName := fmt.Sprintf(":%d", conf.GrpcPort), conf.CertificateFile, conf.KeyFile
 	var err error
 	dialOpts := []grpc.DialOption{
 		grpc.WithDefaultCallOptions(
@@ -107,31 +97,13 @@ func New(grpcAddress, certFile, commonName, baseURL string, log *logrus.Logger) 
 	endpoints := endpoints()
 	for _, endpoint := range endpoints {
 		if err := endpoint(ctx, mux, grpcAddress, dialOpts); err != nil {
-			log.Errorf("failed to register handler from endpoint: %s", err.Error())
+			logger.ErrorWithContext(ctx, err, "failed to register handler from endpoint")
 			return nil, err
 		}
 	}
-	type settings struct {
-		BaseURL string `json:"base_url"`
-	}
-	var s settings
-	s.BaseURL = baseURL
-	gin.DefaultWriter = logger.NewWriter(log)
-	r := gin.New()
-	r.Use(logger.RestLogger(log), gin.Recovery())
-	r.Static("/static", "./static")
-	r.GET("/", func(c *gin.Context) {
-		c.File("static/index.html")
-	})
-	r.GET("/settings.json", func(c *gin.Context) {
-		c.JSON(http.StatusOK, &s)
-	})
-	r.Any("/api/*gateway", gin.WrapH(mux))
 
 	return &GRPCGateway{
-		grpcAddress: grpcAddress,
-		mux:         r,
-		logger:      log,
+		mux: mux,
 	}, nil
 }
 
@@ -149,6 +121,6 @@ func endpoints() []endpoint {
 		protobuf.RegisterRoleHandlerFromEndpoint,
 		protobuf.RegisterUserHandlerFromEndpoint,
 		protobuf.RegisterOrganizationHandlerFromEndpoint,
-		protobuf.RegisterResourceHandlerFromEndpoint,
+		// protobuf.RegisterResourceHandlerFromEndpoint,
 	}
 }

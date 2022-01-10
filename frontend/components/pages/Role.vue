@@ -45,7 +45,7 @@
     mixins: [axiosMixin],
     data() {
       return {
-        tabs: 'settings',
+        tabs: '',
         id: '',
         role: {
           name: '',
@@ -58,6 +58,7 @@
       }
     },
     created() {
+      this.tabs = 'settings'
       this.id = this.$route.params.id
       this.getData()
     },

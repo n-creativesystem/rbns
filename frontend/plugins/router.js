@@ -1,10 +1,11 @@
 import Vue from 'vue'
 import Router from 'vue-router'
+import { IsLogin } from './login'
 
 Vue.use(Router)
 
-export default new Router({
-  mode: 'hash',
+const router = new Router({
+  mode: 'history',
   routes: [
     {
       path: '/',
@@ -15,7 +16,10 @@ export default new Router({
         {
           path: 'permissions',
           name: 'permissions',
-          component: () => import('@page/Permissions')
+          component: () => import('@page/Permissions'),
+          meta: {
+            auth: true
+          }
         },
         {
           path: 'roles',
@@ -25,11 +29,17 @@ export default new Router({
               path: '/',
               name: 'roles',
               component: () => import('@page/Roles'),
+              meta: {
+                auth: true
+              },
             },
             {
               path: ':id',
               name: 'roleId',
-              component: () => import('@page/Role')
+              component: () => import('@page/Role'),
+              meta: {
+                auth: true
+              },
             }
           ]
         },
@@ -40,36 +50,56 @@ export default new Router({
             {
               path: '/',
               name: 'organizations',
-              component: () => import('@page/Organizations')
+              component: () => import('@page/Organizations'),
+              meta: {
+                auth: true
+              },
             },
             {
               path: ':id',
               name: 'organization-id',
-              component: () => import('@page/Organization')
+              component: () => import('@page/Organization'),
+              meta: {
+                auth: true
+              },
             },
             {
               path: ':id/users/:userKey',
               name: 'user-id',
-              component: () => import('@page/User')
+              component: () => import('@page/User'),
+              meta: {
+                auth: true
+              },
             }
           ]
         },
         {
-          path: 'resources',
+          path: 'login',
           component: () => import('@page/Parent'),
           children: [
             {
               path: '/',
-              name: 'resources',
-              component: () => import('@page/Resources')
+              name: 'login',
+              component: () => import('@page/Login')
             },
-            {
-              path: ':id',
-              name: 'resourceId',
-              component: () => import('@page/Resource')
-            }
           ]
-        }
+        },
+        // {
+        //   path: 'resources',
+        //   component: () => import('@page/Parent'),
+        //   children: [
+        //     {
+        //       path: '/',
+        //       name: 'resources',
+        //       component: () => import('@page/Resources')
+        //     },
+        //     {
+        //       path: ':id',
+        //       name: 'resourceId',
+        //       component: () => import('@page/Resource')
+        //     }
+        //   ]
+        // }
       ]
     },
     {
@@ -77,5 +107,30 @@ export default new Router({
       name: 'notFound',
       redirect: '/'
     },
-  ]
+  ],
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition
+    } else {
+      return { x: 0, y: 0 }
+    }
+  }
 })
+
+router.beforeEach((to, from, next) => {
+  if (to.meta && to.meta.auth) {
+    if (IsLogin) {
+      next()
+    } else {
+      next({
+        name: 'login', query: {
+          'to': to.path
+        }
+      })
+    }
+  } else {
+    next()
+  }
+})
+
+export default router

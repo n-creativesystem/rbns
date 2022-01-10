@@ -1,52 +1,66 @@
 package model
 
 type Organization struct {
-	model
-	description string
-	users       Users
+	ID          ID
+	Name        string
+	Description string
+	Users       []User
+	Roles       []Role
 }
 
-func (o *Organization) GetDescription() string {
-	return o.description
+func (org *Organization) AddUser(id ID, name Name) *Organization {
+	org.Users = append(org.Users, User{
+		ID:   id.String(),
+		Name: name.String(),
+	})
+	return org
 }
 
-func (o *Organization) GetUsers() Users {
-	return o.users.Copy()
+type GetOrganizationQuery struct {
+	Result []Organization
 }
 
-func (o *Organization) IsContainsUsers(userKey Key) (*User, bool) {
-	users := o.GetUsers()
-	for _, u := range users {
-		if u.key.equals(userKey) {
-			return &u, true
-		}
-	}
-	return nil, false
+type GetOrganizationByIDQuery struct {
+	PrimaryQuery
+
+	Result *Organization
 }
 
-type Organizations []Organization
+type GetOrganizationByNameQuery struct {
+	Name Name
 
-func (arr Organizations) Copy() Organizations {
-	cArr := make([]Organization, len(arr))
-	copy(cArr, arr)
-	return cArr
+	Result *Organization
 }
 
-func NewOrganization(id, name, description string, users ...User) (*Organization, error) {
-	vId, err := newID(id)
-	if err != nil {
-		return nil, err
-	}
-	vName, err := newName(name)
-	if err != nil {
-		return nil, err
-	}
-	return &Organization{
-		model: model{
-			id:   *vId,
-			name: *vName,
-		},
-		description: description,
-		users:       Users(users).Copy(),
-	}, nil
+type CountOrganizationByNameQuery struct {
+	CountNameQuery
+}
+
+type AddOrganizationCommand struct {
+	Name        Name
+	Description string
+
+	Result *Organization
+}
+
+type UpdateOrganizationCommand struct {
+	PrimaryCommand
+	Name        Name
+	Description string
+
+	Result *Organization
+}
+
+type DeleteOrganizationCommand struct {
+	PrimaryCommand
+}
+
+type AddOrganizationUserCommand struct {
+	PrimaryCommand
+	User []User
+}
+
+type DeleteOrganizationUserCommand struct {
+	PrimaryCommand
+	User []User
 }

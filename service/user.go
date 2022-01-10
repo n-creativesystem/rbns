@@ -2,152 +2,98 @@ package service
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/n-creativesystem/rbns/bus"
 	"github.com/n-creativesystem/rbns/domain/model"
-	"github.com/n-creativesystem/rbns/domain/repository"
+	"github.com/n-creativesystem/rbns/logger"
 )
 
 type UserService interface {
-	Create(ctx context.Context, userKey, organizationId string, roleIds ...string) error
-	Delete(ctx context.Context, userKey, organizationId string) error
-	FindByKey(ctx context.Context, userKey, organizationId string) (*model.User, error)
-	AddRole(ctx context.Context, userKey, organizationId string, roleIds []string) error
-	DeleteRole(ctx context.Context, userKey, organizationId string, roleIds []string) error
+	Create(ctx context.Context, userID string, name string) error
+	Delete(ctx context.Context, userID string) error
+	FindById(ctx context.Context, userID string) (*model.User, error)
+	FindByIds(ctx context.Context, userIDs []string) ([]model.User, error)
 }
 
 type userService struct {
-	reader repository.Reader
-	writer repository.Writer
+	log logger.Logger
 }
 
 var _ UserService = (*userService)(nil)
 
-func NewUserService(reader repository.Reader, writer repository.Writer) UserService {
-	return &userService{
-		reader: reader,
-		writer: writer,
-	}
+func NewUserService() UserService {
+	return &userService{logger.New("user service")}
 }
 
 // User
-func (svc *userService) Create(ctx context.Context, userKey, organizationId string, roleIds ...string) error {
-	orgId, err := model.NewID(organizationId)
+func (svc *userService) Create(ctx context.Context, userID string, name string) error {
+	id, err := model.NewID(userID)
 	if err != nil {
 		return err
 	}
-	user, err := model.NewUser(userKey, nil, nil)
-	if err != nil {
-		return err
+	cmd := model.AddUserCommand{
+		PrimaryCommand: model.PrimaryCommand{
+			ID: id,
+		},
 	}
-	err = svc.writer.Do(ctx, func(tx repository.Transaction) error {
-		mRole := model.Roles{}
-		for _, roleId := range roleIds {
-			if id, err := model.NewID(roleId); err == nil {
-				if r, err := tx.Role().FindByID(id); err == nil {
-					mRole = append(mRole, *r)
-				} else {
-					return err
-				}
-			} else {
-				return err
-			}
-		}
-		user.AddRole(mRole...)
-		userRepo := tx.User()
-		_, err := userRepo.Create(orgId, user)
-		return err
-	})
-	if err != nil {
+	if err := bus.Dispatch(ctx, &cmd); err != nil {
+		svc.log.ErrorWithContext(ctx, err, "dispatch error", "command", fmt.Sprintf("%+v", cmd))
 		return err
 	}
 	return nil
 }
 
-func (svc *userService) Delete(ctx context.Context, userKey, organizationId string) error {
-	orgId, err := model.NewID(organizationId)
+func (svc *userService) Delete(ctx context.Context, userID string) error {
+	id, err := model.NewID(userID)
 	if err != nil {
 		return err
 	}
-	key, err := model.NewKey(userKey)
-	if err != nil {
-		return err
+	cmd := model.DeleteUserCommand{
+		PrimaryCommand: model.PrimaryCommand{
+			ID: id,
+		},
 	}
-	err = svc.writer.Do(ctx, func(tx repository.Transaction) error {
-		return tx.User().Delete(orgId, key)
-	})
-	return err
-}
-
-func (svc *userService) FindByKey(ctx context.Context, userKey, organizationId string) (*model.User, error) {
-	orgId, err := model.NewID(organizationId)
-	if err != nil {
-		return nil, err
-	}
-	key, err := model.NewKey(userKey)
-	if err != nil {
-		return nil, err
-	}
-	userRepo := svc.reader.User(ctx)
-	u, err := userRepo.FindByKey(orgId, key)
-	if err != nil {
-		return nil, err
-	}
-	return u, nil
-}
-
-func (svc *userService) AddRole(ctx context.Context, userKey, organizationId string, roleIds []string) error {
-	orgId, err := model.NewID(organizationId)
-	if err != nil {
-		return err
-	}
-	key, err := model.NewKey(userKey)
-	if err != nil {
-		return err
-	}
-	err = svc.writer.Do(ctx, func(tx repository.Transaction) error {
-		mRole := model.Roles{}
-		for _, roleId := range roleIds {
-			if id, err := model.NewID(roleId); err == nil {
-				if r, err := tx.Role().FindByID(id); err == nil {
-					mRole = append(mRole, *r)
-				} else {
-					return err
-				}
-			} else {
-				return err
-			}
-		}
-		return tx.User().AddRole(orgId, key, mRole...)
-	})
-	if err != nil {
+	if err := bus.Dispatch(ctx, &cmd); err != nil {
+		svc.log.ErrorWithContext(ctx, err, "dispatch error", "command", fmt.Sprintf("%+v", cmd))
 		return err
 	}
 	return nil
 }
 
-func (svc *userService) DeleteRole(ctx context.Context, userKey, organizationId string, roleIds []string) error {
-	orgId, err := model.NewID(organizationId)
+func (svc *userService) FindById(ctx context.Context, userID string) (*model.User, error) {
+	id, err := model.NewID(userID)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	key, err := model.NewKey(userKey)
-	if err != nil {
-		return err
+	query := model.GetUserByIDQuery{
+		PrimaryQuery: model.PrimaryQuery{
+			ID: id,
+		},
 	}
-	err = svc.writer.Do(ctx, func(tx repository.Transaction) error {
-		for _, roleId := range roleIds {
-			if id, err := model.NewID(roleId); err != nil {
-				return err
-			} else {
-				if err := tx.User().DeleteRole(orgId, key, id); err != nil {
-					return err
-				}
-			}
+	if err := bus.Dispatch(ctx, &query); err != nil {
+		svc.log.ErrorWithContext(ctx, err, "dispatch error", "query", fmt.Sprintf("%+v", query))
+		return nil, err
+	}
+	return query.Result, nil
+}
+
+func (svc *userService) FindByIds(ctx context.Context, userIDs []string) ([]model.User, error) {
+	query := model.GetUserByIDsQuery{
+		Query: make([]model.PrimaryQuery, 0, len(userIDs)),
+	}
+	for _, userID := range userIDs {
+		id, err := model.NewID(userID)
+		if err != nil {
+			continue
 		}
-		return nil
-	})
-	if err != nil {
-		return err
+		query.Query = append(query.Query, model.PrimaryQuery{
+			ID: id,
+		})
 	}
-	return nil
+	if err := bus.Dispatch(ctx, &query); err != nil {
+		svc.log.ErrorWithContext(ctx, err, "dispatch error", "query", fmt.Sprintf("%+v", query))
+		return nil, err
+	}
+	return query.Result, nil
 }

@@ -2,7 +2,6 @@ package grpcserver
 
 import (
 	auth "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
-	"github.com/n-creativesystem/rbns/service"
 )
 
 type authorizationServer interface {
@@ -10,7 +9,7 @@ type authorizationServer interface {
 }
 
 type authorizationServerImpl struct {
-	svc service.Resource
+	// svc service.Resource
 }
 
 // var _ auth.AuthorizationServer = (*authorizationServerImpl)(nil)

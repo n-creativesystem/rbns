@@ -1,122 +1,188 @@
 package rdb
 
 import (
-	"errors"
+	"context"
 
+	"github.com/n-creativesystem/rbns/bus"
 	"github.com/n-creativesystem/rbns/domain/model"
-	"github.com/n-creativesystem/rbns/domain/repository"
-	"github.com/n-creativesystem/rbns/infra/rdb/entity"
-	"gorm.io/gorm"
+	"github.com/n-creativesystem/rbns/infra/entity"
+	"github.com/n-creativesystem/rbns/infra/entity/plugins"
+	"github.com/n-creativesystem/rbns/infra/rdb/driver"
 )
 
-type permission struct {
-	db *gorm.DB
+func (f *SQLStore) addPermissionBus() {
+	bus.AddHandler("sql", f.GetPermissionQuery)
+	bus.AddHandler("sql", f.GetPermissionByIDQuery)
+	bus.AddHandler("sql", f.GetPermissionByNameQuery)
+	bus.AddHandler("sql", f.CountPermissionByNameQuery)
+
+	bus.AddHandler("sql", f.AddPermissionCommand)
+	bus.AddHandler("sql", f.AddPermissionCommands)
+	bus.AddHandler("sql", f.UpdatePermissionCommand)
+	bus.AddHandler("sql", f.DeletePermissionCommand)
 }
 
-var (
-	_ repository.Permission        = (*permission)(nil)
-	_ repository.PermissionCommand = (*permission)(nil)
-)
-
-func (r *permission) FindAll() (model.Permissions, error) {
-	session := r.db
-	var permissions []entity.Permission
-	err := session.Order("id").Find(&permissions).Error
-	if err != nil {
-		return nil, model.NewDBErr(err)
-	}
-	if len(permissions) == 0 {
-		return nil, model.ErrNoData
-	}
-	modelPermissions := make(model.Permissions, len(permissions))
-	for i, permission := range permissions {
-		if p, err := permission.ConvertModel(); err != nil {
-			return nil, err
-		} else {
-			modelPermissions[i] = *p
+func (f *SQLStore) GetPermissionQuery(ctx context.Context, query *model.GetPermissionQuery) error {
+	return f.DbSessionWithTenant(ctx, func(sess *DBSession, tenant string) error {
+		var permissions []entity.Permission
+		where := entity.Permission{
+			Model: entity.Model{
+				Tenant: tenant,
+			},
 		}
-	}
-	return modelPermissions, nil
-}
-
-func (r *permission) FindByID(id model.ID) (*model.Permission, error) {
-	session := r.db
-	var permission entity.Permission
-	err := session.Where(&entity.Permission{Model: entity.Model{ID: *id.Value()}}).Find(&permission).Error
-	if err != nil {
-		return nil, model.NewDBErr(err)
-	}
-	if permission.ID == "" {
-		return nil, model.ErrNoData
-	}
-	return permission.ConvertModel()
-}
-
-func (r *permission) FindByName(name model.Name) (*model.Permission, error) {
-	session := r.db
-	var permission entity.Permission
-	if err := session.Where(&entity.Permission{Name: *name.Value()}).Find(&permission).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, model.ErrNoData
-		} else {
-			return nil, model.NewDBErr(err)
-		}
-	}
-	if permission.ID == "" {
-		return nil, model.ErrNoData
-	}
-	return permission.ConvertModel()
-}
-
-func (r *permission) Create(name model.Name, description string) (*model.Permission, error) {
-	entity := entity.Permission{
-		Name:        *name.Value(),
-		Description: description,
-	}
-	entity.Generate()
-	err := r.db.Create(&entity).Error
-	if err != nil {
-		return nil, model.NewDBErr(err)
-	}
-	return model.NewPermission(entity.ID, entity.Name, entity.Description)
-}
-
-func (r *permission) CreateBatch(names []model.Name, descriptions []string) ([]*model.Permission, error) {
-	entities := make([]entity.Permission, len(names))
-	for idx, name := range names {
-		entity := entity.Permission{
-			Name:        *name.Value(),
-			Description: descriptions[idx],
-		}
-		entity.Generate()
-		entities[idx] = entity
-	}
-	err := r.db.Create(&entities).Error
-	if err != nil {
-		return nil, model.NewDBErr(err)
-	}
-	mPermissions := make([]*model.Permission, len(entities))
-	for idx, entity := range entities {
-		mPermissions[idx], err = model.NewPermission(entity.ID, entity.Name, entity.Description)
+		err := sess.Where(&where).Order("id").Find(&permissions).Error
 		if err != nil {
-			return nil, err
+			return driver.NewDBErr(sess.DB, err)
 		}
-	}
-	return mPermissions, nil
+		if len(permissions) == 0 {
+			return model.ErrNoData
+		}
+		query.Result = make([]model.Permission, 0, len(permissions))
+		for _, permission := range permissions {
+			query.Result = append(query.Result, *permission.ConvertModel())
+		}
+		return nil
+	})
 }
 
-func (r *permission) Update(permission *model.Permission) error {
-	value := entity.Permission{
-		Name:        *permission.GetName(),
-		Description: permission.GetDescription(),
+func (f *SQLStore) GetPermissionByIDQuery(ctx context.Context, query *model.GetPermissionByIDQuery) error {
+	queries := model.GetPermissionByIDsQuery{
+		Query: []model.PrimaryCommand{query.PrimaryCommand},
 	}
-	return model.NewDBErr(r.db.Where(&entity.Permission{Model: entity.Model{ID: *permission.GetID()}}).Updates(value).Error)
+	if err := f.GetPermissionByIDsQuery(ctx, &queries); err != nil {
+		return err
+	}
+	p := queries.Result[0]
+	query.Result = &p
+	return nil
 }
 
-func (r *permission) Delete(id model.ID) error {
-	db := r.db.Where(&entity.Permission{Model: entity.Model{ID: *id.Value()}}).Delete(&entity.Permission{})
-	if db.RowsAffected == 0 {
-		return model.ErrNoData
+func (f *SQLStore) GetPermissionByIDsQuery(ctx context.Context, query *model.GetPermissionByIDsQuery) error {
+	return f.DbSessionWithTenant(ctx, func(sess *DBSession, tenant string) error {
+		var permissions []entity.Permission
+		ids := make([]string, 0, len(query.Query))
+		for _, q := range query.Query {
+			ids = append(ids, q.ID.String())
+		}
+		err := sess.Where("tenant = ?", tenant).Where("id in ?", ids).First(&permissions).Error
+		if err != nil {
+			return driver.NewDBErr(sess.DB, err)
+		}
+		query.Result = make([]model.Permission, 0, len(permissions))
+		for _, ep := range permissions {
+			query.Result = append(query.Result, *ep.ConvertModel())
+		}
+		return nil
+	})
+}
+
+func (f *SQLStore) GetPermissionByNameQuery(ctx context.Context, query *model.GetPermissionByNameQuery) error {
+	return f.DbSessionWithTenant(ctx, func(sess *DBSession, tenant string) error {
+		var permission entity.Permission
+
+		where := entity.Permission{
+			Model: entity.Model{
+				Tenant: tenant,
+			},
+			Name: query.Name.String(),
+		}
+		if err := sess.Where(&where).Find(&permission).Error; err != nil {
+			return driver.NewDBErr(sess.DB, err)
+		}
+		query.Result = permission.ConvertModel()
+		return nil
+	})
+}
+
+func (f *SQLStore) CountPermissionByNameQuery(ctx context.Context, query *model.CountPermissionByNameQuery) error {
+	return f.DbSessionWithTenant(ctx, func(sess *DBSession, tenant string) error {
+		var count int64
+
+		whereObjs := make([]string, 0, len(query.Name))
+		for _, name := range query.Name {
+			whereObjs = append(whereObjs, name.String())
+		}
+		if err := sess.Where("tenant = ?", tenant).Where("name in ?", whereObjs).Model(&entity.Permission{}).Count(&count).Error; err != nil {
+			return driver.NewDBErr(sess.DB, err)
+		}
+		query.Result = count
+		return nil
+	})
+}
+
+func (f *SQLStore) AddPermissionCommand(ctx context.Context, cmd *model.AddPermissionCommand) error {
+	cmds := model.AddPermissionCommands{
+		AddPermissions: []model.AddPermissionCommand{*cmd},
 	}
-	return model.NewDBErr(db.Error)
+	err := f.AddPermissionCommands(ctx, &cmds)
+	if err != nil {
+		return err
+	}
+	cmd.Result = cmds.AddPermissions[0].Result
+	return nil
+}
+
+func (f *SQLStore) AddPermissionCommands(ctx context.Context, cmd *model.AddPermissionCommands) error {
+	return f.inTransactionWithToken(ctx, func(sess *DBSession, tenant string) error {
+		entities := make([]entity.Permission, 0, len(cmd.AddPermissions))
+		for _, c := range cmd.AddPermissions {
+			p := entity.Permission{
+				Model: entity.Model{
+					Tenant: tenant,
+				},
+				Name:        c.Name.String(),
+				Description: c.Description,
+			}
+			p.Generate()
+			entities = append(entities, p)
+		}
+		err := sess.Create(&entities).Error
+		if err != nil {
+			return driver.NewDBErr(sess.DB, err)
+		}
+		for idx, entity := range entities {
+			cmd.AddPermissions[idx].Result = &model.Permission{
+				ID:          entity.ID,
+				Name:        entity.Name,
+				Description: entity.Description,
+			}
+		}
+		return nil
+	})
+}
+
+func (f *SQLStore) UpdatePermissionCommand(ctx context.Context, cmd *model.UpdatePermissionCommand) error {
+	return f.inTransactionWithToken(ctx, func(sess *DBSession, tenant string) error {
+		value := entity.Permission{
+			Name:        cmd.Name.String(),
+			Description: cmd.Description,
+		}
+		where := entity.Permission{
+			Model: entity.Model{
+				ID:     plugins.ID(cmd.ID.String()),
+				Tenant: tenant,
+			},
+		}
+		return driver.NewDBErr(sess.DB, sess.Where(&where).Updates(&value).Error)
+	})
+}
+
+func (f *SQLStore) DeletePermissionCommand(ctx context.Context, cmd *model.DeletePermissionCommand) error {
+	return f.inTransactionWithToken(ctx, func(sess *DBSession, tenant string) error {
+		where := entity.Permission{
+			Model: entity.Model{
+				ID:     plugins.ID(cmd.ID.String()),
+				Tenant: tenant,
+			},
+		}
+		db := sess.Where(&where).Delete(&entity.Permission{})
+		if db.RowsAffected == 0 {
+			return model.ErrNoData
+		}
+		if err := driver.NewDBErr(sess.DB, sess.Error); err != nil {
+			return err
+		}
+		sess.events = append(sess.events, &cmd)
+		return nil
+	})
 }

@@ -3,7 +3,7 @@ package grpcserver
 import (
 	"context"
 
-	"github.com/sirupsen/logrus"
+	"github.com/n-creativesystem/rbns/logger"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
@@ -13,7 +13,7 @@ import (
 type healthServer struct{}
 
 func (s *healthServer) Check(ctx context.Context, in *healthpb.HealthCheckRequest) (*healthpb.HealthCheckResponse, error) {
-	logrus.Debug("Handling grpc Check request")
+	logger.DebugWithContext(ctx, "Handling grpc Check request")
 	return &healthpb.HealthCheckResponse{Status: healthpb.HealthCheckResponse_SERVING}, nil
 }
 

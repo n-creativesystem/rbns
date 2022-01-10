@@ -1,53 +1,60 @@
 package model
 
 import (
-	"strings"
+	"fmt"
 
+	"github.com/n-creativesystem/rbns/infra/entity/plugins"
 	"github.com/oklog/ulid/v2"
 )
 
-type String interface {
-	equals(v String) bool
-	Err() error
-	Value() *string
-}
+// type String interface {
+// 	equals(v String) bool
+// 	Err() error
+// 	Value() plugins.ID
+// 	value() *string
+// 	String() string
+// }
 
 type ID interface {
-	String
+	fmt.Stringer
 }
 
 type id string
 
-func (p id) Err() error {
-	if p.Value() == nil {
-		return ErrRequired
-	}
-	return nil
-}
+// func (p id) Err() error {
+// 	if p.value() == nil {
+// 		return ErrRequired
+// 	}
+// 	return nil
+// }
 
-func (p id) equals(v String) bool {
-	if p.Value() == nil {
-		return false
-	}
-	if v.Value() == nil {
-		return false
-	}
-	return *p.Value() == *v.Value()
-}
+// func (p id) equals(v String) bool {
+// 	if p.value() == nil {
+// 		return false
+// 	}
+// 	if v.value() == nil {
+// 		return false
+// 	}
+// 	return *p.value() == *v.value()
+// }
 
 func (p id) String() string {
-	v := p.Value()
-	if v == nil {
-		return ""
-	}
-	return *v
+	return string(p)
 }
 
-func (p id) Value() *string {
+// func (p id) value() *string {
+// 	if v := string(p); v == "" {
+// 		return nil
+// 	} else {
+// 		return &v
+// 	}
+// }
+
+func (p id) Value() plugins.ID {
 	if v := string(p); v == "" {
-		return nil
+		return plugins.ID("")
 	} else {
-		return &v
+		return plugins.ID(v)
 	}
 }
 
@@ -68,32 +75,13 @@ func NewID(value string) (ID, error) {
 }
 
 type Name interface {
-	String
-}
-
-type Key interface {
-	String
+	fmt.Stringer
 }
 
 type requiredString string
 
-func (r requiredString) Err() error {
-	if r.Value() == nil {
-		return ErrRequired
-	}
-	return nil
-}
-
-func (r requiredString) equals(v String) bool {
-	return strings.EqualFold(*r.Value(), *v.Value())
-}
-
-func (r requiredString) Value() *string {
-	v := string(r)
-	if v == "" {
-		return nil
-	}
-	return &v
+func (r requiredString) String() string {
+	return string(r)
 }
 
 func newRequiredString(value string) (*requiredString, error) {
@@ -114,28 +102,4 @@ func newKey(key string) (*requiredString, error) {
 
 func NewName(name string) (Name, error) {
 	return newName(name)
-}
-
-func NewKey(key string) (Key, error) {
-	return newKey(key)
-}
-
-type model struct {
-	id   id
-	name requiredString
-}
-
-func (m *model) GetID() *string {
-	return m.id.Value()
-}
-
-func (m *model) GetName() *string {
-	return m.name.Value()
-}
-
-func (m *model) equals(value model) bool {
-	if m.id.equals(value.id) {
-		return true
-	}
-	return m.name.equals(value.name)
 }

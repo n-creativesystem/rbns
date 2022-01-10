@@ -56,5 +56,23 @@ func (c *userClient) DeleteRoles(in *protobuf.UserRole, opts ...grpc.CallOption)
 }
 
 func (c *userClient) Create(in *protobuf.UserEntity, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	return c.client.Create(c.ctx, in, opts...)
+	roleKeys := make([]*protobuf.RoleKey, 0, len(in.Roles))
+	permissions := make([]*protobuf.PermissionKey, 0, len(in.Permissions))
+	for _, r := range in.Roles {
+		roleKeys = append(roleKeys, &protobuf.RoleKey{
+			Id: r.Id,
+		})
+	}
+	for _, p := range in.Permissions {
+		permissions = append(permissions, &protobuf.PermissionKey{
+			Id: p.Id,
+		})
+	}
+	key := &protobuf.UserCreateKey{
+		Key:            in.Key,
+		OrganizationId: in.OrganizationId,
+		Roles:          roleKeys,
+		Permissions:    permissions,
+	}
+	return c.client.Create(c.ctx, key, opts...)
 }

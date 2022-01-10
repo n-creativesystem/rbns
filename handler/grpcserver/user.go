@@ -2,6 +2,7 @@ package grpcserver
 
 import (
 	"context"
+	"errors"
 
 	"github.com/n-creativesystem/rbns/domain/model"
 	"github.com/n-creativesystem/rbns/protobuf"
@@ -14,26 +15,23 @@ import (
 
 type userServer struct {
 	*protobuf.UnimplementedUserServer
-	svc    service.UserService
-	orgSvc service.OrganizationService
+	svc            service.UserService
+	orgAggregation service.OrganizationAggregation
 }
 
 var _ protobuf.UserServer = (*userServer)(nil)
 
-func newUserServer(svc service.UserService, orgSvc service.OrganizationService) protobuf.UserServer {
-	return &userServer{svc: svc, orgSvc: orgSvc}
+func NewUserServer(svc service.UserService, orgAggregation service.OrganizationAggregation) protobuf.UserServer {
+	return &userServer{svc: svc, orgAggregation: orgAggregation}
 }
 
 // User
-func (s *userServer) Create(ctx context.Context, in *protobuf.UserEntity) (*emptypb.Empty, error) {
-	roles := make([]string, len(in.GetRoles()))
-	for idx, role := range in.GetRoles() {
-		roles[idx] = role.GetId()
-	}
-	err := s.svc.Create(ctx, in.GetKey(), in.GetOrganizationId(), roles...)
+func (s *userServer) Create(ctx context.Context, in *protobuf.UserCreateKey) (*emptypb.Empty, error) {
+	err := s.svc.Create(ctx, in.GetId(), in.GetName())
 	if err != nil {
-		if err == model.ErrNoData {
-			return nil, status.Error(codes.NotFound, err.Error())
+		var statusErr model.ErrorStatus
+		if errors.As(err, &statusErr) {
+			return nil, err
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -41,41 +39,41 @@ func (s *userServer) Create(ctx context.Context, in *protobuf.UserEntity) (*empt
 }
 
 func (s *userServer) Delete(ctx context.Context, in *protobuf.UserKey) (*emptypb.Empty, error) {
-	err := s.svc.Delete(ctx, in.GetKey(), in.GetOrganizationId())
+	err := s.svc.Delete(ctx, in.GetId())
 	if err != nil {
-		if err == model.ErrNoData {
-			return nil, status.Error(codes.NotFound, err.Error())
+		var statusErr model.ErrorStatus
+		if errors.As(err, &statusErr) {
+			return nil, err
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &emptypb.Empty{}, err
 }
 
-func (s *userServer) FindByKey(ctx context.Context, in *protobuf.UserKey) (*protobuf.UserEntity, error) {
-	u, err := s.svc.FindByKey(ctx, in.GetKey(), in.GetOrganizationId())
+func (s *userServer) FindById(ctx context.Context, in *protobuf.UserKey) (*protobuf.UserEntity, error) {
+	u, err := s.svc.FindById(ctx, in.GetId())
 	if err != nil {
-		if err == model.ErrNoData {
-			return nil, status.Error(codes.NotFound, err.Error())
+		var statusErr model.ErrorStatus
+		if errors.As(err, &statusErr) {
+			return nil, err
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	out := protoconv.NewUserEntityByModel(*u)
-	out.OrganizationId = in.GetOrganizationId()
-	return out, nil
-}
-
-func (s *userServer) FindByOrganizationNameAndUserKey(ctx context.Context, in *protobuf.UserKeyByName) (*protobuf.UserEntity, error) {
-	org, err := s.orgSvc.FindByName(ctx, in.OrganizationName)
-	if err != nil {
-		if err == model.ErrNoData {
-			return nil, status.Error(codes.NotFound, err.Error())
-		}
-		return nil, status.Error(codes.Internal, err.Error())
+	roles := make([]*protobuf.RoleEntity, 0, len(u.Roles))
+	for _, r := range u.Roles {
+		roles = append(roles, protoconv.NewRoleEntityByModel(r))
 	}
-	return s.FindByKey(ctx, &protobuf.UserKey{
-		Key:            in.Key,
-		OrganizationId: *org.GetID(),
-	})
+	permissions := make([]*protobuf.PermissionEntity, 0, len(u.Permissions))
+	for _, p := range u.Permissions {
+		permissions = append(permissions, protoconv.NewPermissionEntityByModel(p))
+	}
+	out := protobuf.UserEntity{
+		Id:          u.ID,
+		Name:        u.Name,
+		Roles:       roles,
+		Permissions: permissions,
+	}
+	return &out, nil
 }
 
 func (s *userServer) AddRoles(ctx context.Context, in *protobuf.UserRole) (*emptypb.Empty, error) {
@@ -86,7 +84,7 @@ func (s *userServer) AddRoles(ctx context.Context, in *protobuf.UserRole) (*empt
 	for idx, role := range in.GetRoles() {
 		roles[idx] = role.GetId()
 	}
-	err := s.svc.AddRole(ctx, in.GetKey(), in.GetOrganizationId(), roles)
+	err := s.orgAggregation.AddUserRoles(ctx, in.GetOrganizationId(), in.GetId(), roles)
 	if err != nil {
 		if err == model.ErrNoData {
 			return &emptypb.Empty{}, status.Error(codes.NotFound, err.Error())
@@ -104,7 +102,7 @@ func (s *userServer) DeleteRoles(ctx context.Context, in *protobuf.UserRole) (*e
 	for idx, role := range in.GetRoles() {
 		roles[idx] = role.GetId()
 	}
-	err := s.svc.DeleteRole(ctx, in.GetKey(), in.GetOrganizationId(), roles)
+	err := s.orgAggregation.AddUserRoles(ctx, in.GetOrganizationId(), in.GetId(), roles)
 	if err != nil {
 		if err == model.ErrNoData {
 			return &emptypb.Empty{}, status.Error(codes.NotFound, err.Error())
@@ -116,7 +114,7 @@ func (s *userServer) DeleteRoles(ctx context.Context, in *protobuf.UserRole) (*e
 
 func (s *userServer) DeleteRole(ctx context.Context, in *protobuf.UserRoleDelete) (*emptypb.Empty, error) {
 	return s.DeleteRoles(ctx, &protobuf.UserRole{
-		Key:            in.Key,
+		Id:             in.GetId(),
 		OrganizationId: in.OrganizationId,
 		Roles: []*protobuf.RoleKey{
 			{

@@ -2,7 +2,7 @@
   <v-navigation-drawer :clipped="clipped" v-model="innerValue" app>
     <v-list>
       <v-list-item> </v-list-item>
-      <v-list-item v-for="link in links" :key="link.key" :to="link.href">
+      <v-list-item v-for="link in links" :key="link.key" v-bind="link">
         <v-list-item-icon v-if="link.icon">
           <v-icon>{{ link.icon }}</v-icon>
         </v-list-item-icon>

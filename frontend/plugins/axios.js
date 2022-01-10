@@ -1,9 +1,11 @@
 import Axios from 'axios'
 
+const baseUrl = document.getElementsByTagName("base")[0]
+
 export default {
   install: (Vue) => {
     const axios = Axios.create({
-      baseURL: window.VUE_APP_RBNS_API_ENDPOINT || '/'
+      baseURL: baseUrl.href || '/'
     })
     axios.interceptors.request.use(config => {
       if (!config.headers) {

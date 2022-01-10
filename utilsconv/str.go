@@ -16,3 +16,11 @@ func ToSnakeCase(input string) string {
 	output = strings.ReplaceAll(output, "-", "_")
 	return strings.ToLower(output)
 }
+
+func SplitString(str string) []string {
+	if len(str) == 0 {
+		return []string{}
+	}
+
+	return regexp.MustCompile("[, ]+").Split(str, -1)
+}

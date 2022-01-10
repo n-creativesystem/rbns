@@ -2,167 +2,98 @@ package rdb_test
 
 import (
 	"context"
-	"regexp"
 	"testing"
 
-	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/n-creativesystem/rbns/domain/model"
-	"github.com/n-creativesystem/rbns/domain/repository"
 	"github.com/n-creativesystem/rbns/infra/rdb"
-	"github.com/n-creativesystem/rbns/tests"
+	"github.com/n-creativesystem/rbns/infra/rdb/mock"
+	"github.com/n-creativesystem/rbns/internal/contexts"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
 
 func TestOrganization(t *testing.T) {
+	tenant := "test"
 	ctx := context.Background()
-	cases := tests.MocksByPostgres{
-		{
-			Name: "create",
-			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
-				mock.ExpectBegin()
-				mock.ExpectExec(
-					regexp.QuoteMeta(`INSERT INTO "organizations" ("id","created_at","updated_at","name","description") VALUES ($1,$2,$3,$4,$5)`),
-				).WillReturnResult(sqlmock.NewResult(0, 1))
-				mock.ExpectCommit()
-				var repo = rdb.NewFactory(db)
-				return func(t *testing.T) {
-					writer := repo.Writer()
-					err := writer.Do(ctx, func(tx repository.Transaction) error {
-						name, _ := model.NewName("test")
-						e, err := tx.Organization().Create(name, "organization test")
-						assert.NoError(t, err)
-						assert.NotEmpty(t, *e.GetID())
-						assert.Equal(t, "test", *e.GetName())
-						assert.Equal(t, "organization test", e.GetDescription())
-						return err
-					})
+	ctx = contexts.ToTenantContext(ctx, tenant)
+	mock.NewCase(mock.PostgreSQL, "org").Set(mock.Case{
+		Name: "Organization query and command",
+		Fn: func(store *rdb.SQLStore, db *gorm.DB) func(t *testing.T) {
+			name, _ := model.NewName("test")
+			cmd := model.AddOrganizationCommand{
+				Name:        name,
+				Description: "organization test",
+			}
+			return func(t *testing.T) {
+				t.Run("create", func(t *testing.T) {
+					t.Helper()
+					err := store.AddOrganizationCommand(ctx, &cmd)
 					assert.NoError(t, err)
-				}
-			},
-		},
-		{
-			Name: "findById",
-			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
-				row := sqlmock.NewRows([]string{"id", "name", "description"}).AddRow(tests.IDs[0], "test", "organization test")
-				mock.ExpectQuery(
-					regexp.QuoteMeta(`SELECT * FROM "organizations" WHERE "organizations"."id" = $1 ORDER BY id`),
-				).WithArgs(tests.IDs[0]).WillReturnRows(row)
-				mock.ExpectQuery(
-					regexp.QuoteMeta(`SELECT * FROM "users" WHERE "users"."organization_id" = $1`),
-				).WithArgs(tests.IDs[0]).WillReturnRows(sqlmock.NewRows([]string{""}))
-				var repo = rdb.NewFactory(db)
-				return func(t *testing.T) {
-					reader := repo.Reader()
-					id, _ := model.NewID(tests.IDs[0])
-					r, err := reader.Organization(ctx).FindByID(id)
-					assert.NoError(t, err)
-					assert.Equal(t, tests.IDs[0], *r.GetID())
-					assert.Equal(t, "test", *r.GetName())
-					assert.Equal(t, "organization test", r.GetDescription())
-				}
-			},
-		},
-		{
-			Name: "findByName",
-			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
-				row := sqlmock.NewRows([]string{"id", "name", "description"}).AddRow(tests.IDs[0], "test", "organization test")
-				mock.ExpectQuery(
-					regexp.QuoteMeta(`SELECT * FROM "organizations" WHERE "organizations"."name" = $1`),
-				).WithArgs("organization test").WillReturnRows(row)
-				mock.ExpectQuery(
-					regexp.QuoteMeta(`SELECT * FROM "users" WHERE "users"."organization_id" = $1`),
-				).WithArgs(tests.IDs[0]).WillReturnRows(sqlmock.NewRows([]string{""}))
-				var repo = rdb.NewFactory(db)
-				return func(t *testing.T) {
-					reader := repo.Reader()
-					name, _ := model.NewName("organization test")
-					r, err := reader.Organization(ctx).FindByName(name)
-					assert.NoError(t, err)
-					assert.Equal(t, tests.IDs[0], *r.GetID())
-					assert.Equal(t, "test", *r.GetName())
-					assert.Equal(t, "organization test", r.GetDescription())
-				}
-			},
-		},
-		{
-			Name: "findAll",
-			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
-				expecteds := []struct {
-					id, name, description string
-				}{
-					{
-						id:          tests.IDs[0],
-						name:        "test",
-						description: "organization test",
-					},
-					{
-						id:          tests.IDs[1],
-						name:        "test2",
-						description: "org test2",
-					},
-				}
-				row := sqlmock.NewRows([]string{"id", "name", "description"})
-				for _, expected := range expecteds {
-					row.AddRow(expected.id, expected.name, expected.description)
-				}
-				mock.ExpectQuery(
-					regexp.QuoteMeta(`SELECT * FROM "organizations" ORDER BY id`),
-				).WillReturnRows(row)
-				mock.ExpectQuery(
-					regexp.QuoteMeta(`SELECT * FROM "users" WHERE "users"."organization_id" IN ($1,$2)`),
-				).WithArgs(tests.IDs[0], tests.IDs[1]).WillReturnRows(sqlmock.NewRows([]string{""}))
-				var repo = rdb.NewFactory(db)
-				return func(t *testing.T) {
-					reader := repo.Reader()
-					orgs, err := reader.Organization(ctx).FindAll()
-					assert.NoError(t, err)
-					for idx, org := range orgs {
-						assert.Equal(t, expecteds[idx].id, *org.GetID())
-						assert.Equal(t, expecteds[idx].name, *org.GetName())
-						assert.Equal(t, expecteds[idx].description, org.GetDescription())
+					assert.NotEmpty(t, cmd.Result.ID.String())
+					assert.Equal(t, "test", cmd.Result.Name)
+					assert.Equal(t, "organization test", cmd.Result.Description)
+				})
+				t.Run("find by id", func(t *testing.T) {
+					t.Helper()
+					query := model.GetOrganizationByIDQuery{
+						PrimaryQuery: model.PrimaryQuery{
+							ID: cmd.Result.ID,
+						},
 					}
-				}
-			},
-		},
-		{
-			Name: "update",
-			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
-				mock.ExpectBegin()
-				mock.ExpectExec(
-					regexp.QuoteMeta(`UPDATE "organizations" SET "updated_at"=$1,"name"=$2,"description"=$3 WHERE "organizations"."id" = $4`),
-				).WithArgs(sqlmock.AnyArg(), "test", "test org", tests.IDs[0]).WillReturnResult(sqlmock.NewResult(0, 1))
-				mock.ExpectCommit()
-				var repo = rdb.NewFactory(db)
-				return func(t *testing.T) {
-					writer := repo.Writer()
-					err := writer.Do(ctx, func(tx repository.Transaction) error {
-						org, _ := model.NewOrganization(tests.IDs[0], "test", "test org")
-						return tx.Organization().Update(org)
-					})
+					err := store.GetOrganizationByIDQuery(ctx, &query)
+					r := query.Result
 					assert.NoError(t, err)
-				}
-			},
-		},
-		{
-			Name: "delete",
-			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
-				mock.ExpectBegin()
-				mock.ExpectExec(
-					regexp.QuoteMeta(`DELETE FROM "organizations" WHERE "organizations"."id" = $1`),
-				).WithArgs(tests.IDs[0]).WillReturnResult(sqlmock.NewResult(0, 1))
-				mock.ExpectCommit()
-				var repo = rdb.NewFactory(db)
-				return func(t *testing.T) {
-					writer := repo.Writer()
-					err := writer.Do(ctx, func(tx repository.Transaction) error {
-						id, _ := model.NewID(tests.IDs[0])
-						return tx.Organization().Delete(id)
-					})
+					assert.Equal(t, cmd.Result.ID.String(), r.ID.String())
+					assert.Equal(t, "test", r.Name)
+					assert.Equal(t, "organization test", r.Description)
+				})
+				t.Run("find by name", func(t *testing.T) {
+					t.Helper()
+					query := model.GetOrganizationByNameQuery{
+						Name: name,
+					}
+					err := store.GetOrganizationByNameQuery(ctx, &query)
+					r := query.Result
 					assert.NoError(t, err)
-				}
-			},
+					assert.Equal(t, cmd.Result.ID.String(), r.ID.String())
+					assert.Equal(t, "test", r.Name)
+					assert.Equal(t, "organization test", r.Description)
+				})
+				t.Run("find all", func(t *testing.T) {
+					t.Helper()
+					query := model.GetOrganizationQuery{}
+					err := store.GetOrganizationQuery(ctx, &query)
+					if !assert.NoError(t, err) {
+						return
+					}
+					for _, org := range query.Result {
+						assert.Equal(t, cmd.Result.ID.String(), org.ID.String())
+						assert.Equal(t, cmd.Result.Name, org.Name)
+						assert.Equal(t, cmd.Result.Description, org.Description)
+					}
+				})
+				t.Run("update", func(t *testing.T) {
+					cmd := model.UpdateOrganizationCommand{
+						PrimaryCommand: model.PrimaryCommand{
+							ID: cmd.Result.ID,
+						},
+						Name:        name,
+						Description: "test org",
+					}
+					err := store.UpdateOrganizationCommand(ctx, &cmd)
+					assert.NoError(t, err)
+				})
+				t.Run("delete", func(t *testing.T) {
+					t.Helper()
+					cmd := model.DeleteOrganizationCommand{
+						PrimaryCommand: model.PrimaryCommand{
+							ID: cmd.Result.ID,
+						},
+					}
+					err := store.DeleteOrganizationCommand(ctx, &cmd)
+					assert.NoError(t, err)
+				})
+			}
 		},
-	}
-	cases.Run(t)
+	}).Run(t)
 }

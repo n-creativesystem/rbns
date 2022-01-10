@@ -56,7 +56,7 @@
 </template>
 
 <script>
-  import Menu from '@assets/menu.json'
+  import Menu from '../../plugins/menu'
   export default {
     name: 'Layout',
     data: () => ({

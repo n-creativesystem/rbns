@@ -148,6 +148,7 @@ export default {
     permission: 'Definition of permissions',
     role: 'Role definition',
     organization: 'Organization definition',
-    resource: 'Resource definition'
+    resource: 'Resource definition',
+    logout: 'logout'
   }
 }

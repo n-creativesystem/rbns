@@ -19,7 +19,7 @@ type permissionServer struct {
 
 var _ protobuf.PermissionServer = (*permissionServer)(nil)
 
-func newPermissionServer(srv service.PermissionService) protobuf.PermissionServer {
+func NewPermissionServer(srv service.PermissionService) protobuf.PermissionServer {
 	return &permissionServer{svc: srv}
 }
 
@@ -83,7 +83,7 @@ func (s *permissionServer) FindAll(ctx context.Context, in *emptypb.Empty) (*pro
 }
 
 func (s *permissionServer) Update(ctx context.Context, in *protobuf.PermissionEntity) (*emptypb.Empty, error) {
-	err := s.svc.Update(ctx, in.GetId(), in.GetName(), in.GetDescription())
+	_, err := s.svc.Update(ctx, in.GetId(), in.GetName(), in.GetDescription())
 	if err != nil {
 		if err == model.ErrNoData {
 			return &emptypb.Empty{}, status.Error(codes.NotFound, err.Error())
@@ -104,21 +104,21 @@ func (s *permissionServer) Delete(ctx context.Context, in *protobuf.PermissionKe
 	return &emptypb.Empty{}, nil
 }
 
-func (s *permissionServer) Check(ctx context.Context, in *protobuf.PermissionCheckRequest) (*protobuf.PermissionCheckResult, error) {
-	result := &protobuf.PermissionCheckResult{
-		Result:  false,
-		Message: "",
-	}
-	res, err := s.svc.Check(ctx, in.GetUserKey(), in.GetOrganizationName(), in.GetPermissionNames()...)
-	if err != nil {
-		if err == model.ErrNoData {
-			return nil, status.Error(codes.NotFound, err.Error())
-		}
-		result.Result = false
-		result.Message = err.Error()
-		return result, status.Error(codes.Internal, err.Error())
-	}
-	result.Message = res.GetMsg()
-	result.Result = res.IsOk()
-	return result, nil
-}
+// func (s *permissionServer) Check(ctx context.Context, in *protobuf.PermissionCheckRequest) (*protobuf.PermissionCheckResult, error) {
+// 	result := &protobuf.PermissionCheckResult{
+// 		Result:  false,
+// 		Message: "",
+// 	}
+// 	res, err := s.svc.Check(ctx, in.GetUserKey(), in.GetOrganizationName(), in.GetPermissionNames()...)
+// 	if err != nil {
+// 		if err == model.ErrNoData {
+// 			return nil, status.Error(codes.NotFound, err.Error())
+// 		}
+// 		result.Result = false
+// 		result.Message = err.Error()
+// 		return result, status.Error(codes.Internal, err.Error())
+// 	}
+// 	result.Message = res.GetMsg()
+// 	result.Result = res.IsOk()
+// 	return result, nil
+// }

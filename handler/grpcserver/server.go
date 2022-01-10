@@ -1,99 +1,60 @@
 package grpcserver
 
 import (
-	"strings"
-	"sync"
-
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	grpc_logrus "github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
-	"github.com/n-creativesystem/rbns/domain/repository"
+	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
+	grpc_validator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
+	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
+	"github.com/n-creativesystem/rbns/handler/grpcserver/middleware"
+	"github.com/n-creativesystem/rbns/logger"
 	"github.com/n-creativesystem/rbns/protobuf"
-	"github.com/n-creativesystem/rbns/service"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
+	"github.com/opentracing/opentracing-go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
 
-type ApiKeyManagements struct {
-	mu     sync.Mutex
-	values map[string]struct{}
-}
+func New(
+	pSrv protobuf.PermissionServer,
+	rSrv protobuf.RoleServer,
+	oSrv protobuf.OrganizationServer,
+	uSrv protobuf.UserServer,
+	// reSrv protobuf.ResourceServer,
+	tenantMiddleware middleware.Tenant,
+	// apiKey middleware.ApiKey,
+) *grpc.Server {
 
-func (apiKey *ApiKeyManagements) Exists(value string) bool {
-	apiKey.mu.Lock()
-	defer apiKey.mu.Unlock()
-	_, ok := apiKey.values[value]
-	return ok
-}
-
-func (apiKey *ApiKeyManagements) set(key string) {
-	apiKey.mu.Lock()
-	defer apiKey.mu.Unlock()
-	apiKey.values[key] = struct{}{}
-}
-
-var (
-	apiKeyManager ApiKeyManagements
-)
-
-func init() {
-	apiKey := viper.GetString("apiKey")
-	keys := strings.Split(apiKey, ";")
-	apiKeyManager.values = make(map[string]struct{}, len(keys))
-	for _, key := range keys {
-		apiKeyManager.set(key)
-	}
-}
-
-type Option func(*config)
-
-type config struct {
-	secure bool
-}
-
-func WithSecure(conf *config) {
-	conf.secure = true
-}
-
-func New(reader repository.Reader, writer repository.Writer, logger *logrus.Logger, opts ...Option) *grpc.Server {
-	conf := &config{}
-	for _, opt := range opts {
-		opt(conf)
-	}
-	interceptors := []grpc.UnaryServerInterceptor{
-		grpc_logrus.UnaryServerInterceptor(logrus.NewEntry(logger)),
-		Recovery,
-		// AuthUnaryServerInterceptor(),
-	}
-
+	log := logger.New("grpc server")
 	server := grpc.NewServer(
 		grpc.UnaryInterceptor(
-			grpc_middleware.ChainUnaryServer(interceptors...),
+			grpc_middleware.ChainUnaryServer(
+				logger.UnaryServerInterceptor(log),
+				grpc_recovery.UnaryServerInterceptor(
+					grpc_recovery.WithRecoveryHandler(middleware.RecoveryFunc()),
+				),
+				otgrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer()),
+				grpc_validator.UnaryServerInterceptor(),
+				// apiKey.UnaryServerInterceptor(),
+				tenantMiddleware.UnaryServerInterceptor(),
+			),
 		),
-	)
-
-	var (
-		pSvc  = service.NewPermissionService(reader, writer)
-		rSvc  = service.NewRoleService(reader, writer)
-		oSvc  = service.NewOrganizationService(reader, writer)
-		uSvc  = service.NewUserService(reader, writer)
-		reSvc = service.NewResource(reader, writer)
-	)
-	var (
-		pSrv  protobuf.PermissionServer   = newPermissionServer(pSvc)
-		rSrv  protobuf.RoleServer         = newRoleServer(rSvc)
-		oSrv  protobuf.OrganizationServer = newOrganizationService(oSvc)
-		uSrv  protobuf.UserServer         = newUserServer(uSvc, oSvc)
-		reSrv protobuf.ResourceServer     = newResourceServer(reSvc)
-		// authSrv authorizationServer         = newAuthz(reSvc)
+		grpc.StreamInterceptor(
+			grpc_middleware.ChainStreamServer(
+				logger.StreamServerInterceptor(log),
+				grpc_recovery.StreamServerInterceptor(
+					grpc_recovery.WithRecoveryHandler(middleware.RecoveryFunc()),
+				),
+				otgrpc.OpenTracingStreamServerInterceptor(opentracing.GlobalTracer()),
+				grpc_validator.StreamServerInterceptor(),
+				// apiKey.StreamServerInterceptor(),
+				tenantMiddleware.StreamServerInterceptor(),
+			),
+		),
 	)
 	protobuf.RegisterPermissionServer(server, pSrv)
 	protobuf.RegisterRoleServer(server, rSrv)
 	protobuf.RegisterOrganizationServer(server, oSrv)
 	protobuf.RegisterUserServer(server, uSrv)
-	protobuf.RegisterResourceServer(server, reSrv)
-	// envoyAuthzRegister(server, authSrv)
+	// protobuf.RegisterResourceServer(server, reSrv)
 	healthRegister(server)
 	reflection.Register(server)
 	return server

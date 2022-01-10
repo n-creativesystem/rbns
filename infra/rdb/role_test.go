@@ -2,193 +2,153 @@ package rdb_test
 
 import (
 	"context"
-	"regexp"
 	"testing"
 
-	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/n-creativesystem/rbns/domain/model"
-	"github.com/n-creativesystem/rbns/domain/repository"
 	"github.com/n-creativesystem/rbns/infra/rdb"
-	"github.com/n-creativesystem/rbns/tests"
+	"github.com/n-creativesystem/rbns/infra/rdb/mock"
+	"github.com/n-creativesystem/rbns/internal/contexts"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
 
 func TestRole(t *testing.T) {
+	tenant := "test"
 	ctx := context.Background()
-	cases := tests.MocksByPostgres{
-		{
-			Name: "create",
-			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
-				mock.ExpectBegin()
-				mock.ExpectExec(
-					regexp.QuoteMeta(`INSERT INTO "roles" ("id","created_at","updated_at","name","description") VALUES ($1,$2,$3,$4,$5)`),
-				).WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), "admin", "administrator").WillReturnResult(sqlmock.NewResult(0, 1))
-				mock.ExpectCommit()
-				repo := rdb.NewFactory(db)
-				return func(t *testing.T) {
-					tx := repo.Writer()
-					err := tx.Do(ctx, func(tx repository.Transaction) error {
-						name, _ := model.NewName("admin")
-						pRepo := tx.Role()
-						p, err := pRepo.Create(name, "administrator")
-						assert.NoError(t, err)
-						assert.NotEmpty(t, *p.GetID())
-						return err
-					})
-					assert.NoError(t, err)
+	ctx = contexts.ToTenantContext(ctx, tenant)
+	mock.NewCase(mock.PostgreSQL, "role").Set(mock.Case{
+		Name: "role query and command",
+		Fn: func(store *rdb.SQLStore, db *gorm.DB) func(t *testing.T) {
+			orgName, _ := model.NewName("test organization")
+			permissionName, _ := model.NewName("create:permission")
+			addPermissions := model.AddPermissionCommand{
+				Name:        permissionName,
+				Description: "test",
+			}
+			orgCmd := model.AddOrganizationCommand{
+				Name:        orgName,
+				Description: "organization test desc",
+			}
+			name, _ := model.NewName("admin")
+			cmd := model.AddRoleCommand{
+				Name:        name,
+				Description: "administrator",
+			}
+			return func(t *testing.T) {
+				t.Helper()
+				if err := store.AddOrganizationCommand(ctx, &orgCmd); !assert.NoError(t, err) {
+					return
+				} else {
+					cmd.Organization = orgCmd.Result
 				}
-			},
-		},
-		{
-			Name: "findById",
-			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
-				id := tests.IDs[0]
-				name := "admin"
-				description := "administrator"
-				rows := sqlmock.NewRows([]string{"id", "name", "description"}).AddRow(id, name, description)
-				// rolePermissions := sqlmock.NewRows([]string{"role_id", "permission_id"}).AddRow(id, tests.IDs[1])
-				// permissionRow := sqlmock.NewRows([]string{"id", "name", "description"}).AddRow(tests.IDs[2], "create:permission", "test description")
-				// userRoles := sqlmock.NewRows([]string{"role_id", "user_key", "organization_id"}).AddRow(id, "user1", tests.IDs[3])
-				mock.ExpectQuery(
-					regexp.QuoteMeta(`SELECT * FROM "roles" WHERE "roles"."id" = $1`),
-				).WithArgs(id).WillReturnRows(rows)
-				mock.ExpectQuery(
-					regexp.QuoteMeta(`SELECT * FROM "role_permissions" WHERE "role_permissions"."role_id" = $1`),
-				).WithArgs(sqlmock.AnyArg()).WillReturnRows(sqlmock.NewRows([]string{"role_id", "permission_id"}))
-				// mock.ExpectQuery(
-				// 	regexp.QuoteMeta(`SELECT * FROM "permissions" WHERE "permissions"."id" = $1`),
-				// ).WithArgs(sqlmock.AnyArg()).WillReturnRows(permissionRow)
-				mock.ExpectQuery(
-					regexp.QuoteMeta(`SELECT * FROM "user_roles" WHERE "user_roles"."role_id" = $1`),
-				).WithArgs(sqlmock.AnyArg()).WillReturnRows(sqlmock.NewRows([]string{"role_id", "user_key", "organization_id"}))
-				// mock.ExpectQuery(
-				// 	regexp.QuoteMeta(`SELECT * FROM "users" WHERE "users"."key" = $1`),
-				// ).WithArgs(sqlmock.AnyArg()).WillReturnRows(sqlmock.NewRows([]string{"user_key"}))
-				pRepo := rdb.NewFactory(db).Reader().Role(ctx)
-				return func(t *testing.T) {
-					mId, _ := model.NewID(id)
-					p, err := pRepo.FindByID(mId)
-					assert.NoError(t, err)
-					assert.Equal(t, id, *p.GetID())
-					assert.Equal(t, name, *p.GetName())
-					assert.Equal(t, description, p.GetDescription())
+				if err := store.AddPermissionCommand(ctx, &addPermissions); !assert.NoError(t, err) {
+					return
 				}
-			},
-		},
-		{
-			Name: "find all",
-			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
-				names := []string{"admin", "guest"}
-				descriptions := []string{"administrator", "guest"}
-				rows := sqlmock.
-					NewRows([]string{"id", "name", "description"}).
-					AddRow(tests.IDs[0], names[0], descriptions[0]).
-					AddRow(tests.IDs[1], names[1], descriptions[1])
-				mock.ExpectQuery(
-					regexp.QuoteMeta(`SELECT * FROM "roles" ORDER BY id`),
-				).WillReturnRows(rows)
-				mock.ExpectQuery(
-					regexp.QuoteMeta(`SELECT * FROM "role_permissions" WHERE "role_permissions"."role_id" IN ($1,$2)`),
-				).WithArgs(tests.IDs[0], tests.IDs[1]).WillReturnRows(sqlmock.NewRows([]string{"role_id", "permission_id"}))
-				mock.ExpectQuery(
-					regexp.QuoteMeta(`SELECT * FROM "user_roles" WHERE "user_roles"."role_id" IN ($1,$2)`),
-				).WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg()).WillReturnRows(sqlmock.NewRows([]string{"role_id", "user_key", "organization_id"}))
-				repo := rdb.NewFactory(db).Reader().Role(ctx)
-				return func(t *testing.T) {
-					res, err := repo.FindAll()
-					assert.NoError(t, err)
-					for idx, r := range res {
-						assert.Equal(t, tests.IDs[idx], *r.GetID())
-						assert.Equal(t, names[idx], *r.GetName())
-						assert.Equal(t, descriptions[idx], r.GetDescription())
+				t.Run("create", func(t *testing.T) {
+					t.Helper()
+					err := store.AddRoleCommand(ctx, &cmd)
+					if !assert.NoError(t, err) {
+						return
 					}
-				}
-			},
-		},
-		{
-			Name: "update",
-			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
-				id, name, desc := tests.IDs[0], "view", "view"
-				mock.ExpectBegin()
-				mock.ExpectExec(
-					regexp.QuoteMeta(`UPDATE "roles" SET "updated_at"=$1,"name"=$2,"description"=$3 WHERE "roles"."id" = $4`),
-				).WithArgs(sqlmock.AnyArg(), "view", "view", id).WillReturnResult(sqlmock.NewResult(0, 1))
-				mock.ExpectCommit()
-				repo := rdb.NewFactory(db)
-				return func(t *testing.T) {
-					tx := repo.Writer()
-					err := tx.Do(ctx, func(tx repository.Transaction) error {
-						p, _ := model.NewRole(id, name, desc, nil)
-						return tx.Role().Update(p)
-					})
+					assert.NotEmpty(t, cmd.Result)
+				})
+				t.Run("find by id", func(t *testing.T) {
+					t.Helper()
+					query := model.GetRoleByIDQuery{
+						Organization: cmd.Organization,
+						PrimaryQuery: model.PrimaryQuery{
+							ID: cmd.Result.ID,
+						},
+					}
+					err := store.GetRoleByIDQuery(ctx, &query)
+					if !assert.NoError(t, err) {
+						return
+					}
+					p := query.Result
+					assert.Equal(t, cmd.Result.ID.String(), p.ID.String())
+					assert.Equal(t, cmd.Result.Name, p.Name)
+					assert.Equal(t, cmd.Result.Description, p.Description)
+				})
+				t.Run("find all", func(t *testing.T) {
+					t.Helper()
+					query := model.GetRoleQuery{
+						Organization: cmd.Organization,
+					}
+					err := store.GetRoleQuery(ctx, &query)
+					if !assert.NoError(t, err) {
+						return
+					}
+					res := query.Result
+					for _, r := range res {
+						assert.Equal(t, cmd.Result.ID.String(), r.ID.String())
+						assert.Equal(t, cmd.Result.Name, r.Name)
+						assert.Equal(t, cmd.Result.Description, r.Description)
+					}
+				})
+				t.Run("update", func(t *testing.T) {
+					t.Helper()
+					updateCmd := model.UpdateRoleCommand{
+						Organization: cmd.Organization,
+						PrimaryCommand: model.PrimaryCommand{
+							ID: cmd.Result.ID,
+						},
+						Name:        name,
+						Description: "desc",
+					}
+					err := store.UpdateRoleCommand(ctx, &updateCmd)
 					assert.NoError(t, err)
-				}
-			},
-		},
-		{
-			Name: "delete",
-			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
-				id := tests.IDs[0]
-				mock.ExpectBegin()
-				mock.ExpectExec(
-					regexp.QuoteMeta(`DELETE FROM "roles" WHERE "roles"."id" = $1`),
-				).WithArgs(id).WillReturnResult(sqlmock.NewResult(0, 1))
-				mock.ExpectCommit()
-				repo := rdb.NewFactory(db)
-				return func(t *testing.T) {
-					tx := repo.Writer()
-					err := tx.Do(ctx, func(tx repository.Transaction) error {
-						id, _ := model.NewID(id)
-						return tx.Role().Delete(id)
+					t.Run("updated find by id", func(t *testing.T) {
+						query := model.GetRoleByIDQuery{
+							Organization: cmd.Organization,
+							PrimaryQuery: model.PrimaryQuery{
+								ID: cmd.Result.ID,
+							},
+						}
+						err := store.GetRoleByIDQuery(ctx, &query)
+						if !assert.NoError(t, err) {
+							return
+						}
+						p := query.Result
+						assert.Equal(t, cmd.Result.ID.String(), p.ID.String())
+						assert.Equal(t, cmd.Result.Name, p.Name)
+						assert.NotEqual(t, cmd.Result.Description, p.Description)
+						assert.Equal(t, "desc", p.Description)
 					})
+				})
+				t.Run("add permission", func(t *testing.T) {
+					t.Helper()
+					cmd := model.AddRolePermissionCommand{
+						Role: &model.Role{
+							ID: cmd.Result.ID,
+						},
+						Permissions: []model.Permission{*addPermissions.Result},
+					}
+					err := store.AddRolePermissionCommand(ctx, &cmd)
 					assert.NoError(t, err)
-				}
-			},
-		},
-		{
-			Name: "add permission",
-			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
-				mock.ExpectBegin()
-				mock.ExpectExec(
-					regexp.QuoteMeta(`INSERT INTO "role_permissions" ("role_id","permission_id") VALUES ($1,$2) ON CONFLICT DO NOTHING`),
-				).WithArgs(tests.IDs[0], tests.IDs[1]).WillReturnResult(sqlmock.NewResult(0, 1))
-				mock.ExpectCommit()
-				repo := rdb.NewFactory(db)
-				return func(t *testing.T) {
-					tx := repo.Writer()
-					err := tx.Do(ctx, func(tx repository.Transaction) error {
-						id, _ := model.NewID(tests.IDs[0])
-						p, _ := model.NewPermission(tests.IDs[1], "aaa", "")
-						return tx.Role().AddPermission(id, model.Permissions{
-							*p,
-						})
-					})
+				})
+				t.Run("delete permission", func(t *testing.T) {
+					t.Helper()
+					cmd := model.DeleteRolePermissionCommand{
+						Role: &model.Role{
+							ID: cmd.Result.ID,
+						},
+						Permissions: []model.Permission{*addPermissions.Result},
+					}
+					err := store.DeleteRolePermissionCommand(ctx, &cmd)
 					assert.NoError(t, err)
-				}
-			},
-		},
-		{
-			Name: "delete role permission",
-			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
-				mock.ExpectBegin()
-				mock.ExpectExec(
-					regexp.QuoteMeta(`DELETE FROM "role_permissions" WHERE "role_permissions"."role_id" = $1 AND "role_permissions"."permission_id" = $2`),
-				).WithArgs(tests.IDs[0], tests.IDs[1]).WillReturnResult(sqlmock.NewResult(0, 1))
-				mock.ExpectCommit()
-				repo := rdb.NewFactory(db)
-				return func(t *testing.T) {
-					tx := repo.Writer()
-					err := tx.Do(ctx, func(tx repository.Transaction) error {
-						roleId, _ := model.NewID(tests.IDs[0])
-						permissionId, _ := model.NewID(tests.IDs[1])
-						return tx.Role().DeletePermission(roleId, permissionId)
-					})
+				})
+				t.Run("delete", func(t *testing.T) {
+					t.Helper()
+					cmd := model.DeleteRoleCommand{
+						Organization: cmd.Organization,
+						PrimaryCommand: model.PrimaryCommand{
+							ID: cmd.Result.ID,
+						},
+					}
+					err := store.DeleteRoleCommand(ctx, &cmd)
 					assert.NoError(t, err)
-				}
-			},
+				})
+			}
 		},
-	}
-	cases.Run(t)
-
+	}).Run(t)
 }

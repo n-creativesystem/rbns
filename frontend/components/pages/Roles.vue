@@ -51,6 +51,7 @@
     },
     methods: {
       getData() {
+        this.items = []
         this.get(this.$urls.api.v1.roles)
           .then((result) => {
             if (result.status == 200) {

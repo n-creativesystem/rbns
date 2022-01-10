@@ -1,54 +1,40 @@
 package infra
 
 import (
-	"os"
-	"path/filepath"
-
+	"github.com/n-creativesystem/rbns/bus"
+	"github.com/n-creativesystem/rbns/config"
 	"github.com/n-creativesystem/rbns/infra/rdb"
+	"github.com/n-creativesystem/rbns/infra/rdb/driver"
+	"github.com/n-creativesystem/rbns/infra/rdb/driver/customs"
 	"github.com/n-creativesystem/rbns/infra/rdb/driver/mysql"
 	"github.com/n-creativesystem/rbns/infra/rdb/driver/postgres"
 	"github.com/n-creativesystem/rbns/infra/rdb/driver/sqlite3"
 	"github.com/n-creativesystem/rbns/storage"
-	"github.com/spf13/viper"
+	"gorm.io/gorm"
 )
 
-const (
-	postgresStorageType = "postgres"
-	mysqlStorageType    = "mysql"
-	inMemoryStorageType = "inmemory"
-)
-
-func NewFactory(typ string) (storage.Factory, map[string]interface{}, error) {
-	v := viper.New()
-	homedir, err := os.UserHomeDir()
-	if err != nil {
-		return nil, nil, err
+func NewFactory(conf *config.Config, bus bus.Bus) (*storage.FactorySet, error) {
+	gormConfig := &gorm.Config{
+		NamingStrategy: customs.NamingStrategy{},
 	}
-	v.AddConfigPath(filepath.Join(homedir, ".rbns"))
-	v.AddConfigPath("/etc/rbns")
-	v.AddConfigPath("./")
-	v.SetConfigName("storage")
-	if err := v.ReadInConfig(); err != nil {
-		return nil, nil, err
-	}
-
+	v := conf.DatabaseRaw
 	var factory storage.Factory
-	switch typ {
-	case postgresStorageType:
-		dsn := v.GetString("DSN")
-		dsn = os.ExpandEnv(dsn)
-		db, _ := postgres.New(dsn)
-		factory = rdb.NewFactory(db)
-	case mysqlStorageType:
-		dsn := v.GetString("DSN")
-		dsn = os.ExpandEnv(dsn)
-		db, _ := mysql.New(dsn)
-		factory = rdb.NewFactory(db)
-	case inMemoryStorageType:
-		dsn := "file::memory:?cache=shared"
-		db, _ := sqlite3.New(dsn)
-		factory = rdb.NewFactory(db)
+	dsn := v.Key("dsn").StringExpand()
+	switch conf.StorageType {
+	case driver.PostgreSQL:
+		db, _ := postgres.New(dsn, gormConfig)
+		factory = rdb.NewFactory(db, bus)
+	case driver.MySQL:
+		db, _ := mysql.New(dsn, gormConfig)
+		factory = rdb.NewFactory(db, bus)
+	case driver.SQLite3:
+		db, _ := sqlite3.New(dsn, gormConfig)
+		factory = rdb.NewFactory(db, bus)
 	}
-	mp := v.AllSettings()
-	return factory, mp, nil
+	return &storage.FactorySet{
+		Factory: factory,
+		Settings: &storage.Setting{
+			Section: v,
+		},
+	}, nil
 }

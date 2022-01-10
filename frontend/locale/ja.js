@@ -148,6 +148,7 @@ export default {
     permission: '権限の定義',
     role: 'ロールの定義',
     organization: '組織の定義',
-    resource: 'リソースの定義'
+    resource: 'リソースの定義',
+    logout: 'ログアウト'
   },
 }

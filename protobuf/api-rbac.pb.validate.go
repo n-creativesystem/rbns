@@ -40,9 +40,9 @@ func (m *UserKey) Validate() error {
 		return nil
 	}
 
-	// no validation rules for Key
+	// no validation rules for Id
 
-	// no validation rules for OrganizationId
+	// no validation rules for Name
 
 	return nil
 }
@@ -101,75 +101,6 @@ var _ interface {
 	ErrorName() string
 } = UserKeyValidationError{}
 
-// Validate checks the field values on UserKeyByName with the rules defined in
-// the proto definition for this message. If any rules are violated, an error
-// is returned.
-func (m *UserKeyByName) Validate() error {
-	if m == nil {
-		return nil
-	}
-
-	// no validation rules for Key
-
-	// no validation rules for OrganizationName
-
-	return nil
-}
-
-// UserKeyByNameValidationError is the validation error returned by
-// UserKeyByName.Validate if the designated constraints aren't met.
-type UserKeyByNameValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e UserKeyByNameValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e UserKeyByNameValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e UserKeyByNameValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e UserKeyByNameValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e UserKeyByNameValidationError) ErrorName() string { return "UserKeyByNameValidationError" }
-
-// Error satisfies the builtin error interface
-func (e UserKeyByNameValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sUserKeyByName.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = UserKeyByNameValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = UserKeyByNameValidationError{}
-
 // Validate checks the field values on UserEntity with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *UserEntity) Validate() error {
@@ -177,9 +108,9 @@ func (m *UserEntity) Validate() error {
 		return nil
 	}
 
-	// no validation rules for Key
+	// no validation rules for Id
 
-	// no validation rules for OrganizationId
+	// no validation rules for Name
 
 	for idx, item := range m.GetRoles() {
 		_, _ = idx, item
@@ -268,38 +199,24 @@ var _ interface {
 	ErrorName() string
 } = UserEntityValidationError{}
 
-// Validate checks the field values on OrganizationUser with the rules defined
-// in the proto definition for this message. If any rules are violated, an
-// error is returned.
-func (m *OrganizationUser) Validate() error {
+// Validate checks the field values on UserCreateKey with the rules defined in
+// the proto definition for this message. If any rules are violated, an error
+// is returned.
+func (m *UserCreateKey) Validate() error {
 	if m == nil {
 		return nil
 	}
 
-	// no validation rules for UserKey
+	// no validation rules for Id
 
-	// no validation rules for OrganizationId
-
-	if utf8.RuneCountInString(m.GetOrganizationName()) < 1 {
-		return OrganizationUserValidationError{
-			field:  "OrganizationName",
-			reason: "value length must be at least 1 runes",
-		}
-	}
-
-	if utf8.RuneCountInString(m.GetOrganizationDescription()) < 1 {
-		return OrganizationUserValidationError{
-			field:  "OrganizationDescription",
-			reason: "value length must be at least 1 runes",
-		}
-	}
+	// no validation rules for Name
 
 	return nil
 }
 
-// OrganizationUserValidationError is the validation error returned by
-// OrganizationUser.Validate if the designated constraints aren't met.
-type OrganizationUserValidationError struct {
+// UserCreateKeyValidationError is the validation error returned by
+// UserCreateKey.Validate if the designated constraints aren't met.
+type UserCreateKeyValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -307,22 +224,22 @@ type OrganizationUserValidationError struct {
 }
 
 // Field function returns field value.
-func (e OrganizationUserValidationError) Field() string { return e.field }
+func (e UserCreateKeyValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e OrganizationUserValidationError) Reason() string { return e.reason }
+func (e UserCreateKeyValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e OrganizationUserValidationError) Cause() error { return e.cause }
+func (e UserCreateKeyValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e OrganizationUserValidationError) Key() bool { return e.key }
+func (e UserCreateKeyValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e OrganizationUserValidationError) ErrorName() string { return "OrganizationUserValidationError" }
+func (e UserCreateKeyValidationError) ErrorName() string { return "UserCreateKeyValidationError" }
 
 // Error satisfies the builtin error interface
-func (e OrganizationUserValidationError) Error() string {
+func (e UserCreateKeyValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -334,14 +251,14 @@ func (e OrganizationUserValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sOrganizationUser.%s: %s%s",
+		"invalid %sUserCreateKey.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = OrganizationUserValidationError{}
+var _ error = UserCreateKeyValidationError{}
 
 var _ interface {
 	Field() string
@@ -349,7 +266,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = OrganizationUserValidationError{}
+} = UserCreateKeyValidationError{}
 
 // Validate checks the field values on UserRole with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
@@ -358,7 +275,7 @@ func (m *UserRole) Validate() error {
 		return nil
 	}
 
-	// no validation rules for Key
+	// no validation rules for Id
 
 	if utf8.RuneCountInString(m.GetOrganizationId()) < 1 {
 		return UserRoleValidationError{
@@ -447,9 +364,9 @@ func (m *UserRoleDelete) Validate() error {
 		return nil
 	}
 
-	if utf8.RuneCountInString(m.GetKey()) < 1 {
+	if utf8.RuneCountInString(m.GetId()) < 1 {
 		return UserRoleDeleteValidationError{
-			field:  "Key",
+			field:  "Id",
 			reason: "value length must be at least 1 runes",
 		}
 	}
@@ -952,13 +869,13 @@ func (m *RoleEntity) Validate() error {
 
 	}
 
-	for idx, item := range m.GetOrganizationUsers() {
+	for idx, item := range m.GetUsers() {
 		_, _ = idx, item
 
 		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return RoleEntityValidationError{
-					field:  fmt.Sprintf("OrganizationUsers[%v]", idx),
+					field:  fmt.Sprintf("Users[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -1048,6 +965,8 @@ func (m *RoleUpdateEntity) Validate() error {
 		}
 	}
 
+	// no validation rules for OrganizationId
+
 	return nil
 }
 
@@ -1114,6 +1033,8 @@ func (m *RoleKey) Validate() error {
 
 	// no validation rules for Id
 
+	// no validation rules for OrganizationId
+
 	return nil
 }
 
@@ -1171,6 +1092,73 @@ var _ interface {
 	ErrorName() string
 } = RoleKeyValidationError{}
 
+// Validate checks the field values on RoleFindAll with the rules defined in
+// the proto definition for this message. If any rules are violated, an error
+// is returned.
+func (m *RoleFindAll) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for OrganizationId
+
+	return nil
+}
+
+// RoleFindAllValidationError is the validation error returned by
+// RoleFindAll.Validate if the designated constraints aren't met.
+type RoleFindAllValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RoleFindAllValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RoleFindAllValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RoleFindAllValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RoleFindAllValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RoleFindAllValidationError) ErrorName() string { return "RoleFindAllValidationError" }
+
+// Error satisfies the builtin error interface
+func (e RoleFindAllValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRoleFindAll.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RoleFindAllValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RoleFindAllValidationError{}
+
 // Validate checks the field values on RoleEntities with the rules defined in
 // the proto definition for this message. If any rules are violated, an error
 // is returned.
@@ -1193,6 +1181,8 @@ func (m *RoleEntities) Validate() error {
 		}
 
 	}
+
+	// no validation rules for OrganizationId
 
 	return nil
 }
@@ -1262,6 +1252,8 @@ func (m *RoleReleationPermission) Validate() error {
 	// no validation rules for Id
 
 	// no validation rules for PermissionId
+
+	// no validation rules for OrganizationId
 
 	return nil
 }
@@ -1346,6 +1338,8 @@ func (m *RoleReleationPermissions) Validate() error {
 		}
 
 	}
+
+	// no validation rules for OrganizationId
 
 	return nil
 }
@@ -1677,7 +1671,12 @@ func (m *OrganizationKey) Validate() error {
 		return nil
 	}
 
-	// no validation rules for Id
+	if utf8.RuneCountInString(m.GetId()) < 1 {
+		return OrganizationKeyValidationError{
+			field:  "Id",
+			reason: "value length must be at least 1 runes",
+		}
+	}
 
 	return nil
 }
@@ -1736,36 +1735,34 @@ var _ interface {
 	ErrorName() string
 } = OrganizationKeyValidationError{}
 
-// Validate checks the field values on ResourceSaveRequest with the rules
+// Validate checks the field values on AddOrganizationUser with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
-func (m *ResourceSaveRequest) Validate() error {
+func (m *AddOrganizationUser) Validate() error {
 	if m == nil {
 		return nil
 	}
 
 	if utf8.RuneCountInString(m.GetId()) < 1 {
-		return ResourceSaveRequestValidationError{
+		return AddOrganizationUserValidationError{
 			field:  "Id",
 			reason: "value length must be at least 1 runes",
 		}
 	}
 
-	// no validation rules for Description
-
-	if len(m.GetPermissionNames()) < 1 {
-		return ResourceSaveRequestValidationError{
-			field:  "PermissionNames",
-			reason: "value must contain at least 1 item(s)",
+	if utf8.RuneCountInString(m.GetUserId()) < 1 {
+		return AddOrganizationUserValidationError{
+			field:  "UserId",
+			reason: "value length must be at least 1 runes",
 		}
 	}
 
 	return nil
 }
 
-// ResourceSaveRequestValidationError is the validation error returned by
-// ResourceSaveRequest.Validate if the designated constraints aren't met.
-type ResourceSaveRequestValidationError struct {
+// AddOrganizationUserValidationError is the validation error returned by
+// AddOrganizationUser.Validate if the designated constraints aren't met.
+type AddOrganizationUserValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -1773,24 +1770,24 @@ type ResourceSaveRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e ResourceSaveRequestValidationError) Field() string { return e.field }
+func (e AddOrganizationUserValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e ResourceSaveRequestValidationError) Reason() string { return e.reason }
+func (e AddOrganizationUserValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e ResourceSaveRequestValidationError) Cause() error { return e.cause }
+func (e AddOrganizationUserValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e ResourceSaveRequestValidationError) Key() bool { return e.key }
+func (e AddOrganizationUserValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e ResourceSaveRequestValidationError) ErrorName() string {
-	return "ResourceSaveRequestValidationError"
+func (e AddOrganizationUserValidationError) ErrorName() string {
+	return "AddOrganizationUserValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e ResourceSaveRequestValidationError) Error() string {
+func (e AddOrganizationUserValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -1802,14 +1799,14 @@ func (e ResourceSaveRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sResourceSaveRequest.%s: %s%s",
+		"invalid %sAddOrganizationUser.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = ResourceSaveRequestValidationError{}
+var _ error = AddOrganizationUserValidationError{}
 
 var _ interface {
 	Field() string
@@ -1817,509 +1814,26 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = ResourceSaveRequestValidationError{}
+} = AddOrganizationUserValidationError{}
 
-// Validate checks the field values on ResourceKey with the rules defined in
-// the proto definition for this message. If any rules are violated, an error
-// is returned.
-func (m *ResourceKey) Validate() error {
-	if m == nil {
-		return nil
-	}
-
-	if utf8.RuneCountInString(m.GetId()) < 1 {
-		return ResourceKeyValidationError{
-			field:  "Id",
-			reason: "value length must be at least 1 runes",
-		}
-	}
-
-	return nil
-}
-
-// ResourceKeyValidationError is the validation error returned by
-// ResourceKey.Validate if the designated constraints aren't met.
-type ResourceKeyValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e ResourceKeyValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e ResourceKeyValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e ResourceKeyValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e ResourceKeyValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e ResourceKeyValidationError) ErrorName() string { return "ResourceKeyValidationError" }
-
-// Error satisfies the builtin error interface
-func (e ResourceKeyValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sResourceKey.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = ResourceKeyValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = ResourceKeyValidationError{}
-
-// Validate checks the field values on ResourceExistsResponse with the rules
+// Validate checks the field values on DeleteOrganizationUser with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
-func (m *ResourceExistsResponse) Validate() error {
-	if m == nil {
-		return nil
-	}
-
-	// no validation rules for IsExists
-
-	return nil
-}
-
-// ResourceExistsResponseValidationError is the validation error returned by
-// ResourceExistsResponse.Validate if the designated constraints aren't met.
-type ResourceExistsResponseValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e ResourceExistsResponseValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e ResourceExistsResponseValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e ResourceExistsResponseValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e ResourceExistsResponseValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e ResourceExistsResponseValidationError) ErrorName() string {
-	return "ResourceExistsResponseValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e ResourceExistsResponseValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sResourceExistsResponse.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = ResourceExistsResponseValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = ResourceExistsResponseValidationError{}
-
-// Validate checks the field values on ResourceResponse with the rules defined
-// in the proto definition for this message. If any rules are violated, an
-// error is returned.
-func (m *ResourceResponse) Validate() error {
+func (m *DeleteOrganizationUser) Validate() error {
 	if m == nil {
 		return nil
 	}
 
 	if utf8.RuneCountInString(m.GetId()) < 1 {
-		return ResourceResponseValidationError{
+		return DeleteOrganizationUserValidationError{
 			field:  "Id",
 			reason: "value length must be at least 1 runes",
 		}
 	}
 
-	// no validation rules for Description
-
-	for idx, item := range m.GetPermissions() {
-		_, _ = idx, item
-
-		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return ResourceResponseValidationError{
-					field:  fmt.Sprintf("Permissions[%v]", idx),
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
-	}
-
-	return nil
-}
-
-// ResourceResponseValidationError is the validation error returned by
-// ResourceResponse.Validate if the designated constraints aren't met.
-type ResourceResponseValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e ResourceResponseValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e ResourceResponseValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e ResourceResponseValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e ResourceResponseValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e ResourceResponseValidationError) ErrorName() string { return "ResourceResponseValidationError" }
-
-// Error satisfies the builtin error interface
-func (e ResourceResponseValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sResourceResponse.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = ResourceResponseValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = ResourceResponseValidationError{}
-
-// Validate checks the field values on ResourceResponses with the rules defined
-// in the proto definition for this message. If any rules are violated, an
-// error is returned.
-func (m *ResourceResponses) Validate() error {
-	if m == nil {
-		return nil
-	}
-
-	for idx, item := range m.GetResources() {
-		_, _ = idx, item
-
-		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return ResourceResponsesValidationError{
-					field:  fmt.Sprintf("Resources[%v]", idx),
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
-	}
-
-	return nil
-}
-
-// ResourceResponsesValidationError is the validation error returned by
-// ResourceResponses.Validate if the designated constraints aren't met.
-type ResourceResponsesValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e ResourceResponsesValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e ResourceResponsesValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e ResourceResponsesValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e ResourceResponsesValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e ResourceResponsesValidationError) ErrorName() string {
-	return "ResourceResponsesValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e ResourceResponsesValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sResourceResponses.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = ResourceResponsesValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = ResourceResponsesValidationError{}
-
-// Validate checks the field values on ResourceReleationPermission with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, an error is returned.
-func (m *ResourceReleationPermission) Validate() error {
-	if m == nil {
-		return nil
-	}
-
-	// no validation rules for Id
-
-	// no validation rules for PermissionId
-
-	return nil
-}
-
-// ResourceReleationPermissionValidationError is the validation error returned
-// by ResourceReleationPermission.Validate if the designated constraints
-// aren't met.
-type ResourceReleationPermissionValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e ResourceReleationPermissionValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e ResourceReleationPermissionValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e ResourceReleationPermissionValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e ResourceReleationPermissionValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e ResourceReleationPermissionValidationError) ErrorName() string {
-	return "ResourceReleationPermissionValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e ResourceReleationPermissionValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sResourceReleationPermission.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = ResourceReleationPermissionValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = ResourceReleationPermissionValidationError{}
-
-// Validate checks the field values on ResourceReleationPermissions with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, an error is returned.
-func (m *ResourceReleationPermissions) Validate() error {
-	if m == nil {
-		return nil
-	}
-
-	// no validation rules for Id
-
-	for idx, item := range m.GetPermissions() {
-		_, _ = idx, item
-
-		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return ResourceReleationPermissionsValidationError{
-					field:  fmt.Sprintf("Permissions[%v]", idx),
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
-	}
-
-	return nil
-}
-
-// ResourceReleationPermissionsValidationError is the validation error returned
-// by ResourceReleationPermissions.Validate if the designated constraints
-// aren't met.
-type ResourceReleationPermissionsValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e ResourceReleationPermissionsValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e ResourceReleationPermissionsValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e ResourceReleationPermissionsValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e ResourceReleationPermissionsValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e ResourceReleationPermissionsValidationError) ErrorName() string {
-	return "ResourceReleationPermissionsValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e ResourceReleationPermissionsValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sResourceReleationPermissions.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = ResourceReleationPermissionsValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = ResourceReleationPermissionsValidationError{}
-
-// Validate checks the field values on AuthzRequest with the rules defined in
-// the proto definition for this message. If any rules are violated, an error
-// is returned.
-func (m *AuthzRequest) Validate() error {
-	if m == nil {
-		return nil
-	}
-
-	if utf8.RuneCountInString(m.GetMethod()) < 1 {
-		return AuthzRequestValidationError{
-			field:  "Method",
-			reason: "value length must be at least 1 runes",
-		}
-	}
-
-	if utf8.RuneCountInString(m.GetUri()) < 1 {
-		return AuthzRequestValidationError{
-			field:  "Uri",
-			reason: "value length must be at least 1 runes",
-		}
-	}
-
-	if utf8.RuneCountInString(m.GetOrganizationName()) < 1 {
-		return AuthzRequestValidationError{
-			field:  "OrganizationName",
-			reason: "value length must be at least 1 runes",
-		}
-	}
-
-	if utf8.RuneCountInString(m.GetUserKey()) < 1 {
-		return AuthzRequestValidationError{
-			field:  "UserKey",
+	if utf8.RuneCountInString(m.GetUserId()) < 1 {
+		return DeleteOrganizationUserValidationError{
+			field:  "UserId",
 			reason: "value length must be at least 1 runes",
 		}
 	}
@@ -2327,9 +1841,9 @@ func (m *AuthzRequest) Validate() error {
 	return nil
 }
 
-// AuthzRequestValidationError is the validation error returned by
-// AuthzRequest.Validate if the designated constraints aren't met.
-type AuthzRequestValidationError struct {
+// DeleteOrganizationUserValidationError is the validation error returned by
+// DeleteOrganizationUser.Validate if the designated constraints aren't met.
+type DeleteOrganizationUserValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -2337,22 +1851,24 @@ type AuthzRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e AuthzRequestValidationError) Field() string { return e.field }
+func (e DeleteOrganizationUserValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e AuthzRequestValidationError) Reason() string { return e.reason }
+func (e DeleteOrganizationUserValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e AuthzRequestValidationError) Cause() error { return e.cause }
+func (e DeleteOrganizationUserValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e AuthzRequestValidationError) Key() bool { return e.key }
+func (e DeleteOrganizationUserValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e AuthzRequestValidationError) ErrorName() string { return "AuthzRequestValidationError" }
+func (e DeleteOrganizationUserValidationError) ErrorName() string {
+	return "DeleteOrganizationUserValidationError"
+}
 
 // Error satisfies the builtin error interface
-func (e AuthzRequestValidationError) Error() string {
+func (e DeleteOrganizationUserValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -2364,14 +1880,14 @@ func (e AuthzRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sAuthzRequest.%s: %s%s",
+		"invalid %sDeleteOrganizationUser.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = AuthzRequestValidationError{}
+var _ error = DeleteOrganizationUserValidationError{}
 
 var _ interface {
 	Field() string
@@ -2379,4 +1895,4 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = AuthzRequestValidationError{}
+} = DeleteOrganizationUserValidationError{}

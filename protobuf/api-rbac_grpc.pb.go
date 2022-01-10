@@ -293,6 +293,318 @@ var Permission_ServiceDesc = grpc.ServiceDesc{
 	Metadata: "api-rbac.proto",
 }
 
+// OrganizationClient is the client API for Organization service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type OrganizationClient interface {
+	// FindById is application id and organization id
+	FindById(ctx context.Context, in *OrganizationKey, opts ...grpc.CallOption) (*OrganizationEntity, error)
+	// Update is organization entity update
+	Update(ctx context.Context, in *OrganizationUpdateEntity, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// Delete is organization entity delete
+	Delete(ctx context.Context, in *OrganizationKey, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	AddUser(ctx context.Context, in *AddOrganizationUser, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	DeleteUser(ctx context.Context, in *DeleteOrganizationUser, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// Create is create orgnization
+	Create(ctx context.Context, in *OrganizationEntity, opts ...grpc.CallOption) (*OrganizationEntity, error)
+	// FindAll is application is return organizations
+	FindAll(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*OrganizationEntities, error)
+}
+
+type organizationClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewOrganizationClient(cc grpc.ClientConnInterface) OrganizationClient {
+	return &organizationClient{cc}
+}
+
+func (c *organizationClient) FindById(ctx context.Context, in *OrganizationKey, opts ...grpc.CallOption) (*OrganizationEntity, error) {
+	out := new(OrganizationEntity)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Organization/FindById", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *organizationClient) Update(ctx context.Context, in *OrganizationUpdateEntity, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Organization/Update", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *organizationClient) Delete(ctx context.Context, in *OrganizationKey, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Organization/Delete", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *organizationClient) AddUser(ctx context.Context, in *AddOrganizationUser, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Organization/AddUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *organizationClient) DeleteUser(ctx context.Context, in *DeleteOrganizationUser, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Organization/deleteUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *organizationClient) Create(ctx context.Context, in *OrganizationEntity, opts ...grpc.CallOption) (*OrganizationEntity, error) {
+	out := new(OrganizationEntity)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Organization/Create", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *organizationClient) FindAll(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*OrganizationEntities, error) {
+	out := new(OrganizationEntities)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Organization/FindAll", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// OrganizationServer is the server API for Organization service.
+// All implementations must embed UnimplementedOrganizationServer
+// for forward compatibility
+type OrganizationServer interface {
+	// FindById is application id and organization id
+	FindById(context.Context, *OrganizationKey) (*OrganizationEntity, error)
+	// Update is organization entity update
+	Update(context.Context, *OrganizationUpdateEntity) (*emptypb.Empty, error)
+	// Delete is organization entity delete
+	Delete(context.Context, *OrganizationKey) (*emptypb.Empty, error)
+	AddUser(context.Context, *AddOrganizationUser) (*emptypb.Empty, error)
+	DeleteUser(context.Context, *DeleteOrganizationUser) (*emptypb.Empty, error)
+	// Create is create orgnization
+	Create(context.Context, *OrganizationEntity) (*OrganizationEntity, error)
+	// FindAll is application is return organizations
+	FindAll(context.Context, *emptypb.Empty) (*OrganizationEntities, error)
+	mustEmbedUnimplementedOrganizationServer()
+}
+
+// UnimplementedOrganizationServer must be embedded to have forward compatible implementations.
+type UnimplementedOrganizationServer struct {
+}
+
+func (UnimplementedOrganizationServer) FindById(context.Context, *OrganizationKey) (*OrganizationEntity, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FindById not implemented")
+}
+func (UnimplementedOrganizationServer) Update(context.Context, *OrganizationUpdateEntity) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+}
+func (UnimplementedOrganizationServer) Delete(context.Context, *OrganizationKey) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedOrganizationServer) AddUser(context.Context, *AddOrganizationUser) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddUser not implemented")
+}
+func (UnimplementedOrganizationServer) DeleteUser(context.Context, *DeleteOrganizationUser) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteUser not implemented")
+}
+func (UnimplementedOrganizationServer) Create(context.Context, *OrganizationEntity) (*OrganizationEntity, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+}
+func (UnimplementedOrganizationServer) FindAll(context.Context, *emptypb.Empty) (*OrganizationEntities, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FindAll not implemented")
+}
+func (UnimplementedOrganizationServer) mustEmbedUnimplementedOrganizationServer() {}
+
+// UnsafeOrganizationServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to OrganizationServer will
+// result in compilation errors.
+type UnsafeOrganizationServer interface {
+	mustEmbedUnimplementedOrganizationServer()
+}
+
+func RegisterOrganizationServer(s grpc.ServiceRegistrar, srv OrganizationServer) {
+	s.RegisterService(&Organization_ServiceDesc, srv)
+}
+
+func _Organization_FindById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OrganizationKey)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrganizationServer).FindById(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ncs.rbns.Organization/FindById",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrganizationServer).FindById(ctx, req.(*OrganizationKey))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Organization_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OrganizationUpdateEntity)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrganizationServer).Update(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ncs.rbns.Organization/Update",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrganizationServer).Update(ctx, req.(*OrganizationUpdateEntity))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Organization_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OrganizationKey)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrganizationServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ncs.rbns.Organization/Delete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrganizationServer).Delete(ctx, req.(*OrganizationKey))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Organization_AddUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddOrganizationUser)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrganizationServer).AddUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ncs.rbns.Organization/AddUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrganizationServer).AddUser(ctx, req.(*AddOrganizationUser))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Organization_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteOrganizationUser)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrganizationServer).DeleteUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ncs.rbns.Organization/deleteUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrganizationServer).DeleteUser(ctx, req.(*DeleteOrganizationUser))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Organization_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OrganizationEntity)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrganizationServer).Create(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ncs.rbns.Organization/Create",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrganizationServer).Create(ctx, req.(*OrganizationEntity))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Organization_FindAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrganizationServer).FindAll(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ncs.rbns.Organization/FindAll",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrganizationServer).FindAll(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// Organization_ServiceDesc is the grpc.ServiceDesc for Organization service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var Organization_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "ncs.rbns.Organization",
+	HandlerType: (*OrganizationServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "FindById",
+			Handler:    _Organization_FindById_Handler,
+		},
+		{
+			MethodName: "Update",
+			Handler:    _Organization_Update_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _Organization_Delete_Handler,
+		},
+		{
+			MethodName: "AddUser",
+			Handler:    _Organization_AddUser_Handler,
+		},
+		{
+			MethodName: "deleteUser",
+			Handler:    _Organization_DeleteUser_Handler,
+		},
+		{
+			MethodName: "Create",
+			Handler:    _Organization_Create_Handler,
+		},
+		{
+			MethodName: "FindAll",
+			Handler:    _Organization_FindAll_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "api-rbac.proto",
+}
+
 // RoleClient is the client API for Role service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
@@ -314,7 +626,7 @@ type RoleClient interface {
 	// RoleCreate is create role
 	Create(ctx context.Context, in *RoleEntities, opts ...grpc.CallOption) (*RoleEntities, error)
 	// FindAll is find roles
-	FindAll(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*RoleEntities, error)
+	FindAll(ctx context.Context, in *RoleFindAll, opts ...grpc.CallOption) (*RoleEntities, error)
 }
 
 type roleClient struct {
@@ -397,7 +709,7 @@ func (c *roleClient) Create(ctx context.Context, in *RoleEntities, opts ...grpc.
 	return out, nil
 }
 
-func (c *roleClient) FindAll(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*RoleEntities, error) {
+func (c *roleClient) FindAll(ctx context.Context, in *RoleFindAll, opts ...grpc.CallOption) (*RoleEntities, error) {
 	out := new(RoleEntities)
 	err := c.cc.Invoke(ctx, "/ncs.rbns.Role/FindAll", in, out, opts...)
 	if err != nil {
@@ -427,7 +739,7 @@ type RoleServer interface {
 	// RoleCreate is create role
 	Create(context.Context, *RoleEntities) (*RoleEntities, error)
 	// FindAll is find roles
-	FindAll(context.Context, *emptypb.Empty) (*RoleEntities, error)
+	FindAll(context.Context, *RoleFindAll) (*RoleEntities, error)
 	mustEmbedUnimplementedRoleServer()
 }
 
@@ -459,7 +771,7 @@ func (UnimplementedRoleServer) Delete(context.Context, *RoleKey) (*emptypb.Empty
 func (UnimplementedRoleServer) Create(context.Context, *RoleEntities) (*RoleEntities, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
 }
-func (UnimplementedRoleServer) FindAll(context.Context, *emptypb.Empty) (*RoleEntities, error) {
+func (UnimplementedRoleServer) FindAll(context.Context, *RoleFindAll) (*RoleEntities, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FindAll not implemented")
 }
 func (UnimplementedRoleServer) mustEmbedUnimplementedRoleServer() {}
@@ -620,7 +932,7 @@ func _Role_Create_Handler(srv interface{}, ctx context.Context, dec func(interfa
 }
 
 func _Role_FindAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+	in := new(RoleFindAll)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -632,7 +944,7 @@ func _Role_FindAll_Handler(srv interface{}, ctx context.Context, dec func(interf
 		FullMethod: "/ncs.rbns.Role/FindAll",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RoleServer).FindAll(ctx, req.(*emptypb.Empty))
+		return srv.(RoleServer).FindAll(ctx, req.(*RoleFindAll))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -685,254 +997,12 @@ var Role_ServiceDesc = grpc.ServiceDesc{
 	Metadata: "api-rbac.proto",
 }
 
-// OrganizationClient is the client API for Organization service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type OrganizationClient interface {
-	// FindById is application id and organization id
-	FindById(ctx context.Context, in *OrganizationKey, opts ...grpc.CallOption) (*OrganizationEntity, error)
-	// Update is organization entity update
-	Update(ctx context.Context, in *OrganizationUpdateEntity, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// Delete is organization entity delete
-	Delete(ctx context.Context, in *OrganizationKey, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// Create is create orgnization
-	Create(ctx context.Context, in *OrganizationEntity, opts ...grpc.CallOption) (*OrganizationEntity, error)
-	// FindAll is application is return organizations
-	FindAll(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*OrganizationEntities, error)
-}
-
-type organizationClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewOrganizationClient(cc grpc.ClientConnInterface) OrganizationClient {
-	return &organizationClient{cc}
-}
-
-func (c *organizationClient) FindById(ctx context.Context, in *OrganizationKey, opts ...grpc.CallOption) (*OrganizationEntity, error) {
-	out := new(OrganizationEntity)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Organization/FindById", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *organizationClient) Update(ctx context.Context, in *OrganizationUpdateEntity, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Organization/Update", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *organizationClient) Delete(ctx context.Context, in *OrganizationKey, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Organization/Delete", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *organizationClient) Create(ctx context.Context, in *OrganizationEntity, opts ...grpc.CallOption) (*OrganizationEntity, error) {
-	out := new(OrganizationEntity)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Organization/Create", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *organizationClient) FindAll(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*OrganizationEntities, error) {
-	out := new(OrganizationEntities)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Organization/FindAll", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// OrganizationServer is the server API for Organization service.
-// All implementations must embed UnimplementedOrganizationServer
-// for forward compatibility
-type OrganizationServer interface {
-	// FindById is application id and organization id
-	FindById(context.Context, *OrganizationKey) (*OrganizationEntity, error)
-	// Update is organization entity update
-	Update(context.Context, *OrganizationUpdateEntity) (*emptypb.Empty, error)
-	// Delete is organization entity delete
-	Delete(context.Context, *OrganizationKey) (*emptypb.Empty, error)
-	// Create is create orgnization
-	Create(context.Context, *OrganizationEntity) (*OrganizationEntity, error)
-	// FindAll is application is return organizations
-	FindAll(context.Context, *emptypb.Empty) (*OrganizationEntities, error)
-	mustEmbedUnimplementedOrganizationServer()
-}
-
-// UnimplementedOrganizationServer must be embedded to have forward compatible implementations.
-type UnimplementedOrganizationServer struct {
-}
-
-func (UnimplementedOrganizationServer) FindById(context.Context, *OrganizationKey) (*OrganizationEntity, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method FindById not implemented")
-}
-func (UnimplementedOrganizationServer) Update(context.Context, *OrganizationUpdateEntity) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
-}
-func (UnimplementedOrganizationServer) Delete(context.Context, *OrganizationKey) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
-}
-func (UnimplementedOrganizationServer) Create(context.Context, *OrganizationEntity) (*OrganizationEntity, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
-}
-func (UnimplementedOrganizationServer) FindAll(context.Context, *emptypb.Empty) (*OrganizationEntities, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method FindAll not implemented")
-}
-func (UnimplementedOrganizationServer) mustEmbedUnimplementedOrganizationServer() {}
-
-// UnsafeOrganizationServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to OrganizationServer will
-// result in compilation errors.
-type UnsafeOrganizationServer interface {
-	mustEmbedUnimplementedOrganizationServer()
-}
-
-func RegisterOrganizationServer(s grpc.ServiceRegistrar, srv OrganizationServer) {
-	s.RegisterService(&Organization_ServiceDesc, srv)
-}
-
-func _Organization_FindById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(OrganizationKey)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OrganizationServer).FindById(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ncs.rbns.Organization/FindById",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrganizationServer).FindById(ctx, req.(*OrganizationKey))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Organization_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(OrganizationUpdateEntity)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OrganizationServer).Update(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ncs.rbns.Organization/Update",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrganizationServer).Update(ctx, req.(*OrganizationUpdateEntity))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Organization_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(OrganizationKey)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OrganizationServer).Delete(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ncs.rbns.Organization/Delete",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrganizationServer).Delete(ctx, req.(*OrganizationKey))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Organization_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(OrganizationEntity)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OrganizationServer).Create(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ncs.rbns.Organization/Create",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrganizationServer).Create(ctx, req.(*OrganizationEntity))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Organization_FindAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OrganizationServer).FindAll(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ncs.rbns.Organization/FindAll",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrganizationServer).FindAll(ctx, req.(*emptypb.Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-// Organization_ServiceDesc is the grpc.ServiceDesc for Organization service.
-// It's only intended for direct use with grpc.RegisterService,
-// and not to be introspected or modified (even as a copy)
-var Organization_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "ncs.rbns.Organization",
-	HandlerType: (*OrganizationServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "FindById",
-			Handler:    _Organization_FindById_Handler,
-		},
-		{
-			MethodName: "Update",
-			Handler:    _Organization_Update_Handler,
-		},
-		{
-			MethodName: "Delete",
-			Handler:    _Organization_Delete_Handler,
-		},
-		{
-			MethodName: "Create",
-			Handler:    _Organization_Create_Handler,
-		},
-		{
-			MethodName: "FindAll",
-			Handler:    _Organization_FindAll_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "api-rbac.proto",
-}
-
 // UserClient is the client API for User service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserClient interface {
-	// FindByKey is find organization id and user key
-	FindByKey(ctx context.Context, in *UserKey, opts ...grpc.CallOption) (*UserEntity, error)
-	// FindByOrganizationNameAndUserKey is find organization id and user key
-	FindByOrganizationNameAndUserKey(ctx context.Context, in *UserKeyByName, opts ...grpc.CallOption) (*UserEntity, error)
+	// FindById is find organization id and user key
+	FindById(ctx context.Context, in *UserKey, opts ...grpc.CallOption) (*UserEntity, error)
 	// Delete is delete user
 	Delete(ctx context.Context, in *UserKey, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// DeleteRole is delete role to user
@@ -942,7 +1012,7 @@ type UserClient interface {
 	// DeleteRoles is delete role to user
 	DeleteRoles(ctx context.Context, in *UserRole, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// Create is create user
-	Create(ctx context.Context, in *UserEntity, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Create(ctx context.Context, in *UserCreateKey, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type userClient struct {
@@ -953,18 +1023,9 @@ func NewUserClient(cc grpc.ClientConnInterface) UserClient {
 	return &userClient{cc}
 }
 
-func (c *userClient) FindByKey(ctx context.Context, in *UserKey, opts ...grpc.CallOption) (*UserEntity, error) {
+func (c *userClient) FindById(ctx context.Context, in *UserKey, opts ...grpc.CallOption) (*UserEntity, error) {
 	out := new(UserEntity)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.User/FindByKey", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *userClient) FindByOrganizationNameAndUserKey(ctx context.Context, in *UserKeyByName, opts ...grpc.CallOption) (*UserEntity, error) {
-	out := new(UserEntity)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.User/FindByOrganizationNameAndUserKey", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.User/FindById", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1007,7 +1068,7 @@ func (c *userClient) DeleteRoles(ctx context.Context, in *UserRole, opts ...grpc
 	return out, nil
 }
 
-func (c *userClient) Create(ctx context.Context, in *UserEntity, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *userClient) Create(ctx context.Context, in *UserCreateKey, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/ncs.rbns.User/Create", in, out, opts...)
 	if err != nil {
@@ -1020,10 +1081,8 @@ func (c *userClient) Create(ctx context.Context, in *UserEntity, opts ...grpc.Ca
 // All implementations must embed UnimplementedUserServer
 // for forward compatibility
 type UserServer interface {
-	// FindByKey is find organization id and user key
-	FindByKey(context.Context, *UserKey) (*UserEntity, error)
-	// FindByOrganizationNameAndUserKey is find organization id and user key
-	FindByOrganizationNameAndUserKey(context.Context, *UserKeyByName) (*UserEntity, error)
+	// FindById is find organization id and user key
+	FindById(context.Context, *UserKey) (*UserEntity, error)
 	// Delete is delete user
 	Delete(context.Context, *UserKey) (*emptypb.Empty, error)
 	// DeleteRole is delete role to user
@@ -1033,7 +1092,7 @@ type UserServer interface {
 	// DeleteRoles is delete role to user
 	DeleteRoles(context.Context, *UserRole) (*emptypb.Empty, error)
 	// Create is create user
-	Create(context.Context, *UserEntity) (*emptypb.Empty, error)
+	Create(context.Context, *UserCreateKey) (*emptypb.Empty, error)
 	mustEmbedUnimplementedUserServer()
 }
 
@@ -1041,11 +1100,8 @@ type UserServer interface {
 type UnimplementedUserServer struct {
 }
 
-func (UnimplementedUserServer) FindByKey(context.Context, *UserKey) (*UserEntity, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method FindByKey not implemented")
-}
-func (UnimplementedUserServer) FindByOrganizationNameAndUserKey(context.Context, *UserKeyByName) (*UserEntity, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method FindByOrganizationNameAndUserKey not implemented")
+func (UnimplementedUserServer) FindById(context.Context, *UserKey) (*UserEntity, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FindById not implemented")
 }
 func (UnimplementedUserServer) Delete(context.Context, *UserKey) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
@@ -1059,7 +1115,7 @@ func (UnimplementedUserServer) AddRoles(context.Context, *UserRole) (*emptypb.Em
 func (UnimplementedUserServer) DeleteRoles(context.Context, *UserRole) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteRoles not implemented")
 }
-func (UnimplementedUserServer) Create(context.Context, *UserEntity) (*emptypb.Empty, error) {
+func (UnimplementedUserServer) Create(context.Context, *UserCreateKey) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
 }
 func (UnimplementedUserServer) mustEmbedUnimplementedUserServer() {}
@@ -1075,38 +1131,20 @@ func RegisterUserServer(s grpc.ServiceRegistrar, srv UserServer) {
 	s.RegisterService(&User_ServiceDesc, srv)
 }
 
-func _User_FindByKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _User_FindById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UserKey)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserServer).FindByKey(ctx, in)
+		return srv.(UserServer).FindById(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/ncs.rbns.User/FindByKey",
+		FullMethod: "/ncs.rbns.User/FindById",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServer).FindByKey(ctx, req.(*UserKey))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _User_FindByOrganizationNameAndUserKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UserKeyByName)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServer).FindByOrganizationNameAndUserKey(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ncs.rbns.User/FindByOrganizationNameAndUserKey",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServer).FindByOrganizationNameAndUserKey(ctx, req.(*UserKeyByName))
+		return srv.(UserServer).FindById(ctx, req.(*UserKey))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1184,7 +1222,7 @@ func _User_DeleteRoles_Handler(srv interface{}, ctx context.Context, dec func(in
 }
 
 func _User_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UserEntity)
+	in := new(UserCreateKey)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1196,7 +1234,7 @@ func _User_Create_Handler(srv interface{}, ctx context.Context, dec func(interfa
 		FullMethod: "/ncs.rbns.User/Create",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServer).Create(ctx, req.(*UserEntity))
+		return srv.(UserServer).Create(ctx, req.(*UserCreateKey))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1209,12 +1247,8 @@ var User_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*UserServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "FindByKey",
-			Handler:    _User_FindByKey_Handler,
-		},
-		{
-			MethodName: "FindByOrganizationNameAndUserKey",
-			Handler:    _User_FindByOrganizationNameAndUserKey_Handler,
+			MethodName: "FindById",
+			Handler:    _User_FindById_Handler,
 		},
 		{
 			MethodName: "Delete",
@@ -1235,464 +1269,6 @@ var User_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Create",
 			Handler:    _User_Create_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "api-rbac.proto",
-}
-
-// ResourceClient is the client API for Resource service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type ResourceClient interface {
-	// DeletePermission is delete permission to the resource
-	DeletePermission(ctx context.Context, in *ResourceReleationPermission, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// GetPermissions is get permission to the resource
-	GetPermissions(ctx context.Context, in *ResourceKey, opts ...grpc.CallOption) (*PermissionEntities, error)
-	// AddPermissions is add permission to the resource
-	AddPermissions(ctx context.Context, in *ResourceReleationPermissions, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// DeletePermissions is delete permission to the resource
-	DeletePermissions(ctx context.Context, in *ResourceReleationPermissions, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// Find is find resource
-	Find(ctx context.Context, in *ResourceKey, opts ...grpc.CallOption) (*ResourceResponse, error)
-	Update(ctx context.Context, in *ResourceSaveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	Delete(ctx context.Context, in *ResourceKey, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	Exists(ctx context.Context, in *ResourceKey, opts ...grpc.CallOption) (*ResourceExistsResponse, error)
-	Create(ctx context.Context, in *ResourceSaveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	FindAll(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ResourceResponses, error)
-	// Migration 存在しない場合のみリソースを作成
-	Migration(ctx context.Context, in *ResourceSaveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-}
-
-type resourceClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewResourceClient(cc grpc.ClientConnInterface) ResourceClient {
-	return &resourceClient{cc}
-}
-
-func (c *resourceClient) DeletePermission(ctx context.Context, in *ResourceReleationPermission, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Resource/DeletePermission", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *resourceClient) GetPermissions(ctx context.Context, in *ResourceKey, opts ...grpc.CallOption) (*PermissionEntities, error) {
-	out := new(PermissionEntities)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Resource/GetPermissions", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *resourceClient) AddPermissions(ctx context.Context, in *ResourceReleationPermissions, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Resource/AddPermissions", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *resourceClient) DeletePermissions(ctx context.Context, in *ResourceReleationPermissions, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Resource/DeletePermissions", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *resourceClient) Find(ctx context.Context, in *ResourceKey, opts ...grpc.CallOption) (*ResourceResponse, error) {
-	out := new(ResourceResponse)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Resource/Find", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *resourceClient) Update(ctx context.Context, in *ResourceSaveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Resource/Update", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *resourceClient) Delete(ctx context.Context, in *ResourceKey, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Resource/Delete", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *resourceClient) Exists(ctx context.Context, in *ResourceKey, opts ...grpc.CallOption) (*ResourceExistsResponse, error) {
-	out := new(ResourceExistsResponse)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Resource/Exists", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *resourceClient) Create(ctx context.Context, in *ResourceSaveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Resource/Create", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *resourceClient) FindAll(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ResourceResponses, error) {
-	out := new(ResourceResponses)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Resource/FindAll", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *resourceClient) Migration(ctx context.Context, in *ResourceSaveRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Resource/Migration", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// ResourceServer is the server API for Resource service.
-// All implementations must embed UnimplementedResourceServer
-// for forward compatibility
-type ResourceServer interface {
-	// DeletePermission is delete permission to the resource
-	DeletePermission(context.Context, *ResourceReleationPermission) (*emptypb.Empty, error)
-	// GetPermissions is get permission to the resource
-	GetPermissions(context.Context, *ResourceKey) (*PermissionEntities, error)
-	// AddPermissions is add permission to the resource
-	AddPermissions(context.Context, *ResourceReleationPermissions) (*emptypb.Empty, error)
-	// DeletePermissions is delete permission to the resource
-	DeletePermissions(context.Context, *ResourceReleationPermissions) (*emptypb.Empty, error)
-	// Find is find resource
-	Find(context.Context, *ResourceKey) (*ResourceResponse, error)
-	Update(context.Context, *ResourceSaveRequest) (*emptypb.Empty, error)
-	Delete(context.Context, *ResourceKey) (*emptypb.Empty, error)
-	Exists(context.Context, *ResourceKey) (*ResourceExistsResponse, error)
-	Create(context.Context, *ResourceSaveRequest) (*emptypb.Empty, error)
-	FindAll(context.Context, *emptypb.Empty) (*ResourceResponses, error)
-	// Migration 存在しない場合のみリソースを作成
-	Migration(context.Context, *ResourceSaveRequest) (*emptypb.Empty, error)
-	mustEmbedUnimplementedResourceServer()
-}
-
-// UnimplementedResourceServer must be embedded to have forward compatible implementations.
-type UnimplementedResourceServer struct {
-}
-
-func (UnimplementedResourceServer) DeletePermission(context.Context, *ResourceReleationPermission) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeletePermission not implemented")
-}
-func (UnimplementedResourceServer) GetPermissions(context.Context, *ResourceKey) (*PermissionEntities, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPermissions not implemented")
-}
-func (UnimplementedResourceServer) AddPermissions(context.Context, *ResourceReleationPermissions) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddPermissions not implemented")
-}
-func (UnimplementedResourceServer) DeletePermissions(context.Context, *ResourceReleationPermissions) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeletePermissions not implemented")
-}
-func (UnimplementedResourceServer) Find(context.Context, *ResourceKey) (*ResourceResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Find not implemented")
-}
-func (UnimplementedResourceServer) Update(context.Context, *ResourceSaveRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
-}
-func (UnimplementedResourceServer) Delete(context.Context, *ResourceKey) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
-}
-func (UnimplementedResourceServer) Exists(context.Context, *ResourceKey) (*ResourceExistsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Exists not implemented")
-}
-func (UnimplementedResourceServer) Create(context.Context, *ResourceSaveRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
-}
-func (UnimplementedResourceServer) FindAll(context.Context, *emptypb.Empty) (*ResourceResponses, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method FindAll not implemented")
-}
-func (UnimplementedResourceServer) Migration(context.Context, *ResourceSaveRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Migration not implemented")
-}
-func (UnimplementedResourceServer) mustEmbedUnimplementedResourceServer() {}
-
-// UnsafeResourceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to ResourceServer will
-// result in compilation errors.
-type UnsafeResourceServer interface {
-	mustEmbedUnimplementedResourceServer()
-}
-
-func RegisterResourceServer(s grpc.ServiceRegistrar, srv ResourceServer) {
-	s.RegisterService(&Resource_ServiceDesc, srv)
-}
-
-func _Resource_DeletePermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ResourceReleationPermission)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ResourceServer).DeletePermission(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ncs.rbns.Resource/DeletePermission",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceServer).DeletePermission(ctx, req.(*ResourceReleationPermission))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Resource_GetPermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ResourceKey)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ResourceServer).GetPermissions(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ncs.rbns.Resource/GetPermissions",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceServer).GetPermissions(ctx, req.(*ResourceKey))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Resource_AddPermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ResourceReleationPermissions)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ResourceServer).AddPermissions(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ncs.rbns.Resource/AddPermissions",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceServer).AddPermissions(ctx, req.(*ResourceReleationPermissions))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Resource_DeletePermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ResourceReleationPermissions)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ResourceServer).DeletePermissions(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ncs.rbns.Resource/DeletePermissions",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceServer).DeletePermissions(ctx, req.(*ResourceReleationPermissions))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Resource_Find_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ResourceKey)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ResourceServer).Find(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ncs.rbns.Resource/Find",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceServer).Find(ctx, req.(*ResourceKey))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Resource_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ResourceSaveRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ResourceServer).Update(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ncs.rbns.Resource/Update",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceServer).Update(ctx, req.(*ResourceSaveRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Resource_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ResourceKey)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ResourceServer).Delete(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ncs.rbns.Resource/Delete",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceServer).Delete(ctx, req.(*ResourceKey))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Resource_Exists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ResourceKey)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ResourceServer).Exists(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ncs.rbns.Resource/Exists",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceServer).Exists(ctx, req.(*ResourceKey))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Resource_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ResourceSaveRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ResourceServer).Create(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ncs.rbns.Resource/Create",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceServer).Create(ctx, req.(*ResourceSaveRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Resource_FindAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ResourceServer).FindAll(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ncs.rbns.Resource/FindAll",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceServer).FindAll(ctx, req.(*emptypb.Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Resource_Migration_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ResourceSaveRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ResourceServer).Migration(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ncs.rbns.Resource/Migration",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceServer).Migration(ctx, req.(*ResourceSaveRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-// Resource_ServiceDesc is the grpc.ServiceDesc for Resource service.
-// It's only intended for direct use with grpc.RegisterService,
-// and not to be introspected or modified (even as a copy)
-var Resource_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "ncs.rbns.Resource",
-	HandlerType: (*ResourceServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "DeletePermission",
-			Handler:    _Resource_DeletePermission_Handler,
-		},
-		{
-			MethodName: "GetPermissions",
-			Handler:    _Resource_GetPermissions_Handler,
-		},
-		{
-			MethodName: "AddPermissions",
-			Handler:    _Resource_AddPermissions_Handler,
-		},
-		{
-			MethodName: "DeletePermissions",
-			Handler:    _Resource_DeletePermissions_Handler,
-		},
-		{
-			MethodName: "Find",
-			Handler:    _Resource_Find_Handler,
-		},
-		{
-			MethodName: "Update",
-			Handler:    _Resource_Update_Handler,
-		},
-		{
-			MethodName: "Delete",
-			Handler:    _Resource_Delete_Handler,
-		},
-		{
-			MethodName: "Exists",
-			Handler:    _Resource_Exists_Handler,
-		},
-		{
-			MethodName: "Create",
-			Handler:    _Resource_Create_Handler,
-		},
-		{
-			MethodName: "FindAll",
-			Handler:    _Resource_FindAll_Handler,
-		},
-		{
-			MethodName: "Migration",
-			Handler:    _Resource_Migration_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

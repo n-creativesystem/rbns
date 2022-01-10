@@ -7,15 +7,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sirupsen/logrus"
+	"github.com/n-creativesystem/rbns/logger"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAPI(t *testing.T) {
 	var mux http.Handler
 	var err error
-	log := logrus.New()
-	if mux, err = New("", "", "", "/", log); err != nil {
+	if mux, err = New(nil); err != nil {
 		assert.NoError(t, err)
 	}
 	urls := []struct {
@@ -30,7 +29,7 @@ func TestAPI(t *testing.T) {
 			url:    "/api/v1/swagger.json",
 			status: http.StatusOK,
 			result: func(w *httptest.ResponseRecorder, req *http.Request) {
-				logrus.Info(w.Body.String())
+				logger.InfoWithContext(req.Context(), w.Body.String())
 			},
 		},
 		{

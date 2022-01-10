@@ -2,132 +2,177 @@ package service
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/n-creativesystem/rbns/bus"
 	"github.com/n-creativesystem/rbns/domain/model"
-	"github.com/n-creativesystem/rbns/domain/repository"
+	"github.com/n-creativesystem/rbns/logger"
 )
 
 type PermissionService interface {
-	Create(ctx context.Context, names, descriptions []string) (model.Permissions, error)
+	Create(ctx context.Context, names, descriptions []string) ([]model.Permission, error)
 	FindById(ctx context.Context, strId string) (*model.Permission, error)
-	FindAll(ctx context.Context) (model.Permissions, error)
-	Update(ctx context.Context, strId, name, description string) error
+	FindByIds(ctx context.Context, ids []string) ([]model.Permission, error)
+	FindAll(ctx context.Context) ([]model.Permission, error)
+	Update(ctx context.Context, strId, name, description string) (*model.Permission, error)
 	Delete(ctx context.Context, strId string) error
-	Check(ctx context.Context, userKey, organizationName string, permissionNames ...string) (*model.ResourceCheck, error)
 }
 type permissionService struct {
-	reader repository.Reader
-	writer repository.Writer
+	log       logger.Logger
+	telemetry telemetryFunc
 }
 
-func NewPermissionService(reader repository.Reader, writer repository.Writer) PermissionService {
+func NewPermissionService() PermissionService {
 	return &permissionService{
-		reader: reader,
-		writer: writer,
+		log:       logger.New("permission service"),
+		telemetry: createSpanWithPrefix("permission service"),
 	}
 }
 
 // Permission
-func (srv *permissionService) Create(ctx context.Context, names, descriptions []string) (model.Permissions, error) {
-	var out model.Permissions
-	mNames := make([]model.Name, len(names))
-	mDescriptions := make([]string, len(descriptions))
-	copy(mDescriptions, descriptions)
-	for idx, name := range names {
-		var err error
-		mNames[idx], err = model.NewName(name)
-		if err != nil {
-			return nil, err
+func (svc *permissionService) Create(ctx context.Context, names, descriptions []string) (out []model.Permission, e error) {
+	svc.telemetry(ctx, "Create", func(ctx context.Context) {
+		cmd := model.AddPermissionCommands{
+			AddPermissions: make([]model.AddPermissionCommand, 0, 100),
 		}
-	}
-	err := srv.writer.Do(ctx, func(tx repository.Transaction) error {
-		permissionRepo := tx.Permission()
-		permissions, err := permissionRepo.CreateBatch(mNames, mDescriptions)
-		if err != nil {
-			return err
-		}
-		out = make(model.Permissions, len(permissions))
-		for idx, p := range permissions {
-			out[idx] = *p
-		}
-		return nil
-	})
-	return out, err
-}
-
-func (srv *permissionService) FindById(ctx context.Context, strId string) (*model.Permission, error) {
-	permissionRepo := srv.reader.Permission(ctx)
-	id, err := model.NewID(strId)
-	if err != nil {
-		return nil, err
-	}
-	permission, err := permissionRepo.FindByID(id)
-	if err != nil {
-		return nil, err
-	}
-	return permission, nil
-}
-
-func (srv *permissionService) FindAll(ctx context.Context) (model.Permissions, error) {
-	permissionRepo := srv.reader.Permission(ctx)
-	permissions, err := permissionRepo.FindAll()
-	if err != nil {
-		return nil, err
-	}
-	out := make(model.Permissions, len(permissions))
-	copy(out, permissions)
-	return out, nil
-}
-
-func (srv *permissionService) Update(ctx context.Context, strId, name, description string) error {
-	p, err := model.NewPermission(strId, name, description)
-	if err != nil {
-		return err
-	}
-	if err := srv.writer.Do(ctx, func(tx repository.Transaction) error { return tx.Permission().Update(p) }); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (srv *permissionService) Delete(ctx context.Context, strId string) error {
-	id, err := model.NewID(strId)
-	if err != nil {
-		return err
-	}
-	if err := srv.writer.Do(ctx, func(tx repository.Transaction) error { return tx.Permission().Delete(id) }); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (srv *permissionService) Check(ctx context.Context, userKey, organizationName string, permissionNames ...string) (*model.ResourceCheck, error) {
-	con := srv.reader
-	mOrganizationName, err := model.NewName(organizationName)
-	if err != nil {
-		return model.NewResourceCheck(false, err.Error()), err
-	}
-	mUserKey, err := model.NewKey(userKey)
-	if err != nil {
-		return model.NewResourceCheck(false, err.Error()), err
-	}
-	org, err := con.Organization(ctx).FindByName(mOrganizationName)
-	if err != nil {
-		err = model.ErrNoData
-		return model.NewResourceCheck(false, err.Error()), err
-	}
-	if u, ok := org.IsContainsUsers(mUserKey); !ok {
-		return model.NewResourceCheck(false, model.ErrNoData.Error()), model.ErrNoData
-	} else {
-		for _, permissionName := range permissionNames {
-			mPermissionName, err := model.NewName(permissionName)
+		for idx, name := range names {
+			n, err := model.NewName(name)
 			if err != nil {
-				return model.NewResourceCheck(false, err.Error()), err
+				svc.log.ErrorWithContext(ctx, err, "name constructor error", "constructor name", name)
+				continue
 			}
-			if u.IsContainsPermissionByName(mPermissionName) {
-				return model.NewResourceCheck(true, ""), nil
-			}
+			cmd.AddPermissions = append(cmd.AddPermissions, model.AddPermissionCommand{
+				Name:        n,
+				Description: descriptions[idx],
+			})
 		}
-	}
-	return model.NewResourceCheck(false, model.ErrNoData.Error()), model.ErrNoData
+		if err := bus.Dispatch(ctx, &cmd); err != nil {
+			svc.log.ErrorWithContext(ctx, err, "dispatch error", "command", fmt.Sprintf("%+v", cmd))
+			e = err
+			return
+		}
+		for _, permission := range cmd.AddPermissions {
+			out = append(out, *permission.Result)
+		}
+	})
+	return
+}
+
+func (svc *permissionService) FindById(ctx context.Context, strId string) (out *model.Permission, e error) {
+	svc.telemetry(ctx, "FindById", func(ctx context.Context) {
+		id, err := model.NewID(strId)
+		if err != nil {
+			e = err
+			return
+		}
+		query := model.GetPermissionByIDQuery{
+			PrimaryCommand: model.PrimaryCommand{
+				ID: id,
+			},
+		}
+		if err := bus.Dispatch(ctx, &query); err != nil {
+			svc.log.ErrorWithContext(ctx, err, "dispatch error", "query", fmt.Sprintf("%+v", query))
+			e = err
+			return
+		}
+		out = query.Result
+	})
+	return
+}
+
+func (svc *permissionService) FindByIds(ctx context.Context, ids []string) (out []model.Permission, e error) {
+	svc.telemetry(ctx, "FindByIds", func(ctx context.Context) {
+		query := model.GetPermissionByIDsQuery{
+			Query: make([]model.PrimaryCommand, 0, len(ids)),
+		}
+		for _, strId := range ids {
+			id, err := model.NewID(strId)
+			if err != nil {
+				continue
+			}
+			query.Query = append(query.Query, model.PrimaryCommand{
+				ID: id,
+			})
+		}
+		if err := bus.Dispatch(ctx, &query); err != nil {
+			svc.log.ErrorWithContext(ctx, err, "dispatch error", "query", fmt.Sprintf("%+v", query))
+			e = err
+			return
+		}
+		out = query.Result
+	})
+	return
+}
+
+func (svc *permissionService) FindAll(ctx context.Context) (out []model.Permission, e error) {
+	svc.telemetry(ctx, "FindAll", func(ctx context.Context) {
+		query := model.GetPermissionQuery{}
+		if err := bus.Dispatch(ctx, &query); err != nil {
+			svc.log.ErrorWithContext(ctx, err, "dispatch error", "query", fmt.Sprintf("%+v", query))
+			e = err
+			return
+		}
+		out = query.Result
+	})
+	return
+}
+
+func (svc *permissionService) Update(ctx context.Context, strId, name, description string) (out *model.Permission, e error) {
+	svc.telemetry(ctx, "Update", func(ctx context.Context) {
+		id, err := model.NewID(strId)
+		if err != nil {
+			e = err
+			return
+		}
+		n, err := model.NewName(name)
+		if err != nil {
+			e = err
+			return
+		}
+		cmd := model.UpdatePermissionCommand{
+			PrimaryCommand: model.PrimaryCommand{
+				ID: id,
+			},
+			Name:        n,
+			Description: description,
+		}
+		if err := bus.Dispatch(ctx, &cmd); err != nil {
+			svc.log.ErrorWithContext(ctx, err, "dispatch error", "command", fmt.Sprintf("%+v", cmd))
+			e = err
+			return
+		}
+		query := model.GetPermissionByIDQuery{
+			PrimaryCommand: model.PrimaryCommand{
+				ID: id,
+			},
+		}
+		if err := bus.Dispatch(ctx, &query); err != nil {
+			svc.log.ErrorWithContext(ctx, err, "dispatch error", "query", fmt.Sprintf("%+v", query))
+			e = err
+			return
+		}
+		out = query.Result
+	})
+	return
+}
+
+func (svc *permissionService) Delete(ctx context.Context, strId string) (e error) {
+	svc.telemetry(ctx, "Delete", func(ctx context.Context) {
+		id, err := model.NewID(strId)
+		if err != nil {
+			e = err
+			return
+		}
+		cmd := model.DeletePermissionCommand{
+			PrimaryCommand: model.PrimaryCommand{
+				ID: id,
+			},
+		}
+		if err := bus.Dispatch(ctx, &cmd); err != nil {
+			svc.log.ErrorWithContext(ctx, err, "dispatch error", "command", fmt.Sprintf("%+v", cmd))
+			e = err
+			return
+		}
+	})
+	return
 }

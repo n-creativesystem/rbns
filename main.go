@@ -1,18 +1,12 @@
 package main
 
 import (
-	"time"
-
 	"github.com/n-creativesystem/rbns/cmd"
-	"github.com/sirupsen/logrus"
+	"github.com/n-creativesystem/rbns/logger"
 )
 
 func main() {
-	logrus.SetLevel(logrus.DebugLevel)
-	logrus.SetFormatter(&logrus.JSONFormatter{
-		TimestampFormat: time.RFC3339,
-	})
 	if err := cmd.Execute(); err != nil {
-		logrus.Fatalln(err)
+		logger.Fatal(err, "application main")
 	}
 }

@@ -5,6 +5,7 @@
 package utilsconv
 
 import (
+	"encoding/base64"
 	"unsafe"
 )
 
@@ -21,4 +22,12 @@ func StringToBytes(s string) []byte {
 // BytesToString converts byte slice to string without a memory allocation.
 func BytesToString(b []byte) string {
 	return *(*string)(unsafe.Pointer(&b))
+}
+
+func BytesToBase64(b []byte) string {
+	return base64.StdEncoding.EncodeToString(b)
+}
+
+func Base64ToByte(b string) ([]byte, error) {
+	return base64.StdEncoding.DecodeString(b)
 }

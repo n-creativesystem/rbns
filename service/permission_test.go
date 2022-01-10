@@ -2,146 +2,116 @@ package service
 
 import (
 	"context"
-	"regexp"
 	"testing"
 
-	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/n-creativesystem/rbns/domain/model"
 	"github.com/n-creativesystem/rbns/infra/rdb"
-	"github.com/n-creativesystem/rbns/tests"
+	"github.com/n-creativesystem/rbns/infra/rdb/mock"
+	"github.com/n-creativesystem/rbns/internal/contexts"
+	"github.com/n-creativesystem/rbns/tracer"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
 
 func TestPermission(t *testing.T) {
+	const tenant = "test"
 	ctx := context.Background()
-	cases := tests.MocksByPostgres{
-		{
-			Name: "create",
-			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
-				expecteds := []struct {
-					name, description string
-				}{
-					{
-						name:        "create:user",
-						description: "create user permission",
-					},
-					{
-						name:        "update:user",
-						description: "update user permisssion",
-					},
-					{
-						name:        "read:user",
-						description: "read user permission",
-					},
-					{
-						name:        "delete:user",
-						description: "delete user permission",
-					},
-				}
-				repo := rdb.NewFactory(db)
-				pSrv := NewPermissionService(repo.Reader(), repo.Writer())
-				mock.ExpectBegin()
-				mock.ExpectExec(
-					regexp.QuoteMeta(`INSERT INTO "permissions" ("id","created_at","updated_at","name","description") VALUES ($1,$2,$3,$4,$5),($6,$7,$8,$9,$10),($11,$12,$13,$14,$15),($16,$17,$18,$19,$20)`),
-				).WillReturnResult(sqlmock.NewResult(0, 4))
-				mock.ExpectCommit()
-				return func(t *testing.T) {
+	ctx = contexts.ToTenantContext(ctx, tenant)
+	trace_, _ := tracer.InitOpenTelemetry("github.com/n-creativesystem/rbns/test/service")
+	defer trace_.Cleanup(ctx)
+	ctx, span := tracer.Start(ctx, "permission service")
+	defer span.End()
+	mock.NewCase(mock.PostgreSQL, "permission_svc").Set(mock.Case{
+		Name: "permission service test",
+		Fn: func(store *rdb.SQLStore, db *gorm.DB) func(t *testing.T) {
+			svc := NewPermissionService()
+			expecteds := []struct {
+				name, description string
+			}{
+				{
+					name:        "create:user",
+					description: "create user permission",
+				},
+				{
+					name:        "update:user",
+					description: "update user permisssion",
+				},
+				{
+					name:        "read:user",
+					description: "read user permission",
+				},
+				{
+					name:        "delete:user",
+					description: "delete user permission",
+				},
+			}
+			return func(t *testing.T) {
+				var created []model.Permission
+				t.Run("create", func(t *testing.T) {
+					ctx, span := tracer.Start(ctx, "create")
+					defer span.End()
 					names := []string{"create:user", "update:user", "read:user", "delete:user"}
 					descriptions := []string{"create user permission", "update user permisssion", "read user permission", "delete user permission"}
-					out, err := pSrv.Create(ctx, names, descriptions)
-					assert.NoError(t, err)
-					for idx, entity := range out.Copy() {
-						expected := expecteds[idx]
-						assert.NotEmpty(t, *entity.GetID())
-						assert.Equal(t, expected.name, entity.GetName())
-						assert.Equal(t, expected.description, entity.GetDescription())
-					}
-				}
-			},
-		},
-		{
-			Name: "findById",
-			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
-				repo := rdb.NewFactory(db)
-				pSrv := NewPermissionService(repo.Reader(), repo.Writer())
-				mock.ExpectQuery(
-					regexp.QuoteMeta(`SELECT * FROM "permissions" WHERE "permissions"."id" = $1`),
-				).WillReturnRows(sqlmock.NewRows([]string{"id", "name", "description"}).AddRow("1", "create:user", "create user permission"))
-				return func(t *testing.T) {
-					out, err := pSrv.FindById(ctx, "1")
-					assert.NoError(t, err)
-					assert.Equal(t, "create:user", out.GetName())
-					assert.Equal(t, "create user permission", out.GetDescription())
-				}
-			},
-		},
-		{
-			Name: "findAll",
-			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
-				expecteds := []struct {
-					id                string
-					name, description string
-				}{
-					{
-						id:          "1",
-						name:        "create:user",
-						description: "create user permission",
-					},
-					{
-						id:          "2",
-						name:        "update:user",
-						description: "update user permisssion",
-					},
-					{
-						id:          "3",
-						name:        "read:user",
-						description: "read user permission",
-					},
-					{
-						id:          "4",
-						name:        "delete:user",
-						description: "delete user permission",
-					},
-				}
-				row := sqlmock.NewRows([]string{"id", "name", "description"})
-				for _, e := range expecteds {
-					row.AddRow(e.id, e.name, e.description)
-				}
-				repo := rdb.NewFactory(db)
-				pSrv := NewPermissionService(repo.Reader(), repo.Writer())
-				mock.ExpectQuery(
-					regexp.QuoteMeta(`SELECT * FROM "permissions" ORDER BY id`),
-				).WillReturnRows(row)
-				return func(t *testing.T) {
-					out, err := pSrv.FindAll(ctx)
+					out, err := svc.Create(ctx, names, descriptions)
 					assert.NoError(t, err)
 					for idx, entity := range out {
 						expected := expecteds[idx]
-						assert.Equal(t, expected.id, entity.GetID())
-						assert.Equal(t, expected.name, entity.GetName())
-						assert.Equal(t, expected.description, entity.GetDescription())
+						assert.NotEmpty(t, entity.ID.String())
+						assert.Equal(t, expected.name, entity.Name)
+						assert.Equal(t, expected.description, entity.Description)
 					}
-				}
-			},
-		},
-		{
-			Name: "update",
-			Fn: func(db *gorm.DB, mock sqlmock.Sqlmock) func(t *testing.T) {
-				repo := rdb.NewFactory(db)
-				pSrv := NewPermissionService(repo.Reader(), repo.Writer())
-				mock.ExpectBegin()
-				mock.ExpectExec(
-					regexp.QuoteMeta(`UPDATE "permissions" SET "updated_at"=$1,"name"=$2,"description"=$3 WHERE "permissions"."id" = $4`),
-				).WithArgs(sqlmock.AnyArg(), "read:permission", "read user permission", "1").
-					WillReturnResult(sqlmock.NewResult(0, 1))
-				mock.ExpectCommit()
-				return func(t *testing.T) {
-					err := pSrv.Update(ctx, "1", "read:permission", "read user permission")
+					created = out
+				})
+				t.Run("create duplicate", func(t *testing.T) {
+					ctx, span := tracer.Start(ctx, "create duplicate")
+					defer span.End()
+					names := []string{"create:user"}
+					descriptions := []string{"create user permission"}
+					out, err := svc.Create(ctx, names, descriptions)
+					assert.Error(t, err)
+					assert.ErrorIs(t, err, model.ErrAlreadyExists)
+					assert.Nil(t, out)
+				})
+				t.Run("find by id", func(t *testing.T) {
+					ctx, span := tracer.Start(ctx, "find by id")
+					defer span.End()
+					out, err := svc.FindById(ctx, created[0].ID.String())
 					assert.NoError(t, err)
-				}
-			},
+					assert.Equal(t, created[0].ID.String(), out.ID.String())
+					assert.Equal(t, created[0].Name, out.Name)
+					assert.Equal(t, created[0].Description, out.Description)
+				})
+				t.Run("find all", func(t *testing.T) {
+					ctx, span := tracer.Start(ctx, "find all")
+					defer span.End()
+					out, err := svc.FindAll(ctx)
+					assert.NoError(t, err)
+					for idx, entity := range out {
+						expected := created[idx]
+						assert.Equal(t, expected.ID.String(), entity.ID.String())
+						assert.Equal(t, expected.Name, entity.Name)
+						assert.Equal(t, expected.Description, entity.Description)
+					}
+				})
+				t.Run("update", func(t *testing.T) {
+					ctx, span := tracer.Start(ctx, "update")
+					defer span.End()
+					out, err := svc.Update(ctx, created[0].ID.String(), "read:permission", "read user permission")
+					assert.NoError(t, err)
+					assert.Equal(t, "read:permission", out.Name)
+					assert.Equal(t, "read user permission", out.Description)
+				})
+				t.Run("delete", func(t *testing.T) {
+					ctx, span := tracer.Start(ctx, "delete")
+					defer span.End()
+					err := svc.Delete(ctx, created[0].ID.String())
+					assert.NoError(t, err)
+					out, err := svc.FindById(ctx, created[0].ID.String())
+					assert.Error(t, err)
+					assert.ErrorIs(t, err, model.ErrNoData)
+					assert.Nil(t, out)
+				})
+			}
 		},
-	}
-
-	cases.Run(t)
+	}).Run(t)
 }

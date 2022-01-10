@@ -1,56 +1,58 @@
 package model
 
 type Permission struct {
-	model
-	description string
+	ID          ID
+	Name        string
+	Description string
+
+	Roles []Role
 }
 
-func (p *Permission) GetDescription() string {
-	return p.description
+type GetPermissionQuery struct {
+	Result []Permission
 }
 
-func NewPermission(id, name, description string) (*Permission, error) {
-	vId, err := newID(id)
-	if err != nil {
-		return nil, err
-	}
-	vName, err := newName(name)
-	if err != nil {
-		return nil, err
-	}
-	return &Permission{
-		model: model{
-			id:   *vId,
-			name: *vName,
-		},
-		description: description,
-	}, nil
+type GetPermissionByIDQuery struct {
+	PrimaryCommand
+
+	Result *Permission
 }
 
-type Permissions []Permission
+type GetPermissionByIDsQuery struct {
+	Query []PrimaryCommand
 
-func (arr Permissions) Copy() Permissions {
-	cArr := make([]Permission, len(arr))
-	copy(cArr, arr)
-	return cArr
+	Result []Permission
 }
 
-type ResourceCheck struct {
-	result  bool
-	message string
+type GetPermissionByNameQuery struct {
+	Name Name
+
+	Result *Permission
 }
 
-func NewResourceCheck(result bool, message string) *ResourceCheck {
-	return &ResourceCheck{
-		result:  result,
-		message: message,
-	}
+type CountPermissionByNameQuery struct {
+	CountNameQuery
 }
 
-func (r *ResourceCheck) GetMsg() string {
-	return r.message
+type AddPermissionCommand struct {
+	Name        Name
+	Description string
+
+	Result *Permission
 }
 
-func (r *ResourceCheck) IsOk() bool {
-	return r.result
+type AddPermissionCommands struct {
+	AddPermissions []AddPermissionCommand
+}
+
+type UpdatePermissionCommand struct {
+	PrimaryCommand
+	Name        Name
+	Description string
+
+	Result *Permission
+}
+
+type DeletePermissionCommand struct {
+	PrimaryCommand
 }

@@ -2,6 +2,7 @@ package grpcserver
 
 import (
 	"context"
+	"errors"
 
 	"github.com/n-creativesystem/rbns/domain/model"
 	"github.com/n-creativesystem/rbns/protobuf"
@@ -14,12 +15,12 @@ import (
 
 type roleServer struct {
 	*protobuf.UnimplementedRoleServer
-	svc service.RoleService
+	svc service.OrganizationAggregation
 }
 
 var _ protobuf.RoleServer = (*roleServer)(nil)
 
-func newRoleServer(svc service.RoleService) protobuf.RoleServer {
+func NewRoleServer(svc service.OrganizationAggregation) protobuf.RoleServer {
 	return &roleServer{svc: svc}
 }
 
@@ -37,9 +38,12 @@ func (s *roleServer) Create(ctx context.Context, in *protobuf.RoleEntities) (*pr
 		names[idx] = role.Name
 		descriptions[idx] = role.Description
 	}
-	roles, err := s.svc.Create(ctx, names, descriptions)
+	roles, err := s.svc.RoleCreate(ctx, in.GetOrganizationId(), names, descriptions)
 	if err != nil {
-		return nil, err
+		var statusErr model.ErrorStatus
+		if errors.As(err, &statusErr) {
+			return nil, err
+		}
 	}
 	out := &protobuf.RoleEntities{
 		Roles: make([]*protobuf.RoleEntity, len(roles)),
@@ -51,21 +55,23 @@ func (s *roleServer) Create(ctx context.Context, in *protobuf.RoleEntities) (*pr
 }
 
 func (s *roleServer) FindById(ctx context.Context, in *protobuf.RoleKey) (*protobuf.RoleEntity, error) {
-	role, err := s.svc.FindById(ctx, in.GetId())
+	role, err := s.svc.RoleFindById(ctx, in.GetOrganizationId(), in.GetId())
 	if err != nil {
-		if err == model.ErrNoData {
-			return nil, status.Error(codes.NotFound, err.Error())
+		var statusErr model.ErrorStatus
+		if errors.As(err, &statusErr) {
+			return nil, err
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return protoconv.NewRoleEntityByModel(*role), nil
 }
 
-func (s *roleServer) FindAll(ctx context.Context, in *emptypb.Empty) (*protobuf.RoleEntities, error) {
-	roles, err := s.svc.FindAll(ctx)
+func (s *roleServer) FindAll(ctx context.Context, in *protobuf.RoleFindAll) (*protobuf.RoleEntities, error) {
+	roles, err := s.svc.RoleFindAll(ctx, in.GetOrganizationId())
 	if err != nil {
-		if err == model.ErrNoData {
-			return nil, status.Error(codes.NotFound, err.Error())
+		var statusErr model.ErrorStatus
+		if errors.As(err, &statusErr) {
+			return nil, err
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -79,10 +85,11 @@ func (s *roleServer) FindAll(ctx context.Context, in *emptypb.Empty) (*protobuf.
 }
 
 func (s *roleServer) Update(ctx context.Context, in *protobuf.RoleUpdateEntity) (*emptypb.Empty, error) {
-	err := s.svc.Update(ctx, in.GetId(), in.GetName(), in.GetDescription())
+	err := s.svc.RoleUpdate(ctx, in.GetOrganizationId(), in.GetId(), in.GetName(), in.GetDescription())
 	if err != nil {
-		if err == model.ErrNoData {
-			return &emptypb.Empty{}, status.Error(codes.NotFound, err.Error())
+		var statusErr model.ErrorStatus
+		if errors.As(err, &statusErr) {
+			return &emptypb.Empty{}, err
 		}
 		return &emptypb.Empty{}, status.Error(codes.Internal, err.Error())
 	}
@@ -90,10 +97,11 @@ func (s *roleServer) Update(ctx context.Context, in *protobuf.RoleUpdateEntity) 
 }
 
 func (s *roleServer) Delete(ctx context.Context, in *protobuf.RoleKey) (*emptypb.Empty, error) {
-	err := s.svc.Delete(ctx, in.GetId())
+	err := s.svc.RoleDelete(ctx, in.GetOrganizationId(), in.GetId())
 	if err != nil {
-		if err == model.ErrNoData {
-			return &emptypb.Empty{}, status.Error(codes.NotFound, err.Error())
+		var statusErr model.ErrorStatus
+		if errors.As(err, &statusErr) {
+			return &emptypb.Empty{}, err
 		}
 		return &emptypb.Empty{}, status.Error(codes.Internal, err.Error())
 	}
@@ -101,10 +109,11 @@ func (s *roleServer) Delete(ctx context.Context, in *protobuf.RoleKey) (*emptypb
 }
 
 func (s *roleServer) GetPermissions(ctx context.Context, in *protobuf.RoleKey) (*protobuf.PermissionEntities, error) {
-	permissions, err := s.svc.GetPermissions(ctx, in.GetId())
+	permissions, err := s.svc.GetRolePermissions(ctx, in.GetOrganizationId(), in.GetId())
 	if err != nil {
-		if err == model.ErrNoData {
-			return nil, status.Error(codes.NotFound, err.Error())
+		var statusErr model.ErrorStatus
+		if errors.As(err, &statusErr) {
+			return nil, err
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -125,9 +134,10 @@ func (s *roleServer) AddPermissions(ctx context.Context, in *protobuf.RoleReleat
 	for idx, permission := range in.GetPermissions() {
 		permissionIds[idx] = permission.GetId()
 	}
-	if err := s.svc.AddPermissions(ctx, in.GetId(), permissionIds); err != nil {
-		if err == model.ErrNoData {
-			return &emptypb.Empty{}, status.Error(codes.NotFound, err.Error())
+	if err := s.svc.AddRolePermissions(ctx, in.GetOrganizationId(), in.GetId(), permissionIds); err != nil {
+		var statusErr model.ErrorStatus
+		if errors.As(err, &statusErr) {
+			return &emptypb.Empty{}, err
 		}
 		return &emptypb.Empty{}, status.Error(codes.Internal, err.Error())
 	}
@@ -136,7 +146,8 @@ func (s *roleServer) AddPermissions(ctx context.Context, in *protobuf.RoleReleat
 
 func (s *roleServer) DeletePermission(ctx context.Context, in *protobuf.RoleReleationPermission) (*emptypb.Empty, error) {
 	return s.DeletePermissions(ctx, &protobuf.RoleReleationPermissions{
-		Id: in.Id,
+		Id:             in.Id,
+		OrganizationId: in.GetOrganizationId(),
 		Permissions: []*protobuf.PermissionKey{
 			{
 				Id: in.PermissionId,
@@ -153,10 +164,11 @@ func (s *roleServer) DeletePermissions(ctx context.Context, in *protobuf.RoleRel
 	for idx, permission := range in.GetPermissions() {
 		permissionIds[idx] = permission.GetId()
 	}
-	err := s.svc.DeletePermissions(ctx, in.GetId(), permissionIds)
+	err := s.svc.DeleteRolePermissions(ctx, in.GetOrganizationId(), in.GetId(), permissionIds)
 	if err != nil {
-		if err == model.ErrNoData {
-			return &emptypb.Empty{}, status.Error(codes.NotFound, err.Error())
+		var statusErr model.ErrorStatus
+		if errors.As(err, &statusErr) {
+			return &emptypb.Empty{}, err
 		}
 		return &emptypb.Empty{}, status.Error(codes.Internal, err.Error())
 	}

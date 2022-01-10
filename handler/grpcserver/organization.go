@@ -14,31 +14,32 @@ import (
 
 type organizationServer struct {
 	*protobuf.UnimplementedOrganizationServer
-	svc service.OrganizationService
+	orgSvc         service.OrganizationService
+	orgAggregation service.OrganizationAggregation
 }
 
 var _ protobuf.OrganizationServer = (*organizationServer)(nil)
 
-func newOrganizationService(svc service.OrganizationService) protobuf.OrganizationServer {
-	return &organizationServer{svc: svc}
+func NewOrganizationService(orgSvc service.OrganizationService, orgAggregation service.OrganizationAggregation) protobuf.OrganizationServer {
+	return &organizationServer{orgSvc: orgSvc, orgAggregation: orgAggregation}
 }
 
 // Organization
 func (s *organizationServer) Create(ctx context.Context, in *protobuf.OrganizationEntity) (*protobuf.OrganizationEntity, error) {
-	org, err := s.svc.Create(ctx, in.GetName(), in.GetDescription())
+	org, err := s.orgSvc.Create(ctx, in.GetName(), in.GetDescription())
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	out := &protobuf.OrganizationEntity{
-		Id:          *org.GetID(),
-		Name:        *org.GetName(),
-		Description: org.GetDescription(),
+		Id:          org.ID.String(),
+		Name:        org.Name,
+		Description: org.Description,
 	}
 	return out, nil
 }
 
 func (s *organizationServer) FindById(ctx context.Context, in *protobuf.OrganizationKey) (*protobuf.OrganizationEntity, error) {
-	organization, err := s.svc.FindById(ctx, in.GetId())
+	organization, err := s.orgSvc.FindById(ctx, in.GetId())
 	if err != nil {
 		if err == model.ErrNoData {
 			return nil, status.Error(codes.NotFound, err.Error())
@@ -49,7 +50,7 @@ func (s *organizationServer) FindById(ctx context.Context, in *protobuf.Organiza
 }
 
 func (s *organizationServer) FindAll(ctx context.Context, in *emptypb.Empty) (*protobuf.OrganizationEntities, error) {
-	organizations, err := s.svc.FindAll(ctx)
+	organizations, err := s.orgSvc.FindAll(ctx)
 	if err != nil {
 		if err == model.ErrNoData {
 			return nil, status.Error(codes.NotFound, err.Error())
@@ -67,7 +68,7 @@ func (s *organizationServer) FindAll(ctx context.Context, in *emptypb.Empty) (*p
 }
 
 func (s *organizationServer) Update(ctx context.Context, in *protobuf.OrganizationUpdateEntity) (*emptypb.Empty, error) {
-	if err := s.svc.Update(ctx, in.GetId(), in.GetName(), in.GetDescription()); err != nil {
+	if err := s.orgSvc.Update(ctx, in.GetId(), in.GetName(), in.GetDescription()); err != nil {
 		if err == model.ErrNoData {
 			return &emptypb.Empty{}, status.Error(codes.NotFound, err.Error())
 		}
@@ -77,11 +78,26 @@ func (s *organizationServer) Update(ctx context.Context, in *protobuf.Organizati
 }
 
 func (s *organizationServer) Delete(ctx context.Context, in *protobuf.OrganizationKey) (*emptypb.Empty, error) {
-	if err := s.svc.Delete(ctx, in.GetId()); err != nil {
+	if err := s.orgSvc.Delete(ctx, in.GetId()); err != nil {
 		if err == model.ErrNoData {
 			return &emptypb.Empty{}, status.Error(codes.NotFound, err.Error())
 		}
 		return &emptypb.Empty{}, status.Error(codes.Internal, err.Error())
 	}
+	return &emptypb.Empty{}, nil
+}
+
+func (s *organizationServer) AddUser(ctx context.Context, in *protobuf.AddOrganizationUser) (*emptypb.Empty, error) {
+	if err := s.orgAggregation.AddUsers(ctx, in.GetId(), []string{in.GetUserId()}); err != nil {
+		return nil, err
+	}
+	return &emptypb.Empty{}, nil
+}
+
+func (s *organizationServer) DeleteUser(ctx context.Context, in *protobuf.DeleteOrganizationUser) (*emptypb.Empty, error) {
+	if err := s.orgAggregation.DeleteUsers(ctx, in.GetUserId(), []string{in.GetUserId()}); err != nil {
+		return nil, err
+	}
+
 	return &emptypb.Empty{}, nil
 }

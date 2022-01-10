@@ -1,4 +1,4 @@
-import Urls from '@assets/urls.json'
+import Urls from './api'
 
 export default {
   install: (Vue) => {

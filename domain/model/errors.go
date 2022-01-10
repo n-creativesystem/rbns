@@ -2,8 +2,9 @@ package model
 
 import (
 	"errors"
-	"net/http"
 
+	"github.com/n-creativesystem/rbns/utilsconv"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"gorm.io/gorm"
 )
@@ -30,14 +31,43 @@ func IsDefinitionError(err error) bool {
 	}
 }
 
+type ErrorStatus struct {
+	Code    uint32 `json:"code"`
+	Message string `json:"error"`
+}
+
 var (
 	// ErrRequired `Required field of empty`
-	ErrRequired = status.Error(http.StatusBadRequest, "Required field of empty")
+	ErrRequired = NewErrorStatus(uint32(codes.InvalidArgument), "Required field of empty")
 	// ErrNoData `No data found`
-	ErrNoData = status.Error(http.StatusNotFound, "No data found")
+	ErrNoData = NewErrorStatus(uint32(codes.NotFound), "No data found")
 	// ErrAlreadyExists `Already exists`
-	ErrAlreadyExists = status.Error(http.StatusConflict, "Already exists")
+	ErrAlreadyExists = NewErrorStatus(uint32(codes.AlreadyExists), "Already exists")
+
+	ErrTenantRequired = NewErrorStatus(uint32(codes.InvalidArgument), "Tenant is empty")
 )
+
+func NewErrorStatus(code uint32, message string) ErrorStatus {
+	return ErrorStatus{
+		Code:    code,
+		Message: message,
+	}
+}
+
+func (e ErrorStatus) GRPCStatus() *status.Status {
+	return status.New(codes.Code(e.Code), e.Message)
+}
+
+func (e ErrorStatus) REST() error {
+	return ErrorStatus{
+		Code:    uint32(utilsconv.GRPCStatus2HTTPStatus(codes.Code(e.Code))),
+		Message: e.Message,
+	}
+}
+
+func (e ErrorStatus) Error() string {
+	return e.GRPCStatus().String()
+}
 
 func IsNoData(err error) bool {
 	if err == nil {
@@ -50,21 +80,4 @@ func IsNoData(err error) bool {
 		return true
 	}
 	return false
-}
-
-type DBErr struct {
-	err error
-}
-
-func (e DBErr) Error() string {
-	return e.err.Error()
-}
-
-func NewDBErr(err error) error {
-	if err == nil {
-		return nil
-	}
-	return DBErr{
-		err: err,
-	}
 }
