@@ -6,10 +6,10 @@ import (
 
 	"github.com/n-creativesystem/rbns/bus"
 	"github.com/n-creativesystem/rbns/domain/model"
-	"github.com/n-creativesystem/rbns/logger"
+	"github.com/n-creativesystem/rbns/ncsfw/logger"
 )
 
-type PermissionService interface {
+type Permission interface {
 	Create(ctx context.Context, names, descriptions []string) ([]model.Permission, error)
 	FindById(ctx context.Context, strId string) (*model.Permission, error)
 	FindByIds(ctx context.Context, ids []string) ([]model.Permission, error)
@@ -17,20 +17,20 @@ type PermissionService interface {
 	Update(ctx context.Context, strId, name, description string) (*model.Permission, error)
 	Delete(ctx context.Context, strId string) error
 }
-type permissionService struct {
+type PermissionImpl struct {
 	log       logger.Logger
 	telemetry telemetryFunc
 }
 
-func NewPermissionService() PermissionService {
-	return &permissionService{
+func NewPermissionService() *PermissionImpl {
+	return &PermissionImpl{
 		log:       logger.New("permission service"),
 		telemetry: createSpanWithPrefix("permission service"),
 	}
 }
 
 // Permission
-func (svc *permissionService) Create(ctx context.Context, names, descriptions []string) (out []model.Permission, e error) {
+func (svc *PermissionImpl) Create(ctx context.Context, names, descriptions []string) (out []model.Permission, e error) {
 	svc.telemetry(ctx, "Create", func(ctx context.Context) {
 		cmd := model.AddPermissionCommands{
 			AddPermissions: make([]model.AddPermissionCommand, 0, 100),
@@ -58,7 +58,7 @@ func (svc *permissionService) Create(ctx context.Context, names, descriptions []
 	return
 }
 
-func (svc *permissionService) FindById(ctx context.Context, strId string) (out *model.Permission, e error) {
+func (svc *PermissionImpl) FindById(ctx context.Context, strId string) (out *model.Permission, e error) {
 	svc.telemetry(ctx, "FindById", func(ctx context.Context) {
 		id, err := model.NewID(strId)
 		if err != nil {
@@ -80,7 +80,7 @@ func (svc *permissionService) FindById(ctx context.Context, strId string) (out *
 	return
 }
 
-func (svc *permissionService) FindByIds(ctx context.Context, ids []string) (out []model.Permission, e error) {
+func (svc *PermissionImpl) FindByIds(ctx context.Context, ids []string) (out []model.Permission, e error) {
 	svc.telemetry(ctx, "FindByIds", func(ctx context.Context) {
 		query := model.GetPermissionByIDsQuery{
 			Query: make([]model.PrimaryCommand, 0, len(ids)),
@@ -104,7 +104,7 @@ func (svc *permissionService) FindByIds(ctx context.Context, ids []string) (out 
 	return
 }
 
-func (svc *permissionService) FindAll(ctx context.Context) (out []model.Permission, e error) {
+func (svc *PermissionImpl) FindAll(ctx context.Context) (out []model.Permission, e error) {
 	svc.telemetry(ctx, "FindAll", func(ctx context.Context) {
 		query := model.GetPermissionQuery{}
 		if err := bus.Dispatch(ctx, &query); err != nil {
@@ -117,7 +117,7 @@ func (svc *permissionService) FindAll(ctx context.Context) (out []model.Permissi
 	return
 }
 
-func (svc *permissionService) Update(ctx context.Context, strId, name, description string) (out *model.Permission, e error) {
+func (svc *PermissionImpl) Update(ctx context.Context, strId, name, description string) (out *model.Permission, e error) {
 	svc.telemetry(ctx, "Update", func(ctx context.Context) {
 		id, err := model.NewID(strId)
 		if err != nil {
@@ -156,7 +156,7 @@ func (svc *permissionService) Update(ctx context.Context, strId, name, descripti
 	return
 }
 
-func (svc *permissionService) Delete(ctx context.Context, strId string) (e error) {
+func (svc *PermissionImpl) Delete(ctx context.Context, strId string) (e error) {
 	svc.telemetry(ctx, "Delete", func(ctx context.Context) {
 		id, err := model.NewID(strId)
 		if err != nil {

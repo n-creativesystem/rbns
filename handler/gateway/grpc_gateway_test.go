@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/n-creativesystem/rbns/logger"
+	"github.com/n-creativesystem/rbns/ncsfw/logger"
 	"github.com/stretchr/testify/assert"
 )
 

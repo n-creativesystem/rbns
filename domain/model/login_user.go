@@ -7,38 +7,35 @@ import (
 	"strings"
 
 	"github.com/n-creativesystem/rbns/internal/utils"
-	"github.com/n-creativesystem/rbns/logger"
+	"github.com/n-creativesystem/rbns/ncsfw/logger"
 	"github.com/n-creativesystem/rbns/utilsconv"
 	"golang.org/x/oauth2"
 )
 
 type LoginUser struct {
 	// ID rbns id
-	ID string
+	// ID string
 	// OAuthID oauth provider id
 	OAuthID string
 	// UserName oauth username
-	UseName string
+	UserName string
 	// Email oauth email
 	Email string
 	// Role user role
 	Role   string
 	Groups []string
 	// Tenant 現在処理しているテナントが設定される
-	Tenant string
-
-	// Verify テナント登録が完了しているかどうか
-	Verify bool
+	tenant string
 
 	OAuthToke *oauth2.Token
 
-	password string
+	password string `json:"-"`
 	// oauthName oauth provider name
-	oauthName string
+	oauthName string `json:"-"`
 
-	err error
+	err error `json:"-"`
 
-	Tenants []Tenant
+	Tenants []Tenant `json:"-"`
 }
 
 func (user *LoginUser) SetOAuthName(name string) *LoginUser {
@@ -56,7 +53,7 @@ func (user *LoginUser) SetPassword(password string) *LoginUser {
 		return user
 	}
 	if password != "" {
-		v, _ := utils.EncodePassword(password, user.ID)
+		v, _ := utils.EncodePassword(password, user.Email)
 		if v != password {
 			// 暗号化されていない場合は暗号化した内容でセット
 			password = v
@@ -105,14 +102,30 @@ func (user *LoginUser) Valid() bool {
 	// if !user.OAuthToke.Valid() {
 	// 	return false
 	// }
-	if !RoleType(user.Role).Valid() {
+	_, err := String2RoleLevel(user.Role)
+	if err != nil {
 		return false
 	}
 	return true
 }
 
+func (user *LoginUser) GetTenant() string {
+	if user.tenant == "" {
+		if len(user.Tenants) > 0 {
+			user.tenant = user.Tenants[0].ID
+		}
+	}
+	return user.tenant
+}
+
+func (user *LoginUser) SetTenant(tenant string) *LoginUser {
+	user.tenant = tenant
+	return user
+}
+
+// IsVerify テナント登録が完了しているかどうか
 func (user *LoginUser) IsVerify() bool {
-	return user.Verify
+	return user.GetTenant() != ""
 }
 
 func (user *LoginUser) Error() string {
@@ -137,21 +150,21 @@ type UpsertLoginUserCommand struct {
 }
 
 type AddTenantLoginUserCommand struct {
-	User *LoginUser
-
+	User   *LoginUser
 	Tenant *Tenant
-}
-
-type GetLoginUserByIDQuery struct {
-	ID string
-
-	Result *LoginUser
 }
 
 type GetLoginUserByEmailQuery struct {
 	Email string
 
 	Result *LoginUser
+}
+
+func (query *GetLoginUserByEmailQuery) Valid() error {
+	if query.Email == "" {
+		return ErrRequired
+	}
+	return nil
 }
 
 type GetLoginUserQuery struct {

@@ -8,18 +8,21 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/n-creativesystem/rbns/config"
 	"github.com/n-creativesystem/rbns/handler/gateway"
-	"github.com/n-creativesystem/rbns/handler/restserver/middleware"
+	"github.com/n-creativesystem/rbns/handler/restserver/middleware/auth"
 	"github.com/n-creativesystem/rbns/handler/restserver/social"
-	"github.com/n-creativesystem/rbns/logger"
+	"github.com/n-creativesystem/rbns/ncsfw/logger"
+	"github.com/n-creativesystem/rbns/service"
 	"github.com/n-creativesystem/rbns/storage"
 )
 
 func New(
 	gateway *gateway.GRPCGateway,
 	conf *config.Config,
-	authMiddleware *middleware.AuthMiddleware,
+	authMiddleware *auth.AuthMiddleware,
 	store sessions.Store,
 	socialService social.Service,
+	tenantService service.Tenant,
+	apiKeyService service.APIKey,
 	_ storage.Factory,
 ) (*http.Server, error) {
 	server := &HTTPServer{
@@ -28,6 +31,8 @@ func New(
 		socialService:  socialService,
 		authMiddleware: authMiddleware,
 		store:          store,
+		tenantService:  tenantService,
+		apiKeyService:  apiKeyService,
 		Cfg:            conf,
 	}
 	server.registerRouting()

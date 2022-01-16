@@ -1,27 +1,32 @@
 package grpcserver
 
 import (
+	"bytes"
 	"context"
+	"encoding/csv"
 	"errors"
+	"io"
+	"strconv"
+	"strings"
 
 	"github.com/n-creativesystem/rbns/domain/model"
 	"github.com/n-creativesystem/rbns/protobuf"
 	"github.com/n-creativesystem/rbns/protoconv"
 	"github.com/n-creativesystem/rbns/service"
+	"github.com/n-creativesystem/rbns/utilsconv"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type userServer struct {
-	*protobuf.UnimplementedUserServer
-	svc            service.UserService
+	svc            service.User
 	orgAggregation service.OrganizationAggregation
 }
 
 var _ protobuf.UserServer = (*userServer)(nil)
 
-func NewUserServer(svc service.UserService, orgAggregation service.OrganizationAggregation) protobuf.UserServer {
+func NewUserServer(svc service.User, orgAggregation service.OrganizationAggregation) protobuf.UserServer {
 	return &userServer{svc: svc, orgAggregation: orgAggregation}
 }
 
@@ -32,6 +37,9 @@ func (s *userServer) Create(ctx context.Context, in *protobuf.UserCreateKey) (*e
 		var statusErr model.ErrorStatus
 		if errors.As(err, &statusErr) {
 			return nil, err
+		}
+		if s, ok := status.FromError(err); ok {
+			return nil, s.Err()
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -45,6 +53,9 @@ func (s *userServer) Delete(ctx context.Context, in *protobuf.UserKey) (*emptypb
 		if errors.As(err, &statusErr) {
 			return nil, err
 		}
+		if s, ok := status.FromError(err); ok {
+			return nil, s.Err()
+		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &emptypb.Empty{}, err
@@ -56,6 +67,9 @@ func (s *userServer) FindById(ctx context.Context, in *protobuf.UserKey) (*proto
 		var statusErr model.ErrorStatus
 		if errors.As(err, &statusErr) {
 			return nil, err
+		}
+		if s, ok := status.FromError(err); ok {
+			return nil, s.Err()
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -86,8 +100,11 @@ func (s *userServer) AddRoles(ctx context.Context, in *protobuf.UserRole) (*empt
 	}
 	err := s.orgAggregation.AddUserRoles(ctx, in.GetOrganizationId(), in.GetId(), roles)
 	if err != nil {
-		if err == model.ErrNoData {
-			return &emptypb.Empty{}, status.Error(codes.NotFound, err.Error())
+		if err == model.ErrNoDataFound {
+			return nil, status.Error(codes.NotFound, err.Error())
+		}
+		if s, ok := status.FromError(err); ok {
+			return nil, s.Err()
 		}
 		return &emptypb.Empty{}, status.Error(codes.Internal, err.Error())
 	}
@@ -104,8 +121,11 @@ func (s *userServer) DeleteRoles(ctx context.Context, in *protobuf.UserRole) (*e
 	}
 	err := s.orgAggregation.AddUserRoles(ctx, in.GetOrganizationId(), in.GetId(), roles)
 	if err != nil {
-		if err == model.ErrNoData {
-			return &emptypb.Empty{}, status.Error(codes.NotFound, err.Error())
+		if err == model.ErrNoDataFound {
+			return nil, status.Error(codes.NotFound, err.Error())
+		}
+		if s, ok := status.FromError(err); ok {
+			return nil, s.Err()
 		}
 		return &emptypb.Empty{}, status.Error(codes.Internal, err.Error())
 	}
@@ -122,4 +142,43 @@ func (s *userServer) DeleteRole(ctx context.Context, in *protobuf.UserRoleDelete
 			},
 		},
 	})
+}
+
+func (s *userServer) Uploader(ctx context.Context, in *protobuf.UserUploader) (*emptypb.Empty, error) {
+	chunk := in.GetData()
+	b64data := chunk[strings.IndexByte(chunk, ',')+1:]
+	buf, err := utilsconv.Base64ToByte(b64data)
+	if err != nil {
+		return nil, err
+	}
+	reader := csv.NewReader(bytes.NewBuffer(buf))
+	fileType := in.GetFileType()
+	for _, opt := range fileType.Option {
+		if opt.Key == "lazyQuotes" {
+			if len(opt.Values) >= 1 {
+				reader.LazyQuotes, _ = strconv.ParseBool(opt.Values[0])
+			}
+		}
+	}
+
+	// 先頭はヘッダーカラムの為読み飛ばし
+	if _, err := reader.Read(); err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	for {
+		record, err := reader.Read()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+		id := utilsconv.CopyString(record[0])
+		name := utilsconv.CopyString(record[1])
+		if err := s.svc.Create(ctx, id, name); err != nil {
+			return nil, err
+		}
+	}
+	return &emptypb.Empty{}, nil
 }

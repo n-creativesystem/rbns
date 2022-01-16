@@ -1,7 +1,7 @@
 package rdb
 
 import (
-	"github.com/n-creativesystem/rbns/logger"
+	"github.com/n-creativesystem/rbns/ncsfw/logger"
 	"gorm.io/gorm"
 )
 

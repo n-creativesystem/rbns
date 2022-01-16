@@ -18,15 +18,15 @@ type KeyGenResult struct {
 type ApiKeyJson struct {
 	Key    string `json:"k"`
 	Name   string `json:"n"`
-	ID     string `json:"id"`
+	Email  string `json:"id"`
 	Tenant string `json:"tenant"`
 }
 
-func New(serviceAccountID, tenant string, name string) (KeyGenResult, error) {
+func New(email, tenant string, name string) (KeyGenResult, error) {
 	result := KeyGenResult{}
 
 	jsonKey := ApiKeyJson{}
-	jsonKey.ID = serviceAccountID
+	jsonKey.Email = email
 	jsonKey.Tenant = tenant
 	jsonKey.Name = name
 	var err error

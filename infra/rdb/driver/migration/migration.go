@@ -7,8 +7,8 @@ import (
 
 var (
 	migrationTable = []interface{}{
-		entity.ApiKey{}, entity.Permission{}, entity.Role{},
-		entity.Organization{}, entity.User{}, entity.Tenant{}, entity.LoginUser{},
+		entity.Tenant{}, entity.LoginUser{}, entity.ApiKey{}, entity.Permission{}, entity.Role{},
+		entity.Organization{}, entity.User{},
 	}
 )
 

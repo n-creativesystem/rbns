@@ -10,7 +10,6 @@ type Role struct {
 	Description   string         `gorm:"type:varchar(256)"`
 	Permissions   []Permission   `gorm:"many2many:role_permissions;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Users         []User         `gorm:"many2many:role_users;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Tenants       []Tenant       `gorm:"many2many:tenant_roles;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Organizations []Organization `gorm:"many2many:organization_roles;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 

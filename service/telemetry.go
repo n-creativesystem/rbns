@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/n-creativesystem/rbns/tracer"
+	"github.com/n-creativesystem/rbns/ncsfw/tracer"
 )
 
 type telemetryFunc func(ctx context.Context, spanName string, handler handler)

@@ -21,7 +21,7 @@ func (f *SQLStore) addOrganizationBus() {
 }
 
 func (f *SQLStore) GetOrganizationQuery(ctx context.Context, query *model.GetOrganizationQuery) error {
-	return f.DbSessionWithTenant(ctx, func(sess *DBSession, tenant string) error {
+	return f.DbSessionWithTenant(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		var organizations []entity.Organization
 		where := entity.Organization{
 			Model: entity.Model{
@@ -33,7 +33,7 @@ func (f *SQLStore) GetOrganizationQuery(ctx context.Context, query *model.GetOrg
 			return driver.NewDBErr(sess.DB, err)
 		}
 		if len(organizations) == 0 {
-			return model.ErrNoData
+			return model.ErrNoDataFound
 		}
 		query.Result = make([]model.Organization, 0, len(organizations))
 		for _, organization := range organizations {
@@ -44,7 +44,7 @@ func (f *SQLStore) GetOrganizationQuery(ctx context.Context, query *model.GetOrg
 }
 
 func (f *SQLStore) GetOrganizationByIDQuery(ctx context.Context, query *model.GetOrganizationByIDQuery) error {
-	return f.DbSessionWithTenant(ctx, func(sess *DBSession, tenant string) error {
+	return f.DbSessionWithTenant(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		organization := entity.Organization{
 			Model: entity.Model{
 				ID:     plugins.ID(query.ID.String()),
@@ -60,12 +60,8 @@ func (f *SQLStore) GetOrganizationByIDQuery(ctx context.Context, query *model.Ge
 	})
 }
 
-func userPreload(sess *DBSession) *DBSession {
-	return &DBSession{DB: sess.Preload("Users").Preload("Roles")}
-}
-
 func (f *SQLStore) GetOrganizationByNameQuery(ctx context.Context, query *model.GetOrganizationByNameQuery) error {
-	return f.DbSessionWithTenant(ctx, func(sess *DBSession, tenant string) error {
+	return f.DbSessionWithTenant(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		var org entity.Organization
 		var err error
 
@@ -79,7 +75,7 @@ func (f *SQLStore) GetOrganizationByNameQuery(ctx context.Context, query *model.
 			return driver.NewDBErr(sess.DB, err)
 		}
 		if org.ID == "" {
-			return model.ErrNoData
+			return model.ErrNoDataFound
 		}
 		query.Result = org.ConvertModel()
 		return nil
@@ -87,7 +83,7 @@ func (f *SQLStore) GetOrganizationByNameQuery(ctx context.Context, query *model.
 }
 
 func (f *SQLStore) CountOrganizationByNameQuery(ctx context.Context, query *model.CountOrganizationByNameQuery) error {
-	return f.DbSessionWithTenant(ctx, func(sess *DBSession, tenant string) error {
+	return f.DbSessionWithTenant(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		var count int64
 		whereObjs := make([]string, 0, len(query.Name))
 		for _, name := range query.Name {
@@ -101,19 +97,8 @@ func (f *SQLStore) CountOrganizationByNameQuery(ctx context.Context, query *mode
 	})
 }
 
-func getOrganizationByID(sess *DBSession, id plugins.ID, tenant string) (*entity.Organization, error) {
-	var organization entity.Organization
-	err := sess.
-		Where(&entity.Organization{Model: entity.Model{ID: id, Tenant: tenant}}).
-		First(&organization).Error
-	if err != nil {
-		return nil, driver.NewDBErr(sess.DB, err)
-	}
-	return &organization, nil
-}
-
 func (f *SQLStore) AddOrganizationCommand(ctx context.Context, cmd *model.AddOrganizationCommand) error {
-	return f.inTransactionWithToken(ctx, func(sess *DBSession, tenant string) error {
+	return f.inTransactionWithToken(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		entity := entity.Organization{
 			Model: entity.Model{
 				Tenant: tenant,
@@ -126,7 +111,6 @@ func (f *SQLStore) AddOrganizationCommand(ctx context.Context, cmd *model.AddOrg
 		if err != nil {
 			return driver.NewDBErr(sess.DB, err)
 		}
-
 		cmd.Result = &model.Organization{
 			ID:          entity.ID,
 			Name:        entity.Name,
@@ -137,7 +121,7 @@ func (f *SQLStore) AddOrganizationCommand(ctx context.Context, cmd *model.AddOrg
 }
 
 func (f *SQLStore) UpdateOrganizationCommand(ctx context.Context, cmd *model.UpdateOrganizationCommand) error {
-	return f.inTransactionWithToken(ctx, func(sess *DBSession, tenant string) error {
+	return f.inTransactionWithToken(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		value := entity.Organization{
 			Model: entity.Model{
 				Tenant: tenant,
@@ -150,26 +134,23 @@ func (f *SQLStore) UpdateOrganizationCommand(ctx context.Context, cmd *model.Upd
 }
 
 func (f *SQLStore) DeleteOrganizationCommand(ctx context.Context, cmd *model.DeleteOrganizationCommand) error {
-	return f.inTransactionWithToken(ctx, func(sess *DBSession, tenant string) error {
-		where := entity.Organization{
+	return f.inTransactionWithToken(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
+		entity := entity.Organization{
 			Model: entity.Model{
 				ID:     plugins.ID(cmd.ID.String()),
 				Tenant: tenant,
 			},
 		}
-		db := sess.Where(&where).Delete(&entity.Organization{})
-		if db.RowsAffected == 0 {
-			return model.ErrNoData
-		}
-		return driver.NewDBErr(sess.DB, db.Error)
+		err := sess.Delete(&entity).Error
+		return driver.NewDBErr(sess.DB, err)
 	})
 }
 
 func (f *SQLStore) AddOrganizationUserCommand(ctx context.Context, cmd *model.AddOrganizationUserCommand) error {
-	return f.inTransactionWithToken(ctx, func(sess *DBSession, tenant string) error {
+	return f.inTransactionWithToken(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		org, err := getOrganizationByID(sess, plugins.ID(cmd.ID.String()), tenant)
 		if err != nil {
-			return err
+			return driver.NewDBErr(sess.DB, err)
 		}
 		users := make([]entity.User, 0, len(cmd.User))
 		for _, u := range cmd.User {
@@ -185,10 +166,10 @@ func (f *SQLStore) AddOrganizationUserCommand(ctx context.Context, cmd *model.Ad
 }
 
 func (f *SQLStore) DeleteOrganizationUserCommand(ctx context.Context, cmd *model.DeleteOrganizationUserCommand) error {
-	return f.inTransactionWithToken(ctx, func(sess *DBSession, tenant string) error {
+	return f.inTransactionWithToken(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		org, err := getOrganizationByID(sess, plugins.ID(cmd.ID.String()), tenant)
 		if err != nil {
-			return err
+			return driver.NewDBErr(sess.DB, err)
 		}
 		users := make([]entity.User, 0, len(cmd.User))
 		for _, u := range cmd.User {
@@ -201,4 +182,19 @@ func (f *SQLStore) DeleteOrganizationUserCommand(ctx context.Context, cmd *model
 		}
 		return driver.NewDBErr(sess.DB, sess.Model(org).Association("Users").Delete(&users))
 	})
+}
+
+func getOrganizationByID(sess *DBSession, id plugins.ID, tenant string) (*entity.Organization, error) {
+	var organization entity.Organization
+	err := sess.
+		Where(&entity.Organization{Model: entity.Model{ID: id, Tenant: tenant}}).
+		First(&organization).Error
+	if err != nil {
+		return nil, driver.NewDBErr(sess.DB, err)
+	}
+	return &organization, nil
+}
+
+func userPreload(sess *DBSession) *DBSession {
+	return &DBSession{DB: sess.Preload("Users").Preload("Roles")}
 }

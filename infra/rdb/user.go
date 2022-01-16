@@ -21,7 +21,7 @@ func (f *SQLStore) addUserBus() {
 }
 
 func (f *SQLStore) GetUserQuery(ctx context.Context, query *model.GetUserQuery) error {
-	return f.DbSessionWithTenant(ctx, func(sess *DBSession, tenant string) error {
+	return f.DbSessionWithTenant(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		var users []entity.User
 		err := sess.
 			Where(&entity.User{
@@ -35,7 +35,7 @@ func (f *SQLStore) GetUserQuery(ctx context.Context, query *model.GetUserQuery) 
 			return driver.NewDBErr(sess.DB, err)
 		}
 		if len(users) == 0 {
-			return model.ErrNoData
+			return model.ErrNoDataFound
 		}
 		query.Result = make([]model.User, 0, len(users))
 		for _, user := range users {
@@ -46,7 +46,7 @@ func (f *SQLStore) GetUserQuery(ctx context.Context, query *model.GetUserQuery) 
 }
 
 func (f *SQLStore) GetUserByIDQuery(ctx context.Context, query *model.GetUserByIDQuery) error {
-	return f.DbSessionWithTenant(ctx, func(sess *DBSession, tenant string) error {
+	return f.DbSessionWithTenant(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		var user entity.User
 		err := sess.
 			Where(&entity.User{
@@ -61,7 +61,7 @@ func (f *SQLStore) GetUserByIDQuery(ctx context.Context, query *model.GetUserByI
 			return driver.NewDBErr(sess.DB, err)
 		}
 		if user.ID.String() == "" {
-			return model.ErrNoData
+			return model.ErrNoDataFound
 		}
 		query.Result = user.ConvertModel()
 		return nil
@@ -69,7 +69,7 @@ func (f *SQLStore) GetUserByIDQuery(ctx context.Context, query *model.GetUserByI
 }
 
 func (f *SQLStore) GetUserByIDsQuery(ctx context.Context, query *model.GetUserByIDsQuery) error {
-	return f.DbSessionWithTenant(ctx, func(sess *DBSession, tenant string) error {
+	return f.DbSessionWithTenant(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		ids := make([]plugins.ID, 0, len(query.Query))
 		for _, q := range query.Query {
 			ids = append(ids, plugins.ID(q.ID.String()))
@@ -87,16 +87,21 @@ func (f *SQLStore) GetUserByIDsQuery(ctx context.Context, query *model.GetUserBy
 }
 
 func (f *SQLStore) AddUserCommand(ctx context.Context, cmd *model.AddUserCommand) error {
-	return f.inTransactionWithToken(ctx, func(sess *DBSession, tenant string) error {
+	return f.inTransactionWithToken(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		eUser := entity.User{
 			Model: entity.Model{
-				ID:     plugins.ID(cmd.ID.String()),
 				Tenant: tenant,
 			},
+			Name: cmd.Name,
+		}
+		if cmd.ID == "" {
+			eUser.Generate()
+		} else {
+			eUser.ID = plugins.ID(cmd.ID)
 		}
 		err := sess.Create(&eUser).Error
 		if err != nil {
-			return err
+			return driver.NewDBErr(sess.DB, err)
 		}
 		cmd.Result = &model.User{
 			ID:   eUser.ID.String(),
@@ -107,7 +112,7 @@ func (f *SQLStore) AddUserCommand(ctx context.Context, cmd *model.AddUserCommand
 }
 
 func (f *SQLStore) DeleteUserCommand(ctx context.Context, cmd *model.DeleteUserCommand) error {
-	return f.inTransactionWithToken(ctx, func(sess *DBSession, tenant string) error {
+	return f.inTransactionWithToken(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		err := sess.
 			Where(&entity.User{
 				Model: entity.Model{
@@ -117,6 +122,60 @@ func (f *SQLStore) DeleteUserCommand(ctx context.Context, cmd *model.DeleteUserC
 			}).
 			Delete(&entity.User{}).Error
 		return driver.NewDBErr(sess.DB, err)
+	})
+}
+
+func (f *SQLStore) AddUserRoleCommand(ctx context.Context, cmd *model.AddUserRoleCommand) error {
+	return f.inTransactionWithToken(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
+		org, err := getOrganizationByID(sess, plugins.ID(cmd.Organization.ID.String()), tenant)
+		if err != nil {
+			return driver.NewDBErr(sess.DB, sess.Error)
+		}
+		user, err := getUserByID(sess, plugins.ID(cmd.ID.String()), tenant)
+		if err != nil {
+			return driver.NewDBErr(sess.DB, sess.Error)
+		}
+		roles := make([]entity.Role, 0, len(cmd.Roles))
+		for _, role := range cmd.Roles {
+			roles = append(roles, entity.Role{
+				Model: entity.Model{
+					ID:     plugins.ID(role.ID.String()),
+					Tenant: tenant,
+				},
+			})
+		}
+		// Organizationにも保存
+		if err := driver.NewDBErr(sess.DB, sess.Model(&org).Association("Roles").Append(roles)); err != nil {
+			return err
+		}
+		return driver.NewDBErr(sess.DB, sess.Model(&user).Association("Roles").Append(roles))
+	})
+}
+
+func (f *SQLStore) DeleteUserRoleCommand(ctx context.Context, cmd *model.DeleteUserRoleCommand) error {
+	return f.inTransactionWithToken(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
+		org, err := getOrganizationByID(sess, plugins.ID(cmd.Organization.ID.String()), tenant)
+		if err != nil {
+			return driver.NewDBErr(sess.DB, sess.Error)
+		}
+		user, err := getUserByID(sess, plugins.ID(cmd.ID.String()), tenant)
+		if err != nil {
+			return driver.NewDBErr(sess.DB, sess.Error)
+		}
+		roles := make([]entity.Role, 0, len(cmd.Roles))
+		for _, role := range cmd.Roles {
+			roles = append(roles, entity.Role{
+				Model: entity.Model{
+					ID:     plugins.ID(role.ID.String()),
+					Tenant: tenant,
+				},
+			})
+		}
+		// Organizationからも削除
+		if err := driver.NewDBErr(sess.DB, sess.Model(&org).Association("Roles").Delete(roles)); err != nil {
+			return err
+		}
+		return driver.NewDBErr(sess.DB, sess.Model(&user).Association("Roles").Delete(roles))
 	})
 }
 
@@ -146,58 +205,4 @@ func getUserByIDs(sess *DBSession, id []plugins.ID, tenant string) ([]entity.Use
 		return nil, driver.NewDBErr(sess.DB, err)
 	}
 	return user, nil
-}
-
-func (f *SQLStore) AddUserRoleCommand(ctx context.Context, cmd *model.AddUserRoleCommand) error {
-	return f.inTransactionWithToken(ctx, func(sess *DBSession, tenant string) error {
-		org, err := getOrganizationByID(sess, plugins.ID(cmd.Organization.ID.String()), tenant)
-		if err != nil {
-			return err
-		}
-		user, err := getUserByID(sess, plugins.ID(cmd.ID.String()), tenant)
-		if err != nil {
-			return err
-		}
-		roles := make([]entity.Role, 0, len(cmd.Roles))
-		for _, role := range cmd.Roles {
-			roles = append(roles, entity.Role{
-				Model: entity.Model{
-					ID:     plugins.ID(role.ID.String()),
-					Tenant: tenant,
-				},
-			})
-		}
-		// Organizationにも保存
-		if err := driver.NewDBErr(sess.DB, sess.Model(&org).Association("Roles").Append(roles)); err != nil {
-			return err
-		}
-		return driver.NewDBErr(sess.DB, sess.Model(&user).Association("Roles").Append(roles))
-	})
-}
-
-func (f *SQLStore) DeleteUserRoleCommand(ctx context.Context, cmd *model.DeleteUserRoleCommand) error {
-	return f.inTransactionWithToken(ctx, func(sess *DBSession, tenant string) error {
-		org, err := getOrganizationByID(sess, plugins.ID(cmd.Organization.ID.String()), tenant)
-		if err != nil {
-			return err
-		}
-		user, err := getUserByID(sess, plugins.ID(cmd.ID.String()), tenant)
-		if err != nil {
-			return err
-		}
-		roles := make([]entity.Role, 0, len(cmd.Roles))
-		for _, role := range cmd.Roles {
-			roles = append(roles, entity.Role{
-				Model: entity.Model{
-					ID:     plugins.ID(role.ID.String()),
-					Tenant: tenant,
-				},
-			})
-		}
-		// Organizationからも削除
-		if err := driver.NewDBErr(sess.DB, sess.Model(&org).Association("Roles").Delete(roles)); err != nil {
-			return err
-		}
-		return driver.NewDBErr(sess.DB, sess.Model(&user).Association("Roles").Delete(roles))
-	})
 }

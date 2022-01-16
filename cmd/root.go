@@ -83,7 +83,7 @@ func signal(ctx context.Context) error {
 	case <-ctx.Done():
 		sig.Reset()
 		return nil
-	case _ = <-osNotify:
+	case <-osNotify:
 		return SignalReceived
 	}
 }

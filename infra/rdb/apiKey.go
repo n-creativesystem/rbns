@@ -7,6 +7,7 @@ import (
 	"github.com/n-creativesystem/rbns/domain/model"
 	"github.com/n-creativesystem/rbns/infra/entity"
 	"github.com/n-creativesystem/rbns/infra/entity/plugins"
+	"github.com/n-creativesystem/rbns/infra/rdb/driver"
 )
 
 func (f *SQLStore) addApiKeyBus() {
@@ -16,32 +17,32 @@ func (f *SQLStore) addApiKeyBus() {
 }
 
 func (f *SQLStore) AddApiKeyCommand(ctx context.Context, cmd *model.AddApiKeyCommand) error {
-	return f.inTransactionWithToken(ctx, func(sess *DBSession, tenant string) error {
+	return f.inTransactionWithToken(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		value := entity.ApiKey{
 			Name: cmd.Name,
 			Key:  cmd.HashedKey,
-			Role: string(cmd.Role),
+			Role: uint(cmd.Role),
 			Model: entity.Model{
 				Tenant: tenant,
 			},
 		}
 		value.Generate()
 		if err := sess.Create(&value).Error; err != nil {
-			return err
+			return driver.NewDBErr(sess.DB, err)
 		}
 
 		cmd.Result = &model.ApiKey{
 			Id:   value.ID.String(),
 			Name: value.Name,
 			Key:  cmd.HashedKey,
-			Role: model.RoleType(cmd.Role),
+			Role: cmd.Role,
 		}
 		return nil
 	})
 }
 
 func (f *SQLStore) DeleteAPIKeyCommand(ctx context.Context, cmd *model.DeleteAPIKeyCommand) error {
-	return f.inTransactionWithToken(ctx, func(sess *DBSession, tenant string) error {
+	return f.inTransactionWithToken(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		value := entity.ApiKey{
 			Model: entity.Model{
 				ID:     plugins.ID(cmd.ID.String()),
@@ -53,7 +54,7 @@ func (f *SQLStore) DeleteAPIKeyCommand(ctx context.Context, cmd *model.DeleteAPI
 }
 
 func (f *SQLStore) GetAPIKeyByNameQuery(ctx context.Context, cmd *model.GetAPIKeyByNameQuery) error {
-	return f.DbSessionWithTenant(ctx, func(sess *DBSession, tenant string) error {
+	return f.DbSessionWithTenant(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		value := entity.ApiKey{
 			Model: entity.Model{
 				Tenant: tenant,
@@ -63,15 +64,15 @@ func (f *SQLStore) GetAPIKeyByNameQuery(ctx context.Context, cmd *model.GetAPIKe
 		var result entity.ApiKey
 		err := sess.Where(&value).Model(&entity.ApiKey{}).First(&result).Error
 		if err != nil {
-			return err
+			return driver.NewDBErr(sess.DB, err)
 		}
 		if err != nil {
-			return err
+			return driver.NewDBErr(sess.DB, err)
 		}
 		cmd.Result = &model.ApiKey{
 			Id:   result.ID.String(),
 			Name: result.Name,
-			Role: model.RoleType(result.Role),
+			Role: model.RoleLevel(result.Role),
 			Key:  result.Key,
 		}
 		return nil

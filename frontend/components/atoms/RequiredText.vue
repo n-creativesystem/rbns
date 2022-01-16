@@ -47,15 +47,18 @@
       },
       innerRules() {
         if (this.rules) {
-          return [this.required].concat(this.rules.filter((r) => r))
+          return [this.required].concat(this.rules)
         } else {
           return [this.required]
         }
       },
+      requiredFieldMessage() {
+        return this.$t('required fields')
+      },
     },
     methods: {
       required(value) {
-        return !!value || this.$t('required fields')
+        return !!value || this.requiredFieldMessage
       },
     },
   }

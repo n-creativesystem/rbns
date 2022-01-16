@@ -7,15 +7,13 @@ import (
 	"github.com/n-creativesystem/rbns/domain/model"
 	"github.com/n-creativesystem/rbns/infra/rdb"
 	"github.com/n-creativesystem/rbns/infra/rdb/mock"
-	"github.com/n-creativesystem/rbns/internal/contexts"
+	"github.com/n-creativesystem/rbns/ncsfw/tenants"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
 
 func TestOrganization(t *testing.T) {
-	tenant := "test"
 	ctx := context.Background()
-	ctx = contexts.ToTenantContext(ctx, tenant)
 	mock.NewCase(mock.PostgreSQL, "org").Set(mock.Case{
 		Name: "Organization query and command",
 		Fn: func(store *rdb.SQLStore, db *gorm.DB) func(t *testing.T) {
@@ -25,6 +23,11 @@ func TestOrganization(t *testing.T) {
 				Description: "organization test",
 			}
 			return func(t *testing.T) {
+				tenant, err := testAddTenant(ctx)
+				if !assert.NoError(t, err) {
+					return
+				}
+				ctx, _ = tenants.SetTenantWithContext(ctx, tenant.ID)
 				t.Run("create", func(t *testing.T) {
 					t.Helper()
 					err := store.AddOrganizationCommand(ctx, &cmd)

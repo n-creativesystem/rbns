@@ -40,6 +40,9 @@ func ErrJson(message string, err error) ErrorResponse {
 }
 
 func ErrJsonWithStatus(status int, message string, err error) ErrorResponse {
+	if message == "" {
+		message = http.StatusText(status)
+	}
 	res := ErrorResponse{
 		Status: status,
 		Err:    message,

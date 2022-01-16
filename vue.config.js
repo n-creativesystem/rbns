@@ -1,8 +1,9 @@
 const path = require('path')
 // const webpack = require('webpack')
 const index = process.env.NODE_ENV == 'production' ? 'index.html' : 'index-debug.html',
-  publicPath = process.env.NODE_ENV == 'production' ? '{{.SubPath}}' : undefined
+  publicPath = process.env.STATIC_FILE || undefined
 module.exports = {
+  productionSourceMap: process.env.NODE_ENV == 'production' ? false : true,
   publicPath: publicPath,
   pages: {
     index: {

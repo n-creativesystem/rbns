@@ -2,6 +2,8 @@
   <v-text-field
     :clearable="$attrs.readonly ? false : true"
     outlined
+    :label="innerLabel"
+    :required="required"
     v-bind="$attrs"
     v-model="innverValue"
     v-on="$listeners"
@@ -23,6 +25,11 @@
         required: true,
         default: undefined,
       },
+      required: {
+        type: Boolean,
+        default: false,
+      },
+      label: String,
     },
     computed: {
       innverValue: {
@@ -32,6 +39,9 @@
         set(val) {
           this.$emit('input', val)
         },
+      },
+      innerLabel() {
+        return this.label + (this.required ? '*' : '')
       },
     },
   }

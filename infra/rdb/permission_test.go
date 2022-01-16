@@ -7,7 +7,7 @@ import (
 	"github.com/n-creativesystem/rbns/domain/model"
 	"github.com/n-creativesystem/rbns/infra/rdb"
 	"github.com/n-creativesystem/rbns/infra/rdb/mock"
-	"github.com/n-creativesystem/rbns/internal/contexts"
+	"github.com/n-creativesystem/rbns/ncsfw/tenants"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
@@ -15,7 +15,7 @@ import (
 func TestPermission(t *testing.T) {
 	const tenant = "test"
 	ctx := context.Background()
-	ctx = contexts.ToTenantContext(ctx, tenant)
+	ctx, _ = tenants.SetTenantWithContext(ctx, tenant)
 	mock.NewCase(mock.PostgreSQL, "permission").Set(mock.Case{
 		Name: "Permission Query and Command",
 		Fn: func(store *rdb.SQLStore, db *gorm.DB) func(t *testing.T) {
@@ -123,7 +123,7 @@ func TestPermission(t *testing.T) {
 						if !assert.Error(t, err) {
 							return
 						}
-						assert.ErrorIs(t, err, model.ErrNoData)
+						assert.ErrorIs(t, err, model.ErrNoDataFound)
 					})
 				})
 			}

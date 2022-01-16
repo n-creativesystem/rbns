@@ -8,7 +8,7 @@ import (
 	"github.com/n-creativesystem/rbns/cache"
 	"github.com/n-creativesystem/rbns/config"
 	"github.com/n-creativesystem/rbns/domain/model"
-	"github.com/n-creativesystem/rbns/tracer"
+	"github.com/n-creativesystem/rbns/ncsfw/tracer"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -43,7 +43,7 @@ func (a *AuthCache) LookupToken(ctx context.Context, key string) (model.LoginUse
 	var result model.LoginUser
 	value, ok := a.Cache.Get(key)
 	if !ok {
-		return result, model.ErrNoData
+		return result, model.ErrNoDataFound
 	}
 	if err := json.NewDecoder(bytes.NewReader(value.([]byte))).Decode(&result); err != nil {
 		return result, err

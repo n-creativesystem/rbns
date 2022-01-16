@@ -8,11 +8,10 @@ import (
 
 type Organization struct {
 	Model
-	Name        string   `gorm:"type:varchar(256);uniqueIndex"`
-	Description string   `gorm:"type:varchar(256)"`
-	Users       []User   `gorm:"many2many:organization_users;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Roles       []Role   `gorm:"many2many:organization_roles;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-	Tenants     []Tenant `gorm:"many2many:tenant_organizations;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Name        string `gorm:"type:varchar(256);uniqueIndex"`
+	Description string `gorm:"type:varchar(256)"`
+	Users       []User `gorm:"many2many:organization_users;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Roles       []Role `gorm:"many2many:organization_roles;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 func (Organization) IndexName(table, column string) string {

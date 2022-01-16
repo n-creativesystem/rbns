@@ -12,12 +12,14 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/n-creativesystem/rbns/config"
 	"github.com/n-creativesystem/rbns/handler/gateway/marshaler"
-	"github.com/n-creativesystem/rbns/logger"
+	handler_metadata "github.com/n-creativesystem/rbns/handler/metadata"
+	"github.com/n-creativesystem/rbns/ncsfw/logger"
+	"github.com/n-creativesystem/rbns/ncsfw/tracer"
 	"github.com/n-creativesystem/rbns/protobuf"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/keepalive"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -30,26 +32,6 @@ func responseFilter(ctx context.Context, w http.ResponseWriter, resp proto.Messa
 	return nil
 }
 
-const (
-	XTenantID  = "X-Tenant-ID"
-	XIndexKey  = "X-Index-Key"
-	XRequestID = "X-Request-ID"
-)
-
-func withMetadata(ctx context.Context, req *http.Request) metadata.MD {
-	f := func(key, default_ string) string {
-		if v := req.Header.Get(key); v != "" {
-			return v
-		}
-		return default_
-	}
-	return metadata.New(map[string]string{
-		XTenantID:  f(XTenantID, "fake"),
-		XIndexKey:  f(XIndexKey, "index"),
-		XRequestID: req.Header.Get(XRequestID),
-	})
-}
-
 type GRPCGateway struct {
 	mux http.Handler
 }
@@ -57,6 +39,10 @@ type GRPCGateway struct {
 func New(conf *config.Config) (*GRPCGateway, error) {
 	grpcAddress, certFile, commonName := fmt.Sprintf(":%d", conf.GrpcPort), conf.CertificateFile, conf.KeyFile
 	var err error
+	otelgrpcOpts := []otelgrpc.Option{
+		otelgrpc.WithTracerProvider(tracer.GetTracerProvider()),
+		otelgrpc.WithPropagators(tracer.GetPropagation()),
+	}
 	dialOpts := []grpc.DialOption{
 		grpc.WithDefaultCallOptions(
 			grpc.MaxCallSendMsgSize(math.MaxInt64),
@@ -69,9 +55,11 @@ func New(conf *config.Config) (*GRPCGateway, error) {
 				PermitWithoutStream: true,
 			},
 		),
+		grpc.WithUnaryInterceptor(otelgrpc.UnaryClientInterceptor(otelgrpcOpts...)),
+		grpc.WithStreamInterceptor(otelgrpc.StreamClientInterceptor(otelgrpcOpts...)),
 	}
 
-	baseCtx := context.TODO()
+	baseCtx := context.Background()
 	ctx, cancel := context.WithCancel(baseCtx)
 	defer func() {
 		if err != nil {
@@ -80,7 +68,7 @@ func New(conf *config.Config) (*GRPCGateway, error) {
 	}()
 
 	mux := runtime.NewServeMux(
-		runtime.WithMetadata(withMetadata),
+		runtime.WithMetadata(handler_metadata.WithMetadata),
 		runtime.WithMarshalerOption(runtime.MIMEWildcard, new(marshaler.GatewayMarshaler)),
 		runtime.WithForwardResponseOption(responseFilter),
 	)
@@ -101,7 +89,6 @@ func New(conf *config.Config) (*GRPCGateway, error) {
 			return nil, err
 		}
 	}
-
 	return &GRPCGateway{
 		mux: mux,
 	}, nil
@@ -118,9 +105,9 @@ type endpoint func(ctx context.Context, mux *runtime.ServeMux, endpoint string, 
 func endpoints() []endpoint {
 	return []endpoint{
 		protobuf.RegisterPermissionHandlerFromEndpoint,
-		protobuf.RegisterRoleHandlerFromEndpoint,
 		protobuf.RegisterUserHandlerFromEndpoint,
 		protobuf.RegisterOrganizationHandlerFromEndpoint,
+		// userHandlerFromEndpoint,
 		// protobuf.RegisterResourceHandlerFromEndpoint,
 	}
 }

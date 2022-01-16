@@ -17,6 +17,7 @@
           <role-tab-settings
             :name.sync="role.name"
             :description.sync="role.description"
+            :organization-id="organizationId"
             @submit="onSubmit"
           ></role-tab-settings>
         </v-container>
@@ -26,6 +27,7 @@
           <role-tab-permissions
             ref="permissions"
             :id="id"
+            :organization-id="organizationId"
           ></role-tab-permissions>
         </v-container>
       </v-tab-item>
@@ -39,12 +41,11 @@
 </template>
 
 <script>
-  import axiosMixin from '@mixin/axios'
   export default {
     name: 'Role',
-    mixins: [axiosMixin],
     data() {
       return {
+        organizationId: '',
         tabs: '',
         id: '',
         role: {
@@ -59,41 +60,34 @@
     },
     created() {
       this.tabs = 'settings'
+      this.organizationId = this.$route.params.orgId
       this.id = this.$route.params.id
-      this.getData()
+      this.$store
+        .dispatch('roles/findById', {
+          organizationId: this.organizationId,
+          roleId: this.id,
+        })
+        .then((result) => {
+          this.role = result
+        })
+        .catch((err) => {
+          console.log(err)
+        })
     },
     methods: {
-      getRoleUrl() {
-        return `${this.$urls.api.v1.roles}/${this.id}`
-      },
-      getData() {
-        const url = this.getRoleUrl()
-        this.get(url)
-          .then((result) => {
-            if (result.status == 200) {
-              const data = result.data
-              if (data) {
-                this.role = {
-                  name: data.name || '',
-                  description: data.description || '',
-                  permissions: data.permissions || [],
-                  organizationUsers: data.organizationUsers || [],
-                }
-              }
-            }
+      onSubmit() {
+        this.$store
+          .dispatch('roles/put', {
+            organizationId: this.organizationId,
+            roleId: this.id,
+            data: {
+              name: this.role.name,
+              description: this.role.description,
+            },
           })
           .catch((err) => {
             console.log(err)
           })
-      },
-      onSubmit() {
-        const url = this.getRoleUrl()
-        this.put(url, {
-          name: this.role.name,
-          description: this.role.description,
-        }).catch((err) => {
-          console.log(err)
-        })
       },
     },
   }

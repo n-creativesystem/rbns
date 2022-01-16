@@ -7,7 +7,7 @@ import (
 func TestUser(t *testing.T) {
 	// tenant := "test"
 	// ctx := context.Background()
-	// ctx = contexts.ToTenantContext(ctx, tenant)
+	// ctx, _ = tenants.SetTenantWithContext(ctx, tenant)
 	// cases := tests.MocksByPostgres{
 	// 	{
 	// 		Name: "create",

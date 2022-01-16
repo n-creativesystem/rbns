@@ -24,3 +24,9 @@ func SplitString(str string) []string {
 
 	return regexp.MustCompile("[, ]+").Split(str, -1)
 }
+
+func CopyString(s string) string {
+	copyBytes := make([]byte, len(s))
+	copy(copyBytes, s)
+	return BytesToString(copyBytes)
+}

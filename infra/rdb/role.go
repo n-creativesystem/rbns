@@ -24,11 +24,11 @@ func (f *SQLStore) addRoleBus() {
 }
 
 func (f *SQLStore) GetRoleQuery(ctx context.Context, query *model.GetRoleQuery) error {
-	return f.DbSessionWithTenant(ctx, func(sess *DBSession, tenant string) error {
+	return f.DbSessionWithTenant(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		var roles []entity.Role
 		org, err := getOrganizationByID(sess, plugins.ID(query.Organization.ID.String()), tenant)
 		if err != nil {
-			return err
+			return driver.NewDBErr(sess.DB, sess.Error)
 		}
 
 		err = sess.Model(org).Preload("Permissions").Association("Roles").Find(&roles)
@@ -36,7 +36,7 @@ func (f *SQLStore) GetRoleQuery(ctx context.Context, query *model.GetRoleQuery) 
 			return driver.NewDBErr(sess.DB, err)
 		}
 		if len(roles) == 0 {
-			return model.ErrNoData
+			return model.ErrNoDataFound
 		}
 		query.Result = make([]model.Role, 0, len(roles))
 		for _, role := range roles {
@@ -47,7 +47,7 @@ func (f *SQLStore) GetRoleQuery(ctx context.Context, query *model.GetRoleQuery) 
 }
 
 func (f *SQLStore) GetRoleByIDQuery(ctx context.Context, query *model.GetRoleByIDQuery) error {
-	return f.DbSessionWithTenant(ctx, func(sess *DBSession, tenant string) error {
+	return f.DbSessionWithTenant(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		var role entity.Role
 		where := entity.Role{
 			Model: entity.Model{
@@ -57,14 +57,14 @@ func (f *SQLStore) GetRoleByIDQuery(ctx context.Context, query *model.GetRoleByI
 		}
 		org, err := getOrganizationByID(sess, plugins.ID(query.Organization.ID.String()), tenant)
 		if err != nil {
-			return err
+			return driver.NewDBErr(sess.DB, sess.Error)
 		}
 		err = sess.Model(org).Where(&where).Preload("Permissions").Association("Roles").Find(&role)
 		if err != nil {
 			return driver.NewDBErr(sess.DB, err)
 		}
 		if role.ID == "" {
-			return model.ErrNoData
+			return model.ErrNoDataFound
 		}
 		query.Result = role.ConvertModel()
 		return nil
@@ -73,7 +73,7 @@ func (f *SQLStore) GetRoleByIDQuery(ctx context.Context, query *model.GetRoleByI
 }
 
 func (f *SQLStore) CountRoleByNameQuery(ctx context.Context, query *model.CountRoleByNameQuery) error {
-	return f.DbSessionWithTenant(ctx, func(sess *DBSession, tenant string) error {
+	return f.DbSessionWithTenant(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		var count int64
 		whereObjs := make([]string, 0, len(query.Name))
 		for _, name := range query.Name {
@@ -102,10 +102,10 @@ func (f *SQLStore) AddRoleCommand(ctx context.Context, cmd *model.AddRoleCommand
 }
 
 func (f *SQLStore) AddRoleCommands(ctx context.Context, cmd *model.AddRoleCommands) error {
-	return f.inTransactionWithToken(ctx, func(sess *DBSession, tenant string) error {
+	return f.inTransactionWithToken(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		org, err := getOrganizationByID(sess, plugins.ID(cmd.Organization.ID.String()), tenant)
 		if err != nil {
-			return err
+			return driver.NewDBErr(sess.DB, sess.Error)
 		}
 		entities := make([]entity.Role, 0, len(cmd.Roles))
 		for _, role := range cmd.Roles {
@@ -124,18 +124,19 @@ func (f *SQLStore) AddRoleCommands(ctx context.Context, cmd *model.AddRoleComman
 			return driver.NewDBErr(sess.DB, err)
 		}
 		for idx, entity := range entities {
-			cmd.Roles[idx].Result = &model.Role{
+			role := model.Role{
 				ID:          entity.ID,
 				Name:        entity.Name,
 				Description: entity.Description,
 			}
+			cmd.Roles[idx].Result = &role
 		}
 		return nil
 	})
 }
 
 func (f *SQLStore) UpdateRoleCommand(ctx context.Context, cmd *model.UpdateRoleCommand) error {
-	return f.inTransactionWithToken(ctx, func(sess *DBSession, tenant string) error {
+	return f.inTransactionWithToken(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		value := entity.Role{
 			Name:        cmd.Name.String(),
 			Description: cmd.Description,
@@ -159,10 +160,10 @@ func (f *SQLStore) DeleteRoleCommand(ctx context.Context, cmd *model.DeleteRoleC
 }
 
 func (f *SQLStore) DeleteRoleCommands(ctx context.Context, cmd *model.DeleteRoleCommands) error {
-	return f.inTransactionWithToken(ctx, func(sess *DBSession, tenant string) error {
+	return f.inTransactionWithToken(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		org, err := getOrganizationByID(sess, plugins.ID(cmd.Organization.ID.String()), tenant)
 		if err != nil {
-			return err
+			return driver.NewDBErr(sess.DB, sess.Error)
 		}
 		roles := make([]entity.Role, 0, len(cmd.Roles))
 		for _, cmd := range cmd.Roles {
@@ -179,19 +180,8 @@ func (f *SQLStore) DeleteRoleCommands(ctx context.Context, cmd *model.DeleteRole
 	})
 }
 
-func getRoleByID(sess *DBSession, id plugins.ID, tenant string) (*entity.Role, error) {
-	var role entity.Role
-	err := sess.
-		Where(&entity.Role{Model: entity.Model{ID: id, Tenant: tenant}}).
-		First(&role).Error
-	if err != nil {
-		return nil, driver.NewDBErr(sess.DB, err)
-	}
-	return &role, nil
-}
-
 func (f *SQLStore) AddRolePermissionCommand(ctx context.Context, cmd *model.AddRolePermissionCommand) error {
-	return f.inTransactionWithToken(ctx, func(sess *DBSession, tenant string) error {
+	return f.inTransactionWithToken(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		role, err := getRoleByID(sess, plugins.ID(cmd.ID.String()), tenant)
 		if err != nil {
 			return driver.NewDBErr(sess.DB, err)
@@ -210,10 +200,10 @@ func (f *SQLStore) AddRolePermissionCommand(ctx context.Context, cmd *model.AddR
 }
 
 func (f *SQLStore) DeleteRolePermissionCommand(ctx context.Context, cmd *model.DeleteRolePermissionCommand) error {
-	return f.inTransactionWithToken(ctx, func(sess *DBSession, tenant string) error {
+	return f.inTransactionWithToken(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		role, err := getRoleByID(sess, plugins.ID(cmd.ID.String()), tenant)
 		if err != nil {
-			return err
+			return driver.NewDBErr(sess.DB, sess.Error)
 		}
 		permissions := make([]entity.Permission, 0, len(cmd.Permissions))
 		for _, permission := range cmd.Permissions {
@@ -226,4 +216,15 @@ func (f *SQLStore) DeleteRolePermissionCommand(ctx context.Context, cmd *model.D
 		}
 		return driver.NewDBErr(sess.DB, sess.Model(&role).Association("Permissions").Delete(permissions))
 	})
+}
+
+func getRoleByID(sess *DBSession, id plugins.ID, tenant string) (*entity.Role, error) {
+	var role entity.Role
+	err := sess.
+		Where(&entity.Role{Model: entity.Model{ID: id, Tenant: tenant}}).
+		First(&role).Error
+	if err != nil {
+		return nil, driver.NewDBErr(sess.DB, err)
+	}
+	return &role, nil
 }

@@ -8,8 +8,9 @@ type CurrentUser struct {
 	// Email oauth email
 	Email string
 	// Role user role
-	Role   string
-	Groups []string
-
+	Role       string
+	Groups     []string
+	Tenant     string
 	IsSignedIn bool
+	IsTenant   bool
 }

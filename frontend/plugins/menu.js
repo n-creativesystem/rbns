@@ -8,23 +8,23 @@ const menu = [
         key: "permissions"
     },
     {
+        title: "organization",
+        to: "/organizations",
+        icon: "mdi-domain",
+        key: "organizations"
+    },
+    {
         title: "role",
         to: "/roles",
         icon: "mdi-shield-account",
         key: "roles"
     },
     {
-        title: "organization",
-        to: "/organizations",
-        icon: "mdi-domain",
-        key: "organizations"
+        title: "users",
+        to: "/users",
+        icon: "mdi-account",
+        key: "users"
     },
-    // {
-    //     "title": "resource",
-    //     "href": "/resources",
-    //     "icon": "mdi-semantic-web",
-    //     "key": "resources"
-    // }
 ]
 
 if (IsLogin) {

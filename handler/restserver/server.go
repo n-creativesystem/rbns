@@ -7,16 +7,17 @@ import (
 	"path"
 	"strings"
 
-	"github.com/gin-gonic/gin"
 	"github.com/gorilla/sessions"
 	"github.com/n-creativesystem/rbns/config"
-	"github.com/n-creativesystem/rbns/domain/dtos"
 	"github.com/n-creativesystem/rbns/domain/model"
-	"github.com/n-creativesystem/rbns/handler/restserver/contexts"
-	"github.com/n-creativesystem/rbns/handler/restserver/middleware"
-	"github.com/n-creativesystem/rbns/handler/restserver/middleware/otel"
+	"github.com/n-creativesystem/rbns/handler/restserver/middleware/auth"
 	"github.com/n-creativesystem/rbns/handler/restserver/social"
-	"github.com/n-creativesystem/rbns/logger"
+	"github.com/n-creativesystem/rbns/ncsfw"
+	"github.com/n-creativesystem/rbns/ncsfw/logger"
+	"github.com/n-creativesystem/rbns/ncsfw/middleware"
+	"github.com/n-creativesystem/rbns/ncsfw/middleware/otel"
+	"github.com/n-creativesystem/rbns/ncsfw/tenants"
+	"github.com/n-creativesystem/rbns/service"
 )
 
 var (
@@ -37,64 +38,44 @@ type HTTPServer struct {
 	handler        http.Handler
 	gateway        http.Handler
 	socialService  social.Service
-	authMiddleware *middleware.AuthMiddleware
+	authMiddleware *auth.AuthMiddleware
 	store          sessions.Store
+	tenantService  service.Tenant
+	apiKeyService  service.APIKey
 
 	Cfg *config.Config
 }
 
 func (hs *HTTPServer) registerRouting() {
 	authService := hs.authMiddleware.RestMiddleware(hs.store)
-	gin.DefaultWriter = hs.log
-	r := gin.New()
-	r.Use(contexts.GinWrap(otel.Middleware("rest server")), otel.RestLogger(hs.log), gin.Recovery(), contexts.GinWrap(otel.Middleware("rest server")))
+	r := ncsfw.New()
+	r.Delims("[[", "]]")
+	r.Use(otel.Middleware("rest server"), middleware.Recover())
 	r.LoadHTMLGlob(path.Join(hs.Cfg.StaticFilePath, "/*.html"))
 	r.Static("/static", hs.Cfg.StaticFilePath)
 	login := r.Group("login")
 	{
-		login.GET("/:name", contexts.GinWrap(otel.Middleware("login request")), contexts.GinWrap(hs.OAuthLogin))
-		login.GET("/provider", contexts.GinWrap(otel.Middleware("login provider request")), contexts.GinWrap(hs.GetOAuthProvider))
+		login.Get("/:name", hs.OAuthLogin, otel.Middleware("login request"))
+		login.Get("/provider", hs.GetOAuthProvider, otel.Middleware("login provider request"))
 	}
-	r.GET("/logout", contexts.GinWrap(otel.Middleware("logout request")), contexts.GinWrap(hs.Logout))
+	r.Get("/logout", hs.Logout, otel.Middleware("logout request"))
 
-	g := r.Group("/api", contexts.GinWrap(otel.Middleware("api request")), contexts.GinWrap(authService.Required))
+	g := r.Group("/api", authService.Required, otel.Middleware("api request"))
 	{
-		g.Any("/g/*gateway", contexts.GinWrap(otel.Middleware("grpc gateway request")), gin.WrapH(hs.gateway))
-		g.POST("/auth/keys", contexts.GinWrap(otel.Middleware("generate api key request")), contexts.GinWrap(hs.AddAPIKey))
-		g.DELETE("/auth/keys/:id", contexts.GinWrap(otel.Middleware("delete api keys request")), contexts.GinWrap(hs.DeleteAPIKey))
-		tenant := g.Group("/tenant", contexts.GinWrap(otel.Middleware("tenant request")))
+		requiredTenant := g.Group("", tenants.HTTPServerMiddleware())
 		{
-			tenant.GET("", contexts.GinWrap(otel.Middleware("add tenant request")), contexts.GinWrap(hs.getTenants))
-			tenant.POST("", contexts.GinWrap(otel.Middleware("get tenants request")), contexts.GinWrap(hs.addTenant))
+			requiredTenant.Any("/v1/g/*gateway", hs.WrapGateway(hs.gateway), otel.Middleware("grpc gateway request"))
+			requiredTenant.Post("/auth/keys", hs.AddAPIKey, otel.Middleware("generate api key request"), authService.RoleCheck(model.ROLE_ADMIN))
+			requiredTenant.Delete("/auth/keys/:id", hs.DeleteAPIKey, otel.Middleware("delete api keys request"), authService.RoleCheck(model.ROLE_ADMIN))
+		}
+		tenant := g.Group("/v1/tenants", otel.Middleware("tenant request"))
+		{
+			tenant.Get("", hs.getTenants, otel.Middleware("add tenant request"), authService.RoleCheck(model.ROLE_VIEWER))
+			tenant.Post("", hs.addTenant, otel.Middleware("get tenants request"), authService.RoleCheck(model.ROLE_ADMIN))
 		}
 	}
-	r.NoRoute(contexts.GinWrap(authService.NotRequired), contexts.GinWrap(hs.NoRoute))
+	r.NoRoute(hs.Index, authService.NotRequired)
 	hs.handler = r
-}
-
-func (s *HTTPServer) NoRoute(c *contexts.Context) error {
-	loginUser := &model.LoginUser{}
-	if c.IsSignedIn {
-		*loginUser = *c.LoginUser
-	}
-	if !loginUser.Valid() || !loginUser.IsVerify() {
-		loginUser = &model.LoginUser{}
-		c.IsSignedIn = false
-	}
-	currentUser := dtos.CurrentUser{
-		ID:         loginUser.ID,
-		UseName:    loginUser.UseName,
-		Email:      loginUser.Email,
-		Role:       loginUser.Role,
-		Groups:     loginUser.Groups,
-		IsSignedIn: c.IsSignedIn,
-	}
-	c.HTML(http.StatusOK, "index.html", gin.H{
-		"BaseURL": s.Cfg.RootURL.String(),
-		"SubPath": s.Cfg.SubPath,
-		"User":    currentUser,
-	})
-	return nil
 }
 
 func (s *HTTPServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -122,7 +103,6 @@ func (hs *HTTPServer) ValidateRedirectTo(redirectTo string) error {
 		return ErrForbiddenRedirectTo
 	}
 
-	// path should have exactly one leading slash
 	if !strings.HasPrefix(to.Path, "/") {
 		return ErrForbiddenRedirectTo
 	}
@@ -130,8 +110,6 @@ func (hs *HTTPServer) ValidateRedirectTo(redirectTo string) error {
 		return ErrForbiddenRedirectTo
 	}
 
-	// when using a subUrl, the redirect_to should start with the subUrl (which contains the leading slash), otherwise the redirect
-	// will send the user to the wrong location
 	rootURL := hs.Cfg.RootURL.String()
 	if rootURL != "" && !strings.HasPrefix(to.Path, rootURL+"/") {
 		return ErrInvalidRedirectTo

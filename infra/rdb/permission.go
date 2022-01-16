@@ -13,6 +13,7 @@ import (
 func (f *SQLStore) addPermissionBus() {
 	bus.AddHandler("sql", f.GetPermissionQuery)
 	bus.AddHandler("sql", f.GetPermissionByIDQuery)
+	bus.AddHandler("sq;", f.GetPermissionByIDsQuery)
 	bus.AddHandler("sql", f.GetPermissionByNameQuery)
 	bus.AddHandler("sql", f.CountPermissionByNameQuery)
 
@@ -23,7 +24,7 @@ func (f *SQLStore) addPermissionBus() {
 }
 
 func (f *SQLStore) GetPermissionQuery(ctx context.Context, query *model.GetPermissionQuery) error {
-	return f.DbSessionWithTenant(ctx, func(sess *DBSession, tenant string) error {
+	return f.DbSessionWithTenant(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		var permissions []entity.Permission
 		where := entity.Permission{
 			Model: entity.Model{
@@ -35,7 +36,7 @@ func (f *SQLStore) GetPermissionQuery(ctx context.Context, query *model.GetPermi
 			return driver.NewDBErr(sess.DB, err)
 		}
 		if len(permissions) == 0 {
-			return model.ErrNoData
+			return model.ErrNoDataFound
 		}
 		query.Result = make([]model.Permission, 0, len(permissions))
 		for _, permission := range permissions {
@@ -58,7 +59,7 @@ func (f *SQLStore) GetPermissionByIDQuery(ctx context.Context, query *model.GetP
 }
 
 func (f *SQLStore) GetPermissionByIDsQuery(ctx context.Context, query *model.GetPermissionByIDsQuery) error {
-	return f.DbSessionWithTenant(ctx, func(sess *DBSession, tenant string) error {
+	return f.DbSessionWithTenant(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		var permissions []entity.Permission
 		ids := make([]string, 0, len(query.Query))
 		for _, q := range query.Query {
@@ -77,7 +78,7 @@ func (f *SQLStore) GetPermissionByIDsQuery(ctx context.Context, query *model.Get
 }
 
 func (f *SQLStore) GetPermissionByNameQuery(ctx context.Context, query *model.GetPermissionByNameQuery) error {
-	return f.DbSessionWithTenant(ctx, func(sess *DBSession, tenant string) error {
+	return f.DbSessionWithTenant(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		var permission entity.Permission
 
 		where := entity.Permission{
@@ -95,7 +96,7 @@ func (f *SQLStore) GetPermissionByNameQuery(ctx context.Context, query *model.Ge
 }
 
 func (f *SQLStore) CountPermissionByNameQuery(ctx context.Context, query *model.CountPermissionByNameQuery) error {
-	return f.DbSessionWithTenant(ctx, func(sess *DBSession, tenant string) error {
+	return f.DbSessionWithTenant(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		var count int64
 
 		whereObjs := make([]string, 0, len(query.Name))
@@ -123,7 +124,7 @@ func (f *SQLStore) AddPermissionCommand(ctx context.Context, cmd *model.AddPermi
 }
 
 func (f *SQLStore) AddPermissionCommands(ctx context.Context, cmd *model.AddPermissionCommands) error {
-	return f.inTransactionWithToken(ctx, func(sess *DBSession, tenant string) error {
+	return f.inTransactionWithToken(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		entities := make([]entity.Permission, 0, len(cmd.AddPermissions))
 		for _, c := range cmd.AddPermissions {
 			p := entity.Permission{
@@ -152,7 +153,7 @@ func (f *SQLStore) AddPermissionCommands(ctx context.Context, cmd *model.AddPerm
 }
 
 func (f *SQLStore) UpdatePermissionCommand(ctx context.Context, cmd *model.UpdatePermissionCommand) error {
-	return f.inTransactionWithToken(ctx, func(sess *DBSession, tenant string) error {
+	return f.inTransactionWithToken(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		value := entity.Permission{
 			Name:        cmd.Name.String(),
 			Description: cmd.Description,
@@ -168,7 +169,7 @@ func (f *SQLStore) UpdatePermissionCommand(ctx context.Context, cmd *model.Updat
 }
 
 func (f *SQLStore) DeletePermissionCommand(ctx context.Context, cmd *model.DeletePermissionCommand) error {
-	return f.inTransactionWithToken(ctx, func(sess *DBSession, tenant string) error {
+	return f.inTransactionWithToken(ctx, func(ctx context.Context, sess *DBSession, tenant string) error {
 		where := entity.Permission{
 			Model: entity.Model{
 				ID:     plugins.ID(cmd.ID.String()),
@@ -177,12 +178,14 @@ func (f *SQLStore) DeletePermissionCommand(ctx context.Context, cmd *model.Delet
 		}
 		db := sess.Where(&where).Delete(&entity.Permission{})
 		if db.RowsAffected == 0 {
-			return model.ErrNoData
+			return model.ErrNoDataFound
 		}
 		if err := driver.NewDBErr(sess.DB, sess.Error); err != nil {
 			return err
 		}
-		sess.events = append(sess.events, &cmd)
+		if err := bus.PublishCtx(ctx, &cmd); err != nil {
+			return err
+		}
 		return nil
 	})
 }

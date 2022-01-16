@@ -12,9 +12,6 @@
       "name": "Organization"
     },
     {
-      "name": "Role"
-    },
-    {
       "name": "User"
     }
   ],
@@ -25,387 +22,6 @@
     "application/json"
   ],
   "paths": {
-    "/api/v1/organization/{organizationId}/roles": {
-      "get": {
-        "summary": "FindAll is find roles",
-        "operationId": "Role_FindAll",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/rbnsroleEntities"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "organizationId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Role"
-        ]
-      },
-      "post": {
-        "summary": "RoleCreate is create role",
-        "operationId": "Role_Create",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/rbnsroleEntities"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "organizationId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "roles": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/rbnsroleEntity"
-                  }
-                }
-              }
-            }
-          }
-        ],
-        "tags": [
-          "Role"
-        ]
-      }
-    },
-    "/api/v1/organization/{organizationId}/roles/{id}": {
-      "get": {
-        "summary": "FindById is find by id",
-        "operationId": "Role_FindById",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/rbnsroleEntity"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "organizationId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Role"
-        ]
-      },
-      "delete": {
-        "summary": "Delete is role entity delete",
-        "operationId": "Role_Delete",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "properties": {}
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "organizationId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Role"
-        ]
-      },
-      "put": {
-        "summary": "Update is role entity update",
-        "operationId": "Role_Update",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "properties": {}
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "organizationId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string"
-                },
-                "description": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        ],
-        "tags": [
-          "Role"
-        ]
-      }
-    },
-    "/api/v1/organization/{organizationId}/roles/{id}/permissions": {
-      "get": {
-        "summary": "GetPermissions is get permission to the role",
-        "operationId": "Role_GetPermissions",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/rbnspermissionEntities"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "organizationId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Role"
-        ]
-      },
-      "delete": {
-        "summary": "DeletePermissions is delete permission to the role",
-        "operationId": "Role_DeletePermissions",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "properties": {}
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "organizationId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "permissions": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/rbnspermissionKey"
-                  }
-                }
-              }
-            }
-          }
-        ],
-        "tags": [
-          "Role"
-        ]
-      },
-      "put": {
-        "summary": "AddPermissions is add permission to the role",
-        "operationId": "Role_AddPermissions",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "properties": {}
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "organizationId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "permissions": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/rbnspermissionKey"
-                  }
-                }
-              }
-            }
-          }
-        ],
-        "tags": [
-          "Role"
-        ]
-      }
-    },
-    "/api/v1/organization/{organizationId}/roles/{id}/permissions/{permissionId}": {
-      "delete": {
-        "summary": "DeletePermission is delete permission to the role",
-        "operationId": "Role_DeletePermission",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "properties": {}
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "organizationId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "permissionId",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Role"
-        ]
-      }
-    },
     "/api/v1/organizations": {
       "get": {
         "summary": "FindAll is application is return organizations",
@@ -610,7 +226,7 @@
     },
     "/api/v1/organizations/{id}/users/{userId}": {
       "delete": {
-        "operationId": "Organization_deleteUser",
+        "operationId": "Organization_DeleteUser",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -634,6 +250,387 @@
           },
           {
             "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Organization"
+        ]
+      }
+    },
+    "/api/v1/organizations/{organizationId}/roles": {
+      "get": {
+        "summary": "FindAllRole is find roles",
+        "operationId": "Organization_FindAllRole",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rbnsroleEntities"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Organization"
+        ]
+      },
+      "post": {
+        "summary": "CreateRole is create role",
+        "operationId": "Organization_CreateRole",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rbnsroleEntities"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "roles": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/rbnsroleEntity"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Organization"
+        ]
+      }
+    },
+    "/api/v1/organizations/{organizationId}/roles/{id}": {
+      "get": {
+        "summary": "FindByIdRole is find by id",
+        "operationId": "Organization_FindByIdRole",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rbnsroleEntity"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Organization"
+        ]
+      },
+      "delete": {
+        "summary": "DeleteRole is role entity delete",
+        "operationId": "Organization_DeleteRole",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Organization"
+        ]
+      },
+      "put": {
+        "summary": "UpdateRole is role entity update",
+        "operationId": "Organization_UpdateRole",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Organization"
+        ]
+      }
+    },
+    "/api/v1/organizations/{organizationId}/roles/{id}/permissions": {
+      "get": {
+        "summary": "GetRolePermissions is get permission to the role",
+        "operationId": "Organization_GetRolePermissions",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rbnspermissionEntities"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Organization"
+        ]
+      },
+      "delete": {
+        "summary": "DeleteRolePermissions is delete permission to the role",
+        "operationId": "Organization_DeleteRolePermissions",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "permissions": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/rbnspermissionKey"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Organization"
+        ]
+      },
+      "put": {
+        "summary": "AddPermissions is add permission to the role",
+        "operationId": "Organization_AddRolePermissions",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "permissions": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/rbnspermissionKey"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Organization"
+        ]
+      }
+    },
+    "/api/v1/organizations/{organizationId}/roles/{id}/permissions/{permissionId}": {
+      "delete": {
+        "summary": "DeleteRolePermission is delete permission to the role",
+        "operationId": "Organization_DeleteRolePermission",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "permissionId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -690,39 +687,6 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/rbnspermissionEntities"
-            }
-          }
-        ],
-        "tags": [
-          "Permission"
-        ]
-      }
-    },
-    "/api/v1/permissions/check": {
-      "post": {
-        "summary": "Check is resource check",
-        "operationId": "Permission_Check",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/rbnspermissionCheckResult"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/rbnspermissionCheckRequest"
             }
           }
         ],
@@ -861,6 +825,38 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/rbnsuserCreateKey"
+            }
+          }
+        ],
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/api/v1/users/files": {
+      "post": {
+        "operationId": "User_Uploader",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rbnsUserUploader"
             }
           }
         ],
@@ -1084,6 +1080,20 @@
     }
   },
   "definitions": {
+    "FileTypeFileOption": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -1093,6 +1103,35 @@
         "value": {
           "type": "string",
           "format": "byte"
+        }
+      }
+    },
+    "rbnsFileType": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "string",
+          "format": "int64"
+        },
+        "option": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FileTypeFileOption"
+          }
+        }
+      }
+    },
+    "rbnsUserUploader": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "string"
+        },
+        "fileType": {
+          "$ref": "#/definitions/rbnsFileType"
         }
       }
     },
@@ -1124,34 +1163,6 @@
           "items": {
             "$ref": "#/definitions/rbnsuserEntity"
           }
-        }
-      }
-    },
-    "rbnspermissionCheckRequest": {
-      "type": "object",
-      "properties": {
-        "userKey": {
-          "type": "string"
-        },
-        "organizationName": {
-          "type": "string"
-        },
-        "permissionNames": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "rbnspermissionCheckResult": {
-      "type": "object",
-      "properties": {
-        "result": {
-          "type": "boolean"
-        },
-        "message": {
-          "type": "string"
         }
       }
     },

@@ -11,8 +11,6 @@ type Permission struct {
 	Name        string `gorm:"type:varchar(256);uniqueIndex"`
 	Description string `gorm:"type:varchar(256)"`
 	Roles       []Role `gorm:"many2many:role_permissions;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-
-	Tenants []Tenant `gorm:"many2many:tenant_permissions;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 func (Permission) IndexName(table, column string) string {

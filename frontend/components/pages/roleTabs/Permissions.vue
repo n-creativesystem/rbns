@@ -15,7 +15,7 @@
       ></dialog-permissions>
       <n-data-table
         :headers="headers"
-        :items="loading ? [] : items"
+        :items="items"
         actions
         delete-action
         @delete="onDelete"
@@ -34,17 +34,18 @@
       return {
         dialog: false,
         selection: [],
-        items: [],
       }
     },
     props: {
       id: String,
+      organizationId: String,
     },
     methods: {
       getData() {
-        this.get(`${this.$urls.api.v1.roles}/${this.id}/permissions`)
-          .then((result) => {
-            this.items = result.data.permissions
+        this.$store
+          .dispatch('roles/findPermissions', {
+            organizationId: this.organizationId,
+            roleId: this.id,
           })
           .catch((err) => {
             console.log(err)
@@ -53,12 +54,15 @@
       onDialogClick(items) {
         const permissions = items.map((select) => {
           return {
-            Id: select.id,
+            id: select.id,
           }
         })
-        this.put(`${this.$urls.api.v1.roles}/${this.id}/permissions`, {
-          permissions: permissions,
-        })
+        this.$store
+          .dispatch('roles/putRolePermissions', {
+            organizationId: this.organizationId,
+            roleId: this.id,
+            permissions: permissions,
+          })
           .then(() => {
             this.getData()
           })
@@ -67,9 +71,12 @@
           })
       },
       onDelete(item) {
-        this.delete(
-          `${this.$urls.api.v1.roles}/${this.id}/permissions/${item.id}`
-        )
+        this.$store
+          .dispatch('roles/removeRolePermissions', {
+            organizationId: this.organizationId,
+            roleId: this.id,
+            permissionId: item.id,
+          })
           .then(() => {
             this.getData()
           })
@@ -100,6 +107,9 @@
             align: 'start',
           },
         ]
+      },
+      items() {
+        return this.$store.getters['roles/listPermissions']
       },
     },
     watch: {

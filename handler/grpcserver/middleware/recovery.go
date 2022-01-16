@@ -1,9 +1,10 @@
 package middleware
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/n-creativesystem/rbns/logger"
+	"github.com/n-creativesystem/rbns/ncsfw/logger"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -32,9 +33,9 @@ var ErrAuthStatus = status.Error(invalid, "invalid api key")
 // 	return grpc_auth.UnaryServerInterceptor(apiKeyCheck())
 // }
 
-func RecoveryFunc() func(p interface{}) error {
-	return func(p interface{}) error {
-		logger.Error(p.(error), fmt.Sprintf("p: %+v\n", p))
+func RecoveryFunc() func(ctx context.Context, p interface{}) (err error) {
+	return func(ctx context.Context, p interface{}) (err error) {
+		logger.ErrorWithContext(ctx, p.(error), fmt.Sprintf("p: %+v\n", p))
 		return status.Errorf(codes.Internal, "Unexpected error")
 	}
 }

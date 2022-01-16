@@ -27,6 +27,7 @@ protoc: protoc/dev
 	@protoc -I./protobuf \
 		--go-grpc_out=./protobuf \
 		--go-grpc_opt=paths=source_relative \
+		--go-grpc_opt=require_unimplemented_servers=false \
 		--go_out=./protobuf \
 		--go_opt=paths=source_relative \
 		--validate_out="lang=go:." \

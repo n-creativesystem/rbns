@@ -1,80 +1,50 @@
 package middleware
 
-// type ApiKey interface {
-// 	UnaryServerInterceptor() grpc.UnaryServerInterceptor
-// 	StreamServerInterceptor() grpc.StreamServerInterceptor
-// }
+import (
+	"context"
 
-// func NewApiKey(svc service.ApiKey) ApiKey {
-// 	return &apiKey{
-// 		svc: svc,
-// 	}
-// }
+	"github.com/grpc-ecosystem/go-grpc-middleware/util/metautils"
+	"github.com/n-creativesystem/rbns/handler/metadata"
+	"github.com/n-creativesystem/rbns/service"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+)
 
-// type apiKey struct {
-// 	err error
-// }
+type ApiKey interface {
+	UnaryServerInterceptor() grpc.UnaryServerInterceptor
+	StreamServerInterceptor() grpc.StreamServerInterceptor
+}
 
-// func (api *apiKey) UnaryServerInterceptor() grpc.UnaryServerInterceptor {
-// 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-// 		switch {
-// 		case api.authorization(ctx):
-// 		}
-// 		if api.err != nil {
-// 			err = status.Error(codes.Unauthenticated, api.err.Error())
-// 			return
-// 		}
-// 		return handler(ctx, req)
-// 	}
-// }
+type ApiKeyImpl struct {
+	apiKeyService service.APIKey
+}
 
-// func (api *apiKey) StreamServerInterceptor() grpc.StreamServerInterceptor {
-// 	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-// 		ctx := ss.Context()
-// 		switch {
-// 		case api.authorization(ctx):
-// 		}
-// 		if api.err != nil {
-// 			return status.Error(codes.Unauthenticated, api.err.Error())
-// 		}
-// 		return handler(srv, ss)
-// 	}
-// }
+func (a *ApiKeyImpl) UnaryServerInterceptor() grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+		apikey := metautils.ExtractIncoming(ctx).Get(metadata.XApiKey)
+		loginUser, authErr := a.apiKeyService.Decode(ctx, apikey)
+		if authErr != nil {
+			return nil, status.Error(codes.Unauthenticated, authErr.Message)
+		}
+		service.SetCurrentUser(ctx, loginUser)
+		return handler(ctx, req)
+	}
+}
 
-// const headerAuthorize = "authorization"
-
-// func (api *apiKey) authorization(ctx context.Context) bool {
-// 	val := metautils.ExtractIncoming(ctx).Get(headerAuthorize)
-// 	if val == "" {
-// 		return false
-// 	}
-// 	parts := strings.SplitN(val, " ", 2)
-// 	var keyString string
-// 	if len(parts) == 2 && parts[0] == "Bearer" {
-// 		keyString = parts[1]
-// 	} else {
-// 		username, password, err := utils.DecodeBasicAuthHeader(val)
-// 		if err == nil && username == "api_key" {
-// 			keyString = password
-// 		}
-// 	}
-// 	if keyString == "" {
-// 		return false
-// 	}
-// 	apiKeyGen, err := model.DecodeApiKey(keyString)
-// 	if err != nil {
-// 		api.err = err
-// 		return true
-// 	}
-// 	key, err := api.svc.Check(ctx, apiKeyGen.Name)
-// 	if err != nil {
-// 		api.err = err
-// 		return true
-// 	}
-// 	ok, err := apiKeyGen.IsValid(key)
-// 	if err != nil {
-// 		api.err = err
-// 		return true
-// 	}
-// 	return ok
-// }
+func (a *ApiKeyImpl) StreamServerInterceptor() grpc.StreamServerInterceptor {
+	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		ctx := ss.Context()
+		apikey := metautils.ExtractIncoming(ctx).Get(metadata.XApiKey)
+		loginUser, authErr := a.apiKeyService.Decode(ctx, apikey)
+		if authErr != nil {
+			return status.Error(codes.Unauthenticated, authErr.Message)
+		}
+		ctx = service.SetCurrentUser(ctx, loginUser)
+		ss = &baseSeverStream{
+			ServerStream: ss,
+			ctx:          ctx,
+		}
+		return handler(srv, ss)
+	}
+}

@@ -4,12 +4,14 @@ import Urls from './urls'
 import i18n from './i18n'
 import './utils'
 import LoginMixin from './login'
+import rbns from './rbns'
 
 const plugins = [
   Axios,
   Components,
   Urls,
-  i18n
+  i18n,
+  rbns
 ]
 
 export default {

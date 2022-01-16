@@ -3,7 +3,7 @@ package plugins
 import (
 	"context"
 
-	"github.com/n-creativesystem/rbns/internal/contexts"
+	"github.com/n-creativesystem/rbns/ncsfw/tenants"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -13,7 +13,7 @@ type Tenant string
 func (t Tenant) GormValue(ctx context.Context, db *gorm.DB) clause.Expr {
 	value := string(t)
 	if value == "" {
-		value = contexts.FromTenantContext(ctx)
+		value = tenants.FromTenantContext(ctx)
 	}
 	return clause.Expr{
 		SQL:  "?",

@@ -12,6 +12,7 @@ export default {
   close: '閉じる',
   save: '保存',
   permission: {
+    name: "権限",
     dialog: {
       title: '権限の選択',
       add: '権限の追加'
@@ -32,6 +33,7 @@ export default {
     }
   },
   role: {
+    name: 'ロール',
     dialog: {
       title: 'ロールの選択',
       add: 'ロールの追加',
@@ -50,7 +52,7 @@ export default {
     },
     form: {
       title: 'ロールの一覧',
-      caption: 'ユーザーが使用するロールです。',
+      caption: '組織のユーザーが使用するロールです。',
       add: 'ロールの作成'
     },
     info: {
@@ -61,6 +63,7 @@ export default {
     }
   },
   organization: {
+    name: '組織',
     tabs: {
       settings: '設定',
       users: 'ユーザー'
@@ -93,6 +96,7 @@ export default {
     }
   },
   user: {
+    name: 'ユーザー',
     tabs: {
       roles: 'ロール'
     },
@@ -142,13 +146,21 @@ export default {
   inputs: {
     Name: '名称',
     Description: '記述',
-    Add: '追加'
+    Add: '追加',
+    download: 'ダウンロード',
+    upload: 'アップロード'
   },
   menu: {
     permission: '権限の定義',
     role: 'ロールの定義',
     organization: '組織の定義',
-    resource: 'リソースの定義',
+    users: 'ユーザーの定義',
     logout: 'ログアウト'
   },
+  tenant: {
+    name: 'テナント',
+    title: 'テナントの作成',
+    caption: '組織やユーザーなどが所属するテナントの作成をします。',
+    possibleCharactersValidate: `使用可能文字は半角英数字(大文字小文字) 記号は .(ピリオド) と -(ハイフン) のみです。`
+  }
 }

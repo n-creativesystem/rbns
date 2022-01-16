@@ -36,7 +36,7 @@ func NewDBErr(err error) error {
 		}
 	}
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return model.ErrNoData
+		return model.ErrNoDataFound
 	}
 	return model.NewErrorStatus(uint32(codes.Internal), err.Error())
 }

@@ -8,23 +8,24 @@ import (
 )
 
 type Tenant struct {
-	ID        plugins.ID `gorm:"type:varchar(256);primaryKey"`
-	Name      string     `gorm:"not null;uniqueIndex"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID          plugins.ID `gorm:"type:varchar(256);primaryKey"`
+	Name        string     `gorm:"not null;uniqueIndex"`
+	Description string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 
 	// Permissions 権限
-	Permissions []Permission `gorm:"many2many:tenant_permissions;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Permissions []Permission `gorm:"references:ID;foreignKey:Tenant;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	// Roles ロール
-	Roles []Role `gorm:"many2many:tenant_roles;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Roles []Role `gorm:"references:ID;foreignKey:Tenant;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	// Organizations 組織
-	Organizations []Organization `gorm:"many2many:tenant_organizations;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Organizations []Organization `gorm:"references:ID;foreignKey:Tenant;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	// Users ユーザー
-	Users []User `gorm:"many2many:tenant_users;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Users []User `gorm:"references:ID;foreignKey:Tenant;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	// LoginUsers ログイン可能ユーザー
 	LoginUsers []LoginUser `gorm:"many2many:tenant_login_users;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	// ApiKeys  api key
-	ApiKeys []ApiKey `gorm:"many2many:tenant_api_keys;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	ApiKeys []ApiKey `gorm:"references:ID;foreignKey:Tenant;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 func (Tenant) IndexName(table, column string) string {

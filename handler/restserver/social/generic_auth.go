@@ -125,7 +125,8 @@ func (s *SocialGenericOAuth) UserInfo(client *http.Client, token *oauth2.Token) 
 		userInfo.Login = userInfo.Email
 	}
 
-	if s.roleAttributeStrict && !model.RoleType(userInfo.Role).Valid() {
+	_, err := model.String2RoleLevel(userInfo.Role)
+	if s.roleAttributeStrict && err != nil {
 		return nil, errors.New("invalid role")
 	}
 

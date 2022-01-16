@@ -10,9 +10,9 @@ import (
 	"github.com/n-creativesystem/rbns/config"
 	"github.com/n-creativesystem/rbns/handler/gateway"
 	"github.com/n-creativesystem/rbns/handler/grpcserver"
-	middleware2 "github.com/n-creativesystem/rbns/handler/grpcserver/middleware"
+	"github.com/n-creativesystem/rbns/handler/grpcserver/middleware"
 	"github.com/n-creativesystem/rbns/handler/restserver"
-	"github.com/n-creativesystem/rbns/handler/restserver/middleware"
+	"github.com/n-creativesystem/rbns/handler/restserver/middleware/auth"
 	"github.com/n-creativesystem/rbns/handler/restserver/social"
 	"github.com/n-creativesystem/rbns/infra"
 	"github.com/n-creativesystem/rbns/service"
@@ -32,7 +32,7 @@ func initializeRun(flags *pflag.FlagSet) (*servers, error) {
 		return nil, err
 	}
 	socialService := social.ProvideService(configConfig)
-	authMiddleware := middleware.NewAuthMiddleware(configConfig, socialService)
+	authMiddleware := auth.NewAuthMiddleware(configConfig, socialService)
 	busBus := bus.GetBus()
 	factorySet, err := infra.NewFactory(configConfig, busBus)
 	if err != nil {
@@ -40,24 +40,24 @@ func initializeRun(flags *pflag.FlagSet) (*servers, error) {
 	}
 	v := storage.NewKeyPairs(configConfig)
 	store := storage.NewSessionStore(factorySet, v)
+	tenantImpl := service.NewTenantImpl()
 	factory, err := storage.Initialize(factorySet)
 	if err != nil {
 		return nil, err
 	}
-	server, err := restserver.New(grpcGateway, configConfig, authMiddleware, store, socialService, factory)
+	server, err := restserver.New(grpcGateway, configConfig, authMiddleware, store, socialService, tenantImpl, factory)
 	if err != nil {
 		return nil, err
 	}
-	permissionService := service.NewPermissionService()
-	permissionServer := grpcserver.NewPermissionServer(permissionService)
-	userService := service.NewUserService()
-	organizationService := service.NewOrganizationService(userService)
-	organizationAggregation := service.NewOrganizationAggregation(permissionService, organizationService, userService)
-	roleServer := grpcserver.NewRoleServer(organizationAggregation)
-	organizationServer := grpcserver.NewOrganizationService(organizationService, organizationAggregation)
-	userServer := grpcserver.NewUserServer(userService, organizationAggregation)
-	tenant := middleware2.NewTenantMiddleware(configConfig)
-	grpcServer := grpcserver.New(permissionServer, roleServer, organizationServer, userServer, tenant)
+	permissionImpl := service.NewPermissionService()
+	permissionServer := grpcserver.NewPermissionServer(permissionImpl)
+	userImpl := service.NewUserService()
+	organizationImpl := service.NewOrganizationService(userImpl)
+	organizationAggregationImpl := service.NewOrganizationAggregation(permissionImpl, organizationImpl, userImpl)
+	organizationServer := grpcserver.NewOrganizationService(organizationImpl, organizationAggregationImpl)
+	userServer := grpcserver.NewUserServer(userImpl, organizationAggregationImpl)
+	tenant := middleware.NewTenantMiddleware(configConfig)
+	grpcServer := grpcserver.New(permissionServer, organizationServer, userServer, tenant)
 	cmdServers := newServer(server, grpcServer, configConfig)
 	return cmdServers, nil
 }

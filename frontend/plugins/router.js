@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import { IsLogin } from './login'
+import { IsLogin, IsTenant } from './login'
 
 Vue.use(Router)
 
@@ -34,7 +34,7 @@ const router = new Router({
               },
             },
             {
-              path: ':id',
+              path: ':orgId/:id',
               name: 'roleId',
               component: () => import('@page/Role'),
               meta: {
@@ -84,6 +84,28 @@ const router = new Router({
             },
           ]
         },
+        {
+          path: 'users',
+          component: () => import('@page/Parent'),
+          children: [
+            {
+              path: '/',
+              name: 'users',
+              component: () => import('@page/User')
+            },
+          ]
+        },
+        {
+          path: 'tenants',
+          component: () => import('@page/Parent'),
+          children: [
+            {
+              path: '/',
+              name: 'tenants',
+              component: () => import('@page/Tenant')
+            },
+          ]
+        }
         // {
         //   path: 'resources',
         //   component: () => import('@page/Parent'),
@@ -120,7 +142,13 @@ const router = new Router({
 router.beforeEach((to, from, next) => {
   if (to.meta && to.meta.auth) {
     if (IsLogin) {
-      next()
+      if (IsTenant) {
+        next()
+        return
+      }
+      next({
+        name: 'tenants'
+      })
     } else {
       next({
         name: 'login', query: {

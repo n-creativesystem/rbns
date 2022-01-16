@@ -9,8 +9,6 @@ type User struct {
 	Name          string         `gorm:"uniqueIndex"`
 	Organizations []Organization `gorm:"many2many:organization_users;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Roles         []Role         `gorm:"many2many:role_users;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
-
-	Tenants []Tenant `gorm:"many2many:tenant_users;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 func (u *User) ConvertModel() *model.User {

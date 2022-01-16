@@ -9,13 +9,6 @@ import "envoyproxy/protoc-gen-validate/validate/validate.proto";
 option go_package = "./protobuf";
 
 service Permission {
-    // Check is resource check
-    rpc Check (permissionCheckRequest) returns (permissionCheckResult) {
-        option (google.api.http) = {
-            post: "/api/v1/permissions/check"
-            body: "*"
-        };
-    }
     // FindById is find by id
     rpc FindById (permissionKey) returns (permissionEntity) {
         option (google.api.http) = {
@@ -79,9 +72,69 @@ service Organization {
         };
     }
 
-    rpc deleteUser (deleteOrganizationUser) returns (google.protobuf.Empty) {
+    rpc DeleteUser (deleteOrganizationUser) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             delete: "/api/v1/organizations/{id}/users/{userId}"
+        };
+    }
+
+    // DeleteRolePermission is delete permission to the role
+    rpc DeleteRolePermission (roleReleationPermission) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/api/v1/organizations/{organizationId}/roles/{id}/permissions/{permissionId}"
+        };
+    }
+    // GetRolePermissions is get permission to the role
+    rpc GetRolePermissions (roleKey) returns (permissionEntities) {
+        option (google.api.http) = {
+            get: "/api/v1/organizations/{organizationId}/roles/{id}/permissions"
+        };
+    }
+    // AddPermissions is add permission to the role
+    rpc AddRolePermissions (roleReleationPermissions) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/api/v1/organizations/{organizationId}/roles/{id}/permissions"
+            body: "*"
+        };
+    }
+    // DeleteRolePermissions is delete permission to the role
+    rpc DeleteRolePermissions (roleReleationPermissions) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/api/v1/organizations/{organizationId}/roles/{id}/permissions"
+            body: "*"
+        };
+    }
+
+    // FindByIdRole is find by id
+    rpc FindByIdRole (roleKey) returns (roleEntity) {
+        option (google.api.http) = {
+            get: "/api/v1/organizations/{organizationId}/roles/{id}"
+        };
+    }
+    // UpdateRole is role entity update
+    rpc UpdateRole (roleUpdateEntity) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/api/v1/organizations/{organizationId}/roles/{id}"
+            body: "*"
+        };
+    }
+    // DeleteRole is role entity delete
+    rpc DeleteRole (roleKey) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/api/v1/organizations/{organizationId}/roles/{id}"
+        };
+    }
+    // CreateRole is create role
+    rpc CreateRole (roleEntities) returns (roleEntities) {
+        option (google.api.http) = {
+            post: "/api/v1/organizations/{organizationId}/roles"
+            body: "*"
+        };
+    }
+    // FindAllRole is find roles
+    rpc FindAllRole (roleFindAll) returns (roleEntities) {
+        option (google.api.http) = {
+            get: "/api/v1/organizations/{organizationId}/roles"
         };
     }
 
@@ -96,69 +149,6 @@ service Organization {
     rpc FindAll (google.protobuf.Empty) returns (organizationEntities) {
         option (google.api.http) = {
             get: "/api/v1/organizations"
-        };
-    }
-
-}
-
-service Role {
-    // DeletePermission is delete permission to the role
-    rpc DeletePermission (roleReleationPermission) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            delete: "/api/v1/organization/{organizationId}/roles/{id}/permissions/{permissionId}"
-        };
-    }
-    // GetPermissions is get permission to the role
-    rpc GetPermissions (roleKey) returns (permissionEntities) {
-        option (google.api.http) = {
-            get: "/api/v1/organization/{organizationId}/roles/{id}/permissions"
-        };
-    }
-    // AddPermissions is add permission to the role
-    rpc AddPermissions (roleReleationPermissions) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            put: "/api/v1/organization/{organizationId}/roles/{id}/permissions"
-            body: "*"
-        };
-    }
-    // DeletePermissions is delete permission to the role
-    rpc DeletePermissions (roleReleationPermissions) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            delete: "/api/v1/organization/{organizationId}/roles/{id}/permissions"
-            body: "*"
-        };
-    }
-
-    // FindById is find by id
-    rpc FindById (roleKey) returns (roleEntity) {
-        option (google.api.http) = {
-            get: "/api/v1/organization/{organizationId}/roles/{id}"
-        };
-    }
-    // Update is role entity update
-    rpc Update (roleUpdateEntity) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            put: "/api/v1/organization/{organizationId}/roles/{id}"
-            body: "*"
-        };
-    }
-    // Delete is role entity delete
-    rpc Delete (roleKey) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            delete: "/api/v1/organization/{organizationId}/roles/{id}"
-        };
-    }
-    // RoleCreate is create role
-    rpc Create (roleEntities) returns (roleEntities) {
-        option (google.api.http) = {
-            post: "/api/v1/organization/{organizationId}/roles"
-            body: "*"
-        };
-    }
-    // FindAll is find roles
-    rpc FindAll (roleFindAll) returns (roleEntities) {
-        option (google.api.http) = {
-            get: "/api/v1/organization/{organizationId}/roles"
         };
     }
 }
@@ -206,6 +196,13 @@ service User {
     rpc Create (userCreateKey) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             post: "/api/v1/users"
+            body: "*"
+        };
+    }
+
+    rpc Uploader(UserUploader) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            post: "/api/v1/users/files"
             body: "*"
         };
     }
@@ -338,115 +335,22 @@ message deleteOrganizationUser {
     string userId = 2 [(validate.rules).string = {min_len: 1}];
 }
 
-// service Resource {
+message ChunkType {
+    bytes data = 1;
+}
 
-//     // DeletePermission is delete permission to the resource
-//     rpc DeletePermission (resourceReleationPermission) returns (google.protobuf.Empty) {
-//         option (google.api.http) = {
-//             delete: "/api/v1/resources/{id}/permissions/{permissionId}"
-//         };
-//     }
-//     // GetPermissions is get permission to the resource
-//     rpc GetPermissions (resourceKey) returns (permissionEntities) {
-//         option (google.api.http) = {
-//             get: "/api/v1/resources/{id}/permissions"
-//         };
-//     }
-//     // AddPermissions is add permission to the resource
-//     rpc AddPermissions (resourceReleationPermissions) returns (google.protobuf.Empty) {
-//         option (google.api.http) = {
-//             put: "/api/v1/resources/{id}/permissions"
-//             body: "*"
-//         };
-//     }
-//     // DeletePermissions is delete permission to the resource
-//     rpc DeletePermissions (resourceReleationPermissions) returns (google.protobuf.Empty) {
-//         option (google.api.http) = {
-//             delete: "/api/v1/resources/{id}/permissions"
-//             body: "*"
-//         };
-//     }
+message FileType {
+    string name = 1;
+    int64 size = 2;
+    message FileOption {
+        string key = 1;
+        repeated string values = 2;
+    }
+    repeated FileOption option = 3;
+}
 
-//     // Find is find resource
-//     rpc Find(resourceKey) returns (resourceResponse) {
-//         option (google.api.http) = {
-//             get: "/api/v1/resources/{id}"
-//         };
-//     }
 
-//     rpc Update (resourceSaveRequest) returns (google.protobuf.Empty) {
-//         option (google.api.http) = {
-//             put: "/api/v1/resources/{id}"
-//             body: "*"
-//         };
-//     }
-
-//     rpc Delete (resourceKey) returns (google.protobuf.Empty) {
-//         option (google.api.http) = {
-//             delete: "/api/v1/resources/{id}"
-//         };
-//     }
-
-//     rpc Exists (resourceKey) returns (resourceExistsResponse) {
-//         option (google.api.http) = {
-//             get: "/api/v1/resources/{id}/exists"
-//         };
-//     }
-
-//     rpc Create (resourceSaveRequest) returns (google.protobuf.Empty) {
-//         option (google.api.http) = {
-//             post: "/api/v1/resources"
-//             body: "*"
-//         };
-//     }
-
-//     rpc FindAll(google.protobuf.Empty) returns (resourceResponses) {
-//         option (google.api.http) = {
-//             get: "/api/v1/resources"
-//         };
-//     }
-
-//     // Migration 存在しない場合のみリソースを作成
-//     rpc Migration (resourceSaveRequest) returns (google.protobuf.Empty) {}
-// }
-
-// message resourceSaveRequest {
-//     string id = 1 [(validate.rules).string = {min_len: 1}];
-//     string description = 2;
-//     repeated string permissionNames = 3 [(validate.rules).repeated.min_items = 1];
-// }
-
-// message resourceKey {
-//     string id = 1 [(validate.rules).string = {min_len: 1}];
-// }
-
-// message resourceExistsResponse {
-//     bool isExists = 1;
-// }
-
-// message resourceResponse {
-//     string id = 1 [(validate.rules).string = {min_len: 1}];
-//     string description = 2;
-//     repeated permissionEntity permissions = 3;
-// }
-
-// message resourceResponses {
-//     repeated resourceResponse resources = 1;
-// }
-
-// message resourceReleationPermission {
-//     string id = 1;
-//     string permissionId = 2;
-// }
-
-// message resourceReleationPermissions {
-//     string id = 1;
-//     repeated permissionKey permissions = 2;
-// }
-
-// message authzRequest {
-//     string method = 1 [(validate.rules).string = {min_len: 1}];
-//     string uri = 2 [(validate.rules).string = {min_len: 1}];
-//     string organizationName = 3 [(validate.rules).string = {min_len: 1}];
-//     string userKey = 4 [(validate.rules).string = {min_len: 1}];
-// }
+message UserUploader {
+    string data = 1;
+    FileType fileType = 2;
+}

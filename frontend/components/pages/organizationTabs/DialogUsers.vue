@@ -30,7 +30,7 @@
         </div>
         <div class="col-12">
           <btn-tfn type="submit">
-            <v-icon>mdi-add</v-icon>
+            <v-icon>mdi-send</v-icon>
             {{ $t('save') }}
           </btn-tfn>
         </div>

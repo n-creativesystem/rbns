@@ -16,8 +16,24 @@
           >{{ $t('role.form.add') }}</btn-tfn
         >
       </template>
+      <template v-slot:content-header>
+        <div class="pt-10">
+          <v-row>
+            <v-col md="6" cols="12">
+              <v-select
+                :items="organizations"
+                item-text="name"
+                item-value="id"
+                v-model="organizationValue"
+                :label="$t('organization.name')"
+                @change="onChange"
+              ></v-select>
+            </v-col>
+          </v-row>
+        </div>
+      </template>
       <template v-slot:[`item.name`]="{ item }">
-        <router-link :to="`/roles/${item.id}`">
+        <router-link :to="`/roles/${organizationValue}/${item.id}`">
           {{ item.name }}
         </router-link>
       </template>
@@ -34,61 +50,72 @@
 </template>
 
 <script>
-  import axiosMixin from '@mixin/axios'
+  import loadingMixin from '@mixin/loading'
   export default {
     name: 'Roles',
-    mixins: [axiosMixin],
+    mixins: [loadingMixin],
     data() {
       return {
-        items: [],
         createDialog: false,
         name: '',
         description: '',
+        organizationValue: undefined,
       }
     },
     created() {
-      this.getData()
+      const lodingCounter = this.onloading()
+      this.$store.commit('roles/setRoles', [])
+      this.$store
+        .dispatch('organizations/findAll')
+        .then(() => {
+          if (this.organizations.length == 1) {
+            this.organizationValue = this.organizations[0].id
+            this.onChange()
+          }
+        })
+        .finally(() => this.unloading(lodingCounter))
     },
     methods: {
-      getData() {
-        this.items = []
-        this.get(this.$urls.api.v1.roles)
-          .then((result) => {
-            if (result.status == 200) {
-              if (result.data.roles) {
-                this.items = result.data.roles
-              }
-            }
-          })
-          .catch((err) => {
-            console.log(err)
-          })
-      },
       onCreateClick(e) {
         this.createDialog = false
-        this.post(this.$urls.api.v1.roles, {
-          roles: [
-            {
-              name: e.name,
-              description: e.description,
-            },
-          ],
-        })
+        const counter = this.onloading()
+        this.$store
+          .dispatch('roles/add', {
+            organizationId: this.organizationValue,
+            roles: [
+              {
+                name: e.name,
+                description: e.description,
+              },
+            ],
+          })
           .then(() => {
-            return this.getData()
+            this.onChange()
           })
           .catch((err) => {
             console.log(err)
           })
+          .finally(() => this.unloading(counter))
       },
       onDelete(item) {
-        this.delete(`${this.$urls.api.v1.roles}/${item.id}`)
+        const counter = this.onloading()
+        this.$store
+          .dispatch('roles/remove', {
+            organizationId: this.organizationValue,
+            roleId: item.id,
+          })
           .then(() => {
-            return this.getData()
+            this.onChange()
           })
           .catch((err) => {
             console.log(err)
           })
+          .finally(() => this.unloading(counter))
+      },
+      onChange() {
+        this.$store.dispatch('roles/findAll', {
+          organizationId: this.organizationValue,
+        })
       },
     },
     computed: {
@@ -105,6 +132,12 @@
             value: 'description',
           },
         ]
+      },
+      organizations() {
+        return this.$store.getters['organizations/list']
+      },
+      items() {
+        return this.$store.getters['roles/list']
       },
     },
   }

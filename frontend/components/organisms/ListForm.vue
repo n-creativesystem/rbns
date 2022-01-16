@@ -11,6 +11,7 @@
       </title-and-caption>
     </template>
     <template v-slot:content>
+      <slot name="content-header"></slot>
       <n-data-table
         class="justify-center"
         :headers="headers"
@@ -33,6 +34,7 @@
           ></slot>
         </template>
       </n-data-table>
+      <slot name="content-footer"></slot>
     </template>
   </header-content-parts>
 </template>

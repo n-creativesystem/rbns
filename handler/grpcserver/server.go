@@ -4,57 +4,54 @@ import (
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_validator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
-	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/n-creativesystem/rbns/handler/grpcserver/middleware"
-	"github.com/n-creativesystem/rbns/logger"
+	"github.com/n-creativesystem/rbns/ncsfw/logger"
+	"github.com/n-creativesystem/rbns/ncsfw/tracer"
 	"github.com/n-creativesystem/rbns/protobuf"
-	"github.com/opentracing/opentracing-go"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
 
 func New(
 	pSrv protobuf.PermissionServer,
-	rSrv protobuf.RoleServer,
 	oSrv protobuf.OrganizationServer,
 	uSrv protobuf.UserServer,
-	// reSrv protobuf.ResourceServer,
 	tenantMiddleware middleware.Tenant,
-	// apiKey middleware.ApiKey,
+	apiKeyMiddleware middleware.ApiKey,
 ) *grpc.Server {
 
 	log := logger.New("grpc server")
+	otelgrpcOpts := []otelgrpc.Option{otelgrpc.WithTracerProvider(tracer.GetTracerProvider()), otelgrpc.WithPropagators(tracer.GetPropagation())}
 	server := grpc.NewServer(
 		grpc.UnaryInterceptor(
 			grpc_middleware.ChainUnaryServer(
 				logger.UnaryServerInterceptor(log),
 				grpc_recovery.UnaryServerInterceptor(
-					grpc_recovery.WithRecoveryHandler(middleware.RecoveryFunc()),
+					grpc_recovery.WithRecoveryHandlerContext(middleware.RecoveryFunc()),
 				),
-				otgrpc.OpenTracingServerInterceptor(opentracing.GlobalTracer()),
+				otelgrpc.UnaryServerInterceptor(otelgrpcOpts...),
 				grpc_validator.UnaryServerInterceptor(),
-				// apiKey.UnaryServerInterceptor(),
 				tenantMiddleware.UnaryServerInterceptor(),
+				apiKeyMiddleware.UnaryServerInterceptor(),
 			),
 		),
 		grpc.StreamInterceptor(
 			grpc_middleware.ChainStreamServer(
 				logger.StreamServerInterceptor(log),
 				grpc_recovery.StreamServerInterceptor(
-					grpc_recovery.WithRecoveryHandler(middleware.RecoveryFunc()),
+					grpc_recovery.WithRecoveryHandlerContext(middleware.RecoveryFunc()),
 				),
-				otgrpc.OpenTracingStreamServerInterceptor(opentracing.GlobalTracer()),
+				otelgrpc.StreamServerInterceptor(otelgrpcOpts...),
 				grpc_validator.StreamServerInterceptor(),
-				// apiKey.StreamServerInterceptor(),
 				tenantMiddleware.StreamServerInterceptor(),
+				apiKeyMiddleware.StreamServerInterceptor(),
 			),
 		),
 	)
 	protobuf.RegisterPermissionServer(server, pSrv)
-	protobuf.RegisterRoleServer(server, rSrv)
 	protobuf.RegisterOrganizationServer(server, oSrv)
 	protobuf.RegisterUserServer(server, uSrv)
-	// protobuf.RegisterResourceServer(server, reSrv)
 	healthRegister(server)
 	reflection.Register(server)
 	return server

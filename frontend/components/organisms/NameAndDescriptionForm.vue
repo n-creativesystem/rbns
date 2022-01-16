@@ -11,7 +11,7 @@
       <div :class="submitClass">
         <slot name="before-submit"></slot>
         <btn-tfn type="submit">
-          <v-icon>mdi-add</v-icon>
+          <v-icon>mdi-send</v-icon>
           {{ innerBtnText }}
         </btn-tfn>
         <slot name="after-submit"></slot>

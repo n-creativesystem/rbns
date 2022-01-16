@@ -19,8 +19,6 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PermissionClient interface {
-	// Check is resource check
-	Check(ctx context.Context, in *PermissionCheckRequest, opts ...grpc.CallOption) (*PermissionCheckResult, error)
 	// FindById is find by id
 	FindById(ctx context.Context, in *PermissionKey, opts ...grpc.CallOption) (*PermissionEntity, error)
 	// Update is permission entity update
@@ -39,15 +37,6 @@ type permissionClient struct {
 
 func NewPermissionClient(cc grpc.ClientConnInterface) PermissionClient {
 	return &permissionClient{cc}
-}
-
-func (c *permissionClient) Check(ctx context.Context, in *PermissionCheckRequest, opts ...grpc.CallOption) (*PermissionCheckResult, error) {
-	out := new(PermissionCheckResult)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Permission/Check", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *permissionClient) FindById(ctx context.Context, in *PermissionKey, opts ...grpc.CallOption) (*PermissionEntity, error) {
@@ -96,11 +85,9 @@ func (c *permissionClient) FindAll(ctx context.Context, in *emptypb.Empty, opts 
 }
 
 // PermissionServer is the server API for Permission service.
-// All implementations must embed UnimplementedPermissionServer
+// All implementations should embed UnimplementedPermissionServer
 // for forward compatibility
 type PermissionServer interface {
-	// Check is resource check
-	Check(context.Context, *PermissionCheckRequest) (*PermissionCheckResult, error)
 	// FindById is find by id
 	FindById(context.Context, *PermissionKey) (*PermissionEntity, error)
 	// Update is permission entity update
@@ -111,16 +98,12 @@ type PermissionServer interface {
 	Create(context.Context, *PermissionEntities) (*PermissionEntities, error)
 	// FindAll is find by application id return permissions
 	FindAll(context.Context, *emptypb.Empty) (*PermissionEntities, error)
-	mustEmbedUnimplementedPermissionServer()
 }
 
-// UnimplementedPermissionServer must be embedded to have forward compatible implementations.
+// UnimplementedPermissionServer should be embedded to have forward compatible implementations.
 type UnimplementedPermissionServer struct {
 }
 
-func (UnimplementedPermissionServer) Check(context.Context, *PermissionCheckRequest) (*PermissionCheckResult, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Check not implemented")
-}
 func (UnimplementedPermissionServer) FindById(context.Context, *PermissionKey) (*PermissionEntity, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FindById not implemented")
 }
@@ -136,7 +119,6 @@ func (UnimplementedPermissionServer) Create(context.Context, *PermissionEntities
 func (UnimplementedPermissionServer) FindAll(context.Context, *emptypb.Empty) (*PermissionEntities, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FindAll not implemented")
 }
-func (UnimplementedPermissionServer) mustEmbedUnimplementedPermissionServer() {}
 
 // UnsafePermissionServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to PermissionServer will
@@ -147,24 +129,6 @@ type UnsafePermissionServer interface {
 
 func RegisterPermissionServer(s grpc.ServiceRegistrar, srv PermissionServer) {
 	s.RegisterService(&Permission_ServiceDesc, srv)
-}
-
-func _Permission_Check_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PermissionCheckRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PermissionServer).Check(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ncs.rbns.Permission/Check",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PermissionServer).Check(ctx, req.(*PermissionCheckRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _Permission_FindById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -265,10 +229,6 @@ var Permission_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*PermissionServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Check",
-			Handler:    _Permission_Check_Handler,
-		},
-		{
 			MethodName: "FindById",
 			Handler:    _Permission_FindById_Handler,
 		},
@@ -305,6 +265,24 @@ type OrganizationClient interface {
 	Delete(ctx context.Context, in *OrganizationKey, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	AddUser(ctx context.Context, in *AddOrganizationUser, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	DeleteUser(ctx context.Context, in *DeleteOrganizationUser, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// DeleteRolePermission is delete permission to the role
+	DeleteRolePermission(ctx context.Context, in *RoleReleationPermission, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// GetRolePermissions is get permission to the role
+	GetRolePermissions(ctx context.Context, in *RoleKey, opts ...grpc.CallOption) (*PermissionEntities, error)
+	// AddPermissions is add permission to the role
+	AddRolePermissions(ctx context.Context, in *RoleReleationPermissions, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// DeleteRolePermissions is delete permission to the role
+	DeleteRolePermissions(ctx context.Context, in *RoleReleationPermissions, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// FindByIdRole is find by id
+	FindByIdRole(ctx context.Context, in *RoleKey, opts ...grpc.CallOption) (*RoleEntity, error)
+	// UpdateRole is role entity update
+	UpdateRole(ctx context.Context, in *RoleUpdateEntity, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// DeleteRole is role entity delete
+	DeleteRole(ctx context.Context, in *RoleKey, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// CreateRole is create role
+	CreateRole(ctx context.Context, in *RoleEntities, opts ...grpc.CallOption) (*RoleEntities, error)
+	// FindAllRole is find roles
+	FindAllRole(ctx context.Context, in *RoleFindAll, opts ...grpc.CallOption) (*RoleEntities, error)
 	// Create is create orgnization
 	Create(ctx context.Context, in *OrganizationEntity, opts ...grpc.CallOption) (*OrganizationEntity, error)
 	// FindAll is application is return organizations
@@ -357,7 +335,88 @@ func (c *organizationClient) AddUser(ctx context.Context, in *AddOrganizationUse
 
 func (c *organizationClient) DeleteUser(ctx context.Context, in *DeleteOrganizationUser, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Organization/deleteUser", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Organization/DeleteUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *organizationClient) DeleteRolePermission(ctx context.Context, in *RoleReleationPermission, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Organization/DeleteRolePermission", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *organizationClient) GetRolePermissions(ctx context.Context, in *RoleKey, opts ...grpc.CallOption) (*PermissionEntities, error) {
+	out := new(PermissionEntities)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Organization/GetRolePermissions", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *organizationClient) AddRolePermissions(ctx context.Context, in *RoleReleationPermissions, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Organization/AddRolePermissions", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *organizationClient) DeleteRolePermissions(ctx context.Context, in *RoleReleationPermissions, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Organization/DeleteRolePermissions", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *organizationClient) FindByIdRole(ctx context.Context, in *RoleKey, opts ...grpc.CallOption) (*RoleEntity, error) {
+	out := new(RoleEntity)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Organization/FindByIdRole", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *organizationClient) UpdateRole(ctx context.Context, in *RoleUpdateEntity, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Organization/UpdateRole", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *organizationClient) DeleteRole(ctx context.Context, in *RoleKey, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Organization/DeleteRole", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *organizationClient) CreateRole(ctx context.Context, in *RoleEntities, opts ...grpc.CallOption) (*RoleEntities, error) {
+	out := new(RoleEntities)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Organization/CreateRole", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *organizationClient) FindAllRole(ctx context.Context, in *RoleFindAll, opts ...grpc.CallOption) (*RoleEntities, error) {
+	out := new(RoleEntities)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.Organization/FindAllRole", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -383,7 +442,7 @@ func (c *organizationClient) FindAll(ctx context.Context, in *emptypb.Empty, opt
 }
 
 // OrganizationServer is the server API for Organization service.
-// All implementations must embed UnimplementedOrganizationServer
+// All implementations should embed UnimplementedOrganizationServer
 // for forward compatibility
 type OrganizationServer interface {
 	// FindById is application id and organization id
@@ -394,14 +453,31 @@ type OrganizationServer interface {
 	Delete(context.Context, *OrganizationKey) (*emptypb.Empty, error)
 	AddUser(context.Context, *AddOrganizationUser) (*emptypb.Empty, error)
 	DeleteUser(context.Context, *DeleteOrganizationUser) (*emptypb.Empty, error)
+	// DeleteRolePermission is delete permission to the role
+	DeleteRolePermission(context.Context, *RoleReleationPermission) (*emptypb.Empty, error)
+	// GetRolePermissions is get permission to the role
+	GetRolePermissions(context.Context, *RoleKey) (*PermissionEntities, error)
+	// AddPermissions is add permission to the role
+	AddRolePermissions(context.Context, *RoleReleationPermissions) (*emptypb.Empty, error)
+	// DeleteRolePermissions is delete permission to the role
+	DeleteRolePermissions(context.Context, *RoleReleationPermissions) (*emptypb.Empty, error)
+	// FindByIdRole is find by id
+	FindByIdRole(context.Context, *RoleKey) (*RoleEntity, error)
+	// UpdateRole is role entity update
+	UpdateRole(context.Context, *RoleUpdateEntity) (*emptypb.Empty, error)
+	// DeleteRole is role entity delete
+	DeleteRole(context.Context, *RoleKey) (*emptypb.Empty, error)
+	// CreateRole is create role
+	CreateRole(context.Context, *RoleEntities) (*RoleEntities, error)
+	// FindAllRole is find roles
+	FindAllRole(context.Context, *RoleFindAll) (*RoleEntities, error)
 	// Create is create orgnization
 	Create(context.Context, *OrganizationEntity) (*OrganizationEntity, error)
 	// FindAll is application is return organizations
 	FindAll(context.Context, *emptypb.Empty) (*OrganizationEntities, error)
-	mustEmbedUnimplementedOrganizationServer()
 }
 
-// UnimplementedOrganizationServer must be embedded to have forward compatible implementations.
+// UnimplementedOrganizationServer should be embedded to have forward compatible implementations.
 type UnimplementedOrganizationServer struct {
 }
 
@@ -420,13 +496,39 @@ func (UnimplementedOrganizationServer) AddUser(context.Context, *AddOrganization
 func (UnimplementedOrganizationServer) DeleteUser(context.Context, *DeleteOrganizationUser) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteUser not implemented")
 }
+func (UnimplementedOrganizationServer) DeleteRolePermission(context.Context, *RoleReleationPermission) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteRolePermission not implemented")
+}
+func (UnimplementedOrganizationServer) GetRolePermissions(context.Context, *RoleKey) (*PermissionEntities, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRolePermissions not implemented")
+}
+func (UnimplementedOrganizationServer) AddRolePermissions(context.Context, *RoleReleationPermissions) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddRolePermissions not implemented")
+}
+func (UnimplementedOrganizationServer) DeleteRolePermissions(context.Context, *RoleReleationPermissions) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteRolePermissions not implemented")
+}
+func (UnimplementedOrganizationServer) FindByIdRole(context.Context, *RoleKey) (*RoleEntity, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FindByIdRole not implemented")
+}
+func (UnimplementedOrganizationServer) UpdateRole(context.Context, *RoleUpdateEntity) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateRole not implemented")
+}
+func (UnimplementedOrganizationServer) DeleteRole(context.Context, *RoleKey) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteRole not implemented")
+}
+func (UnimplementedOrganizationServer) CreateRole(context.Context, *RoleEntities) (*RoleEntities, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateRole not implemented")
+}
+func (UnimplementedOrganizationServer) FindAllRole(context.Context, *RoleFindAll) (*RoleEntities, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FindAllRole not implemented")
+}
 func (UnimplementedOrganizationServer) Create(context.Context, *OrganizationEntity) (*OrganizationEntity, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
 }
 func (UnimplementedOrganizationServer) FindAll(context.Context, *emptypb.Empty) (*OrganizationEntities, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FindAll not implemented")
 }
-func (UnimplementedOrganizationServer) mustEmbedUnimplementedOrganizationServer() {}
 
 // UnsafeOrganizationServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to OrganizationServer will
@@ -521,10 +623,172 @@ func _Organization_DeleteUser_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/ncs.rbns.Organization/deleteUser",
+		FullMethod: "/ncs.rbns.Organization/DeleteUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(OrganizationServer).DeleteUser(ctx, req.(*DeleteOrganizationUser))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Organization_DeleteRolePermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RoleReleationPermission)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrganizationServer).DeleteRolePermission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ncs.rbns.Organization/DeleteRolePermission",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrganizationServer).DeleteRolePermission(ctx, req.(*RoleReleationPermission))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Organization_GetRolePermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RoleKey)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrganizationServer).GetRolePermissions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ncs.rbns.Organization/GetRolePermissions",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrganizationServer).GetRolePermissions(ctx, req.(*RoleKey))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Organization_AddRolePermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RoleReleationPermissions)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrganizationServer).AddRolePermissions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ncs.rbns.Organization/AddRolePermissions",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrganizationServer).AddRolePermissions(ctx, req.(*RoleReleationPermissions))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Organization_DeleteRolePermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RoleReleationPermissions)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrganizationServer).DeleteRolePermissions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ncs.rbns.Organization/DeleteRolePermissions",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrganizationServer).DeleteRolePermissions(ctx, req.(*RoleReleationPermissions))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Organization_FindByIdRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RoleKey)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrganizationServer).FindByIdRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ncs.rbns.Organization/FindByIdRole",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrganizationServer).FindByIdRole(ctx, req.(*RoleKey))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Organization_UpdateRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RoleUpdateEntity)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrganizationServer).UpdateRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ncs.rbns.Organization/UpdateRole",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrganizationServer).UpdateRole(ctx, req.(*RoleUpdateEntity))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Organization_DeleteRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RoleKey)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrganizationServer).DeleteRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ncs.rbns.Organization/DeleteRole",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrganizationServer).DeleteRole(ctx, req.(*RoleKey))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Organization_CreateRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RoleEntities)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrganizationServer).CreateRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ncs.rbns.Organization/CreateRole",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrganizationServer).CreateRole(ctx, req.(*RoleEntities))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Organization_FindAllRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RoleFindAll)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrganizationServer).FindAllRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ncs.rbns.Organization/FindAllRole",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrganizationServer).FindAllRole(ctx, req.(*RoleFindAll))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -589,8 +853,44 @@ var Organization_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Organization_AddUser_Handler,
 		},
 		{
-			MethodName: "deleteUser",
+			MethodName: "DeleteUser",
 			Handler:    _Organization_DeleteUser_Handler,
+		},
+		{
+			MethodName: "DeleteRolePermission",
+			Handler:    _Organization_DeleteRolePermission_Handler,
+		},
+		{
+			MethodName: "GetRolePermissions",
+			Handler:    _Organization_GetRolePermissions_Handler,
+		},
+		{
+			MethodName: "AddRolePermissions",
+			Handler:    _Organization_AddRolePermissions_Handler,
+		},
+		{
+			MethodName: "DeleteRolePermissions",
+			Handler:    _Organization_DeleteRolePermissions_Handler,
+		},
+		{
+			MethodName: "FindByIdRole",
+			Handler:    _Organization_FindByIdRole_Handler,
+		},
+		{
+			MethodName: "UpdateRole",
+			Handler:    _Organization_UpdateRole_Handler,
+		},
+		{
+			MethodName: "DeleteRole",
+			Handler:    _Organization_DeleteRole_Handler,
+		},
+		{
+			MethodName: "CreateRole",
+			Handler:    _Organization_CreateRole_Handler,
+		},
+		{
+			MethodName: "FindAllRole",
+			Handler:    _Organization_FindAllRole_Handler,
 		},
 		{
 			MethodName: "Create",
@@ -599,398 +899,6 @@ var Organization_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "FindAll",
 			Handler:    _Organization_FindAll_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "api-rbac.proto",
-}
-
-// RoleClient is the client API for Role service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type RoleClient interface {
-	// DeletePermission is delete permission to the role
-	DeletePermission(ctx context.Context, in *RoleReleationPermission, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// GetPermissions is get permission to the role
-	GetPermissions(ctx context.Context, in *RoleKey, opts ...grpc.CallOption) (*PermissionEntities, error)
-	// AddPermissions is add permission to the role
-	AddPermissions(ctx context.Context, in *RoleReleationPermissions, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// DeletePermissions is delete permission to the role
-	DeletePermissions(ctx context.Context, in *RoleReleationPermissions, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// FindById is find by id
-	FindById(ctx context.Context, in *RoleKey, opts ...grpc.CallOption) (*RoleEntity, error)
-	// Update is role entity update
-	Update(ctx context.Context, in *RoleUpdateEntity, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// Delete is role entity delete
-	Delete(ctx context.Context, in *RoleKey, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// RoleCreate is create role
-	Create(ctx context.Context, in *RoleEntities, opts ...grpc.CallOption) (*RoleEntities, error)
-	// FindAll is find roles
-	FindAll(ctx context.Context, in *RoleFindAll, opts ...grpc.CallOption) (*RoleEntities, error)
-}
-
-type roleClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewRoleClient(cc grpc.ClientConnInterface) RoleClient {
-	return &roleClient{cc}
-}
-
-func (c *roleClient) DeletePermission(ctx context.Context, in *RoleReleationPermission, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Role/DeletePermission", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *roleClient) GetPermissions(ctx context.Context, in *RoleKey, opts ...grpc.CallOption) (*PermissionEntities, error) {
-	out := new(PermissionEntities)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Role/GetPermissions", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *roleClient) AddPermissions(ctx context.Context, in *RoleReleationPermissions, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Role/AddPermissions", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *roleClient) DeletePermissions(ctx context.Context, in *RoleReleationPermissions, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Role/DeletePermissions", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *roleClient) FindById(ctx context.Context, in *RoleKey, opts ...grpc.CallOption) (*RoleEntity, error) {
-	out := new(RoleEntity)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Role/FindById", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *roleClient) Update(ctx context.Context, in *RoleUpdateEntity, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Role/Update", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *roleClient) Delete(ctx context.Context, in *RoleKey, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Role/Delete", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *roleClient) Create(ctx context.Context, in *RoleEntities, opts ...grpc.CallOption) (*RoleEntities, error) {
-	out := new(RoleEntities)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Role/Create", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *roleClient) FindAll(ctx context.Context, in *RoleFindAll, opts ...grpc.CallOption) (*RoleEntities, error) {
-	out := new(RoleEntities)
-	err := c.cc.Invoke(ctx, "/ncs.rbns.Role/FindAll", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// RoleServer is the server API for Role service.
-// All implementations must embed UnimplementedRoleServer
-// for forward compatibility
-type RoleServer interface {
-	// DeletePermission is delete permission to the role
-	DeletePermission(context.Context, *RoleReleationPermission) (*emptypb.Empty, error)
-	// GetPermissions is get permission to the role
-	GetPermissions(context.Context, *RoleKey) (*PermissionEntities, error)
-	// AddPermissions is add permission to the role
-	AddPermissions(context.Context, *RoleReleationPermissions) (*emptypb.Empty, error)
-	// DeletePermissions is delete permission to the role
-	DeletePermissions(context.Context, *RoleReleationPermissions) (*emptypb.Empty, error)
-	// FindById is find by id
-	FindById(context.Context, *RoleKey) (*RoleEntity, error)
-	// Update is role entity update
-	Update(context.Context, *RoleUpdateEntity) (*emptypb.Empty, error)
-	// Delete is role entity delete
-	Delete(context.Context, *RoleKey) (*emptypb.Empty, error)
-	// RoleCreate is create role
-	Create(context.Context, *RoleEntities) (*RoleEntities, error)
-	// FindAll is find roles
-	FindAll(context.Context, *RoleFindAll) (*RoleEntities, error)
-	mustEmbedUnimplementedRoleServer()
-}
-
-// UnimplementedRoleServer must be embedded to have forward compatible implementations.
-type UnimplementedRoleServer struct {
-}
-
-func (UnimplementedRoleServer) DeletePermission(context.Context, *RoleReleationPermission) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeletePermission not implemented")
-}
-func (UnimplementedRoleServer) GetPermissions(context.Context, *RoleKey) (*PermissionEntities, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPermissions not implemented")
-}
-func (UnimplementedRoleServer) AddPermissions(context.Context, *RoleReleationPermissions) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddPermissions not implemented")
-}
-func (UnimplementedRoleServer) DeletePermissions(context.Context, *RoleReleationPermissions) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeletePermissions not implemented")
-}
-func (UnimplementedRoleServer) FindById(context.Context, *RoleKey) (*RoleEntity, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method FindById not implemented")
-}
-func (UnimplementedRoleServer) Update(context.Context, *RoleUpdateEntity) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
-}
-func (UnimplementedRoleServer) Delete(context.Context, *RoleKey) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
-}
-func (UnimplementedRoleServer) Create(context.Context, *RoleEntities) (*RoleEntities, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
-}
-func (UnimplementedRoleServer) FindAll(context.Context, *RoleFindAll) (*RoleEntities, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method FindAll not implemented")
-}
-func (UnimplementedRoleServer) mustEmbedUnimplementedRoleServer() {}
-
-// UnsafeRoleServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to RoleServer will
-// result in compilation errors.
-type UnsafeRoleServer interface {
-	mustEmbedUnimplementedRoleServer()
-}
-
-func RegisterRoleServer(s grpc.ServiceRegistrar, srv RoleServer) {
-	s.RegisterService(&Role_ServiceDesc, srv)
-}
-
-func _Role_DeletePermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RoleReleationPermission)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RoleServer).DeletePermission(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ncs.rbns.Role/DeletePermission",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RoleServer).DeletePermission(ctx, req.(*RoleReleationPermission))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Role_GetPermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RoleKey)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RoleServer).GetPermissions(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ncs.rbns.Role/GetPermissions",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RoleServer).GetPermissions(ctx, req.(*RoleKey))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Role_AddPermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RoleReleationPermissions)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RoleServer).AddPermissions(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ncs.rbns.Role/AddPermissions",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RoleServer).AddPermissions(ctx, req.(*RoleReleationPermissions))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Role_DeletePermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RoleReleationPermissions)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RoleServer).DeletePermissions(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ncs.rbns.Role/DeletePermissions",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RoleServer).DeletePermissions(ctx, req.(*RoleReleationPermissions))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Role_FindById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RoleKey)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RoleServer).FindById(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ncs.rbns.Role/FindById",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RoleServer).FindById(ctx, req.(*RoleKey))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Role_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RoleUpdateEntity)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RoleServer).Update(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ncs.rbns.Role/Update",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RoleServer).Update(ctx, req.(*RoleUpdateEntity))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Role_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RoleKey)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RoleServer).Delete(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ncs.rbns.Role/Delete",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RoleServer).Delete(ctx, req.(*RoleKey))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Role_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RoleEntities)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RoleServer).Create(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ncs.rbns.Role/Create",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RoleServer).Create(ctx, req.(*RoleEntities))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Role_FindAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RoleFindAll)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RoleServer).FindAll(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/ncs.rbns.Role/FindAll",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RoleServer).FindAll(ctx, req.(*RoleFindAll))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-// Role_ServiceDesc is the grpc.ServiceDesc for Role service.
-// It's only intended for direct use with grpc.RegisterService,
-// and not to be introspected or modified (even as a copy)
-var Role_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "ncs.rbns.Role",
-	HandlerType: (*RoleServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "DeletePermission",
-			Handler:    _Role_DeletePermission_Handler,
-		},
-		{
-			MethodName: "GetPermissions",
-			Handler:    _Role_GetPermissions_Handler,
-		},
-		{
-			MethodName: "AddPermissions",
-			Handler:    _Role_AddPermissions_Handler,
-		},
-		{
-			MethodName: "DeletePermissions",
-			Handler:    _Role_DeletePermissions_Handler,
-		},
-		{
-			MethodName: "FindById",
-			Handler:    _Role_FindById_Handler,
-		},
-		{
-			MethodName: "Update",
-			Handler:    _Role_Update_Handler,
-		},
-		{
-			MethodName: "Delete",
-			Handler:    _Role_Delete_Handler,
-		},
-		{
-			MethodName: "Create",
-			Handler:    _Role_Create_Handler,
-		},
-		{
-			MethodName: "FindAll",
-			Handler:    _Role_FindAll_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -1013,6 +921,7 @@ type UserClient interface {
 	DeleteRoles(ctx context.Context, in *UserRole, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// Create is create user
 	Create(ctx context.Context, in *UserCreateKey, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Uploader(ctx context.Context, in *UserUploader, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type userClient struct {
@@ -1077,8 +986,17 @@ func (c *userClient) Create(ctx context.Context, in *UserCreateKey, opts ...grpc
 	return out, nil
 }
 
+func (c *userClient) Uploader(ctx context.Context, in *UserUploader, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/ncs.rbns.User/Uploader", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServer is the server API for User service.
-// All implementations must embed UnimplementedUserServer
+// All implementations should embed UnimplementedUserServer
 // for forward compatibility
 type UserServer interface {
 	// FindById is find organization id and user key
@@ -1093,10 +1011,10 @@ type UserServer interface {
 	DeleteRoles(context.Context, *UserRole) (*emptypb.Empty, error)
 	// Create is create user
 	Create(context.Context, *UserCreateKey) (*emptypb.Empty, error)
-	mustEmbedUnimplementedUserServer()
+	Uploader(context.Context, *UserUploader) (*emptypb.Empty, error)
 }
 
-// UnimplementedUserServer must be embedded to have forward compatible implementations.
+// UnimplementedUserServer should be embedded to have forward compatible implementations.
 type UnimplementedUserServer struct {
 }
 
@@ -1118,7 +1036,9 @@ func (UnimplementedUserServer) DeleteRoles(context.Context, *UserRole) (*emptypb
 func (UnimplementedUserServer) Create(context.Context, *UserCreateKey) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
 }
-func (UnimplementedUserServer) mustEmbedUnimplementedUserServer() {}
+func (UnimplementedUserServer) Uploader(context.Context, *UserUploader) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Uploader not implemented")
+}
 
 // UnsafeUserServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to UserServer will
@@ -1239,6 +1159,24 @@ func _User_Create_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	return interceptor(ctx, in, info, handler)
 }
 
+func _User_Uploader_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserUploader)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).Uploader(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ncs.rbns.User/Uploader",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).Uploader(ctx, req.(*UserUploader))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // User_ServiceDesc is the grpc.ServiceDesc for User service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1269,6 +1207,10 @@ var User_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Create",
 			Handler:    _User_Create_Handler,
+		},
+		{
+			MethodName: "Uploader",
+			Handler:    _User_Uploader_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

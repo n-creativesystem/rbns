@@ -7,18 +7,22 @@ import (
 	"github.com/n-creativesystem/rbns/domain/model"
 	"github.com/n-creativesystem/rbns/infra/rdb"
 	"github.com/n-creativesystem/rbns/infra/rdb/mock"
-	"github.com/n-creativesystem/rbns/internal/contexts"
-	"github.com/n-creativesystem/rbns/tracer"
+	"github.com/n-creativesystem/rbns/ncsfw/tenants"
+	"github.com/n-creativesystem/rbns/ncsfw/tracer"
+	"github.com/n-creativesystem/rbns/version"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
 
 func TestPermission(t *testing.T) {
 	const tenant = "test"
-	ctx := context.Background()
-	ctx = contexts.ToTenantContext(ctx, tenant)
-	trace_, _ := tracer.InitOpenTelemetry("github.com/n-creativesystem/rbns/test/service")
-	defer trace_.Cleanup(ctx)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	ctx, _ = tenants.SetTenantWithContext(ctx, tenant)
+	_, _ = tracer.InitOpenTelemetryWithService(ctx, "github.com/n-creativesystem/rbns/test/service", tracer.Service{
+		Name:    "rbns",
+		Version: version.Version,
+	})
 	ctx, span := tracer.Start(ctx, "permission service")
 	defer span.End()
 	mock.NewCase(mock.PostgreSQL, "permission_svc").Set(mock.Case{
@@ -108,7 +112,7 @@ func TestPermission(t *testing.T) {
 					assert.NoError(t, err)
 					out, err := svc.FindById(ctx, created[0].ID.String())
 					assert.Error(t, err)
-					assert.ErrorIs(t, err, model.ErrNoData)
+					assert.ErrorIs(t, err, model.ErrNoDataFound)
 					assert.Nil(t, out)
 				})
 			}

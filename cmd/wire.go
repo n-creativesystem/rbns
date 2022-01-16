@@ -9,6 +9,6 @@ import (
 )
 
 func initializeRun(flags *pflag.FlagSet) (*servers, error) {
-	wire.Build(registry.SuperSet, newServer)
+	wire.Build(registry.OSSSet, newServer)
 	return &servers{}, nil
 }

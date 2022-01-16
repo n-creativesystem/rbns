@@ -7,9 +7,8 @@
           name="name"
           :label="$t('inputs.Name')"
           id="name"
-          :counter="255"
           v-model="innerName"
-          v-bind="nameAttrs || {}"
+          v-bind="innerNameAttrs"
         ></required-text>
         <slot name="after-name"></slot>
       </div>
@@ -19,9 +18,8 @@
           name="description"
           :label="$t('inputs.Description')"
           id="description"
-          :counter="255"
           v-model="innerDescription"
-          v-bind="descriptionAttrs || {}"
+          v-bind="innerDescriptionAttrs"
         ></required-text>
         <slot name="after-description"></slot>
       </div>
@@ -35,17 +33,23 @@
     name: 'nameAndDescription',
     props: {
       name: String,
+      description: String,
       nameClass: {
         type: String,
         default: 'col-12 col-md-4',
       },
-      nameAttrs: Object,
-      description: String,
       descriptionClass: {
         type: String,
         default: 'col-12 col-md-4',
       },
-      descriptionAttrs: Object,
+      nameAttrs: {
+        type: Object,
+        default: () => ({}),
+      },
+      descriptionAttrs: {
+        type: Object,
+        default: () => ({}),
+      },
     },
     computed: {
       innerName: {
@@ -63,6 +67,22 @@
         set(val) {
           this.$emit('update:description', val)
         },
+      },
+      innerNameAttrs() {
+        return Object.assign(
+          {
+            counter: 255,
+          },
+          this.nameAttrs
+        )
+      },
+      innerDescriptionAttrs() {
+        return Object.assign(
+          {
+            counter: 255,
+          },
+          this.descriptionAttrs
+        )
       },
     },
   }

@@ -6,15 +6,15 @@ import (
 )
 
 type LoginUser struct {
-	Model
-	OAuthId       string `gorm:"not null;uniqueIndex"`
+	OAuthId       string `gorm:"not null"`
 	UserName      string `gorm:"not null"`
 	Role          string `gorm:"not null"`
 	OAuthName     string `gorm:"not null"`
 	Password      string
-	Email         string
+	Email         string `gorm:"not null;primarykey"`
 	OAuthToken    string
 	SignupAllowed bool `gorm:"not null;default:false"`
+	Tenant        string
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 
@@ -22,5 +22,5 @@ type LoginUser struct {
 }
 
 func (LoginUser) IndexName(table, column string) string {
-	return fmt.Sprintf("uq_%s_tanant", table)
+	return fmt.Sprintf("uq_%s_oauth_name", table)
 }

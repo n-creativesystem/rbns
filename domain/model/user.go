@@ -26,7 +26,7 @@ type GetUserByIDsQuery struct {
 }
 
 type AddUserCommand struct {
-	PrimaryCommand
+	ID   string
 	Name string
 
 	Result *User

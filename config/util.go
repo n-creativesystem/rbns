@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/n-creativesystem/rbns/logger"
+	"github.com/n-creativesystem/rbns/ncsfw/logger"
 	"github.com/spf13/pflag"
 )
 

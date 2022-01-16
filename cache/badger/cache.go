@@ -10,7 +10,7 @@ import (
 	b3 "github.com/dgraph-io/badger/v3"
 	"github.com/n-creativesystem/rbns/cache"
 	"github.com/n-creativesystem/rbns/infra/kvs/badger"
-	"github.com/n-creativesystem/rbns/logger"
+	"github.com/n-creativesystem/rbns/ncsfw/logger"
 )
 
 func init() {

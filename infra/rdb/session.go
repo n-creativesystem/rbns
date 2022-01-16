@@ -8,17 +8,30 @@ import (
 
 type DBSession struct {
 	*gorm.DB
-	events []interface{}
+	transaction bool
 }
 
-func startSession(ctx context.Context, db *gorm.DB, beginTx bool) *DBSession {
-	value := ctx.Value(ContextSessionKey{})
-	sess, ok := value.(*DBSession)
+func (sess *DBSession) Rollback() error {
+	if sess.transaction {
+		return sess.DB.Rollback().Error
+	}
+	return nil
+}
+
+func (sess *DBSession) Commit() error {
+	if sess.transaction {
+		return sess.DB.Commit().Error
+	}
+	return nil
+}
+
+func startSession(ctx context.Context, db *gorm.DB, beginTx bool) (context.Context, *DBSession) {
+	sess, ok := ctx.Value(ContextSessionKey{}).(*DBSession)
 	if ok {
-		sess.DB = sess.DB.Session(&gorm.Session{
-			Context: ctx,
-		})
-		return sess
+		return ctx, &DBSession{
+			DB:          sess.DB,
+			transaction: false,
+		}
 	}
 	sess = &DBSession{
 		DB: db.Session(&gorm.Session{
@@ -29,6 +42,8 @@ func startSession(ctx context.Context, db *gorm.DB, beginTx bool) *DBSession {
 		tx := sess.Begin()
 		tx.SkipDefaultTransaction = true
 		sess.DB = tx
+		sess.transaction = true
 	}
-	return sess
+	ctx = context.WithValue(ctx, ContextSessionKey{}, sess)
+	return ctx, sess
 }

@@ -12,36 +12,53 @@ import (
 	"github.com/n-creativesystem/rbns/handler/grpcserver"
 	"github.com/n-creativesystem/rbns/handler/grpcserver/middleware"
 	"github.com/n-creativesystem/rbns/handler/restserver"
-	rmiddleware "github.com/n-creativesystem/rbns/handler/restserver/middleware"
+	"github.com/n-creativesystem/rbns/handler/restserver/middleware/auth"
 	"github.com/n-creativesystem/rbns/handler/restserver/social"
 	"github.com/n-creativesystem/rbns/infra"
 	"github.com/n-creativesystem/rbns/service"
 	"github.com/n-creativesystem/rbns/storage"
 )
 
-var SuperSet = wire.NewSet(
+var ServiceSet = wire.NewSet(
+	wire.Bind(new(service.Tenant), new(*service.TenantImpl)),
+	service.NewTenantImpl,
+	wire.Bind(new(service.Permission), new(*service.PermissionImpl)),
+	service.NewPermissionService,
+	wire.Bind(new(service.Organization), new(*service.OrganizationImpl)),
+	service.NewOrganizationService,
+	wire.Bind(new(service.User), new(*service.UserImpl)),
+	service.NewUserService,
+	wire.Bind(new(service.OrganizationAggregation), new(*service.OrganizationAggregationImpl)),
+	service.NewOrganizationAggregation,
+	wire.Bind(new(service.AuthService), new(*service.AuthCache)),
+	service.NewAuthCache,
+)
+
+var BaseSet = wire.NewSet(
 	bus.GetBus,
 	config.NewFlags2Config,
 	infra.NewFactory,
-	service.NewOrganizationService,
-	service.NewPermissionService,
-	service.NewUserService,
-	service.NewOrganizationAggregation,
 	storage.Initialize,
 	storage.NewKeyPairs,
 	storage.NewSessionStore,
+	cache.New,
+)
+
+var ServerSet = wire.NewSet(
 	gateway.New,
 	grpcserver.New,
 	grpcserver.NewOrganizationService,
 	grpcserver.NewPermissionServer,
-	grpcserver.NewRoleServer,
 	grpcserver.NewUserServer,
-	rmiddleware.NewAuthMiddleware,
+	auth.NewAuthMiddleware,
 	restserver.New,
 	middleware.NewTenantMiddleware,
-	social.ProvideService,
 	wire.Bind(new(social.Service), new(*social.SocialService)),
-	cache.New,
-	service.NewAuthCache,
-	wire.Bind(new(service.AuthService), new(*service.AuthCache)),
+	social.ProvideService,
+)
+
+var OSSSet = wire.NewSet(
+	BaseSet,
+	ServiceSet,
+	ServerSet,
 )

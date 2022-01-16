@@ -8,7 +8,7 @@ import (
 	"github.com/n-creativesystem/rbns/bus"
 	"github.com/n-creativesystem/rbns/infra/rdb/driver/mysql"
 	"github.com/n-creativesystem/rbns/infra/rdb/driver/postgres"
-	"github.com/n-creativesystem/rbns/logger"
+	"github.com/n-creativesystem/rbns/ncsfw/logger"
 	"github.com/n-creativesystem/rbns/storage"
 	"github.com/uptrace/opentelemetry-go-extra/otelgorm"
 	"github.com/wader/gormstore/v2"
@@ -26,7 +26,9 @@ type SQLStore struct {
 	quit chan struct{}
 }
 
-var _ storage.Factory = (*SQLStore)(nil)
+var (
+	_ storage.Factory = (*SQLStore)(nil)
+)
 
 func (f *SQLStore) Initialize(settings *storage.Setting) error {
 	log := &gormLogger{
@@ -112,11 +114,10 @@ func (f *SQLStore) Close() error {
 
 func NewFactory(db *gorm.DB, bus bus.Bus) *SQLStore {
 	_ = db.Use(otelgorm.NewPlugin())
-	// _ = db.Use(driver.TenantPlugin())
 	factory := &SQLStore{
-		db: db.Session(&gorm.Session{}),
+		db:  db.Session(&gorm.Session{}),
+		log: logger.New("sql store"),
 	}
-	bus.SetTransaction(factory)
 	factory.bus()
 	return factory
 }

@@ -150,5 +150,10 @@ export default {
     organization: 'Organization definition',
     resource: 'Resource definition',
     logout: 'logout'
+  },
+  tenant: {
+    name: 'Tenant',
+    title: 'Tenant definition',
+    caption: 'Create a tenant to which an organization or user belongs.'
   }
 }

@@ -14,7 +14,6 @@ var (
 	CookieSecure           = true
 	CookieSameSiteDisabled = false
 	CookieSameSiteMode     = http.SameSiteStrictMode
-	ImplName               = "sql"
 )
 
 type Config struct {
@@ -26,7 +25,6 @@ type Config struct {
 	RootURL *url.URL
 	// SubPath サブパス リバプロに対応するため
 	SubPath           string
-	RoleAttributePath string
 	KeyPairs          []string `validate:"required"`
 	LogoutURL         string
 	MetadataURL       string
@@ -37,7 +35,6 @@ type Config struct {
 	MultiTenant       bool
 	SecretKey         string
 	OAuthCookieMaxAge time.Duration
-	ImplName          string
 
 	CacheDriverName string
 	CacheDataSource string
@@ -68,16 +65,6 @@ func NewFlags2Config(flagSet *pflag.FlagSet) (*Config, error) {
 	conf.RootURL = rootURL
 	conf.StaticFilePath = flags.MustString("staticFilePath")
 	conf.KeyPairs = flags.MustStringArray("keyPairs")
-	conf.ImplName = flags.MustString("impl_name")
-	ImplName = conf.ImplName
-	// conf.RoleAttributePath, _ = flags.GetString("roleAttributePath")
-	// conf.LogoutURL, _ = flags.GetString("logoutUrl")
-	// conf.MetadataURL, _ = flags.GetString("metadataUrl")
-
-	// conf.IssuerURL, _ = flags.GetString("issuerUrl")
-	// conf.ClientID, _ = flags.GetString("clientId")
-	// conf.ClientSecret, _ = flags.GetString("clientSecret")
-	// conf.SupportedSignAlgorithms, _ = flags.GetStringArray("supportedSignAlgorithms")
 	oauthCookieMaxAge := flags.MustInt("oauth_cookie_max_age")
 	conf.OAuthCookieMaxAge = time.Duration(oauthCookieMaxAge) * time.Minute
 	conf.SecretKey = flags.MustString("hash_secret_key")

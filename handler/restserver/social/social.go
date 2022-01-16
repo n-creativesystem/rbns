@@ -14,7 +14,7 @@ import (
 
 	"github.com/jmespath/go-jmespath"
 	"github.com/n-creativesystem/rbns/config"
-	"github.com/n-creativesystem/rbns/logger"
+	"github.com/n-creativesystem/rbns/ncsfw/logger"
 	"github.com/n-creativesystem/rbns/utilsconv"
 	"golang.org/x/oauth2"
 )

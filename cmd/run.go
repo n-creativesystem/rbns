@@ -8,7 +8,9 @@ import (
 	"time"
 
 	"github.com/n-creativesystem/rbns/config"
-	"github.com/n-creativesystem/rbns/logger"
+	"github.com/n-creativesystem/rbns/ncsfw/logger"
+	"github.com/n-creativesystem/rbns/ncsfw/tracer"
+	"github.com/n-creativesystem/rbns/version"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -39,14 +41,6 @@ func newRunCmd() *cobra.Command {
 	flags.Int("oauth_cookie_max_age", 60, "oauth cookie time(m)")
 	flags.String("impl_name", "sql", "bus implement name")
 
-	// saml setting
-	// flags.String("metadataUrl", "", "saml metadata endpoint")
-
-	// oidc
-	// flags.String("issuerUrl", "", "openid connect issuer url")
-	// flags.String("clientId", "", "openid connect client id")
-	// flags.String("clientSecret", "", "openid connect client secret")
-	// flags.StringArray("supportedSignAlgorithms", []string{}, "openid connect jwt sign algorithms")
 	return cmd
 }
 
@@ -66,16 +60,21 @@ func newServer(restServer *http.Server, grpcServer *grpc.Server, conf *config.Co
 
 func run(cmd *cobra.Command, args []string) {
 	ctx := cmd.Context()
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	_, _ = tracer.InitOpenTelemetryWithService(ctx, "role based N security", tracer.Service{
+		Name:    "rbns",
+		Version: version.Version,
+	})
 	flags := cmd.PersistentFlags()
 	s, err := initializeRun(flags)
 	if err != nil {
 		logger.FatalWithContext(ctx, err, "initializeRun")
 	}
 	var (
-		eg                     *errgroup.Group
 		grpcLister, httpLister net.Listener
 	)
-	eg, ctx = errgroup.WithContext(ctx)
+
 	grpcAddr := fmt.Sprintf(":%d", s.conf.GrpcPort)
 	grpcLister, err = net.Listen("tcp", grpcAddr)
 	if err != nil {
@@ -86,13 +85,17 @@ func run(cmd *cobra.Command, args []string) {
 	if err != nil {
 		logger.FatalWithContext(ctx, err, "rest listener error")
 	}
+
+	eg, ctx := errgroup.WithContext(ctx)
 	eg.Go(func() error {
 		logger.InfoWithContext(ctx, "grpc sever start")
-		return s.grpcServer.Serve(grpcLister)
+		_ = s.grpcServer.Serve(grpcLister)
+		return nil
 	})
 	eg.Go(func() error {
 		logger.InfoWithContext(ctx, "rest sever start")
-		return s.restServer.Serve(httpLister)
+		_ = s.restServer.Serve(httpLister)
+		return nil
 	})
 	eg.Go(func() error {
 		return signal(ctx)
@@ -107,6 +110,7 @@ func run(cmd *cobra.Command, args []string) {
 		}
 		logger.FatalWithContext(ctx, err, "error group wait error")
 	}
+
 	cancelCtx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 	defer cancel()
 	if err := s.restServer.Shutdown(cancelCtx); err != nil {

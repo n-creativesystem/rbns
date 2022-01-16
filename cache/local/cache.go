@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/n-creativesystem/rbns/cache"
-	"github.com/n-creativesystem/rbns/logger"
+	"github.com/n-creativesystem/rbns/ncsfw/logger"
 	goCache "github.com/patrickmn/go-cache"
 )
 

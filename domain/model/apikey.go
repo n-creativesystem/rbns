@@ -1,19 +1,19 @@
 package model
 
 type ApiKey struct {
-	Id               string
-	Name             string
-	Role             RoleType
-	Key              string
-	ServiceAccountID string
+	Id                  string
+	Name                string
+	Role                RoleLevel
+	Key                 string
+	ServiceAccountEmail string
 }
 
 type AddApiKeyCommand struct {
-	Name             string   `json:"name" binding:"required"`
-	Role             RoleType `json:"role" binding:"required"`
-	HashedKey        string   `json:"-"`
-	SecondsToLive    int64    `json:"secondsToLive"`
-	ServiceAccountID string   `json:"-"`
+	Name                string    `json:"name" binding:"required"`
+	Role                RoleLevel `json:"role" binding:"required"`
+	HashedKey           string    `json:"-"`
+	SecondsToLive       int64     `json:"secondsToLive"`
+	ServiceAccountEmail string    `json:"-"`
 
 	Result *ApiKey
 }

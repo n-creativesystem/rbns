@@ -11,12 +11,16 @@
       </title-and-caption>
     </template>
     <template v-slot:content>
-      <name-and-description-form
-        ref="form"
-        :name.sync="innerName"
-        :description.sync="innerDescription"
-        @submit="onSubmit"
-      ></name-and-description-form>
+      <slot name="content">
+        <name-and-description-form
+          ref="form"
+          :name.sync="innerName"
+          :description.sync="innerDescription"
+          :nameAttrs="nameAttrs"
+          :descriptionAttrs="descriptionAttrs"
+          @submit="onSubmit"
+        ></name-and-description-form>
+      </slot>
     </template>
   </header-content-parts>
 </template>
@@ -29,6 +33,8 @@
       caption: String,
       name: String,
       description: String,
+      nameAttrs: Object,
+      descriptionAttrs: Object,
     },
     computed: {
       innerName: {

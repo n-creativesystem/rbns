@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/n-creativesystem/rbns/cmd"
-	"github.com/n-creativesystem/rbns/logger"
+	"github.com/n-creativesystem/rbns/ncsfw/logger"
 )
 
 func main() {

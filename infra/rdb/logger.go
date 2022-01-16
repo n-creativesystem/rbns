@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/n-creativesystem/rbns/logger"
+	"github.com/n-creativesystem/rbns/ncsfw/logger"
 	"gorm.io/gorm"
 	glog "gorm.io/gorm/logger"
 	"gorm.io/gorm/utils"

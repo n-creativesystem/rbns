@@ -6,94 +6,109 @@ import (
 
 	"github.com/n-creativesystem/rbns/bus"
 	"github.com/n-creativesystem/rbns/domain/model"
-	"github.com/n-creativesystem/rbns/logger"
+	"github.com/n-creativesystem/rbns/ncsfw/logger"
 )
 
-type UserService interface {
+type User interface {
 	Create(ctx context.Context, userID string, name string) error
 	Delete(ctx context.Context, userID string) error
 	FindById(ctx context.Context, userID string) (*model.User, error)
 	FindByIds(ctx context.Context, userIDs []string) ([]model.User, error)
 }
 
-type userService struct {
-	log logger.Logger
+type UserImpl struct {
+	log       logger.Logger
+	telemetry telemetryFunc
 }
 
-var _ UserService = (*userService)(nil)
+var _ User = (*UserImpl)(nil)
 
-func NewUserService() UserService {
-	return &userService{logger.New("user service")}
+func NewUserService() *UserImpl {
+	return &UserImpl{
+		log:       logger.New("user service"),
+		telemetry: createSpanWithPrefix("user service"),
+	}
 }
 
 // User
-func (svc *userService) Create(ctx context.Context, userID string, name string) error {
-	id, err := model.NewID(userID)
-	if err != nil {
-		return err
-	}
-	cmd := model.AddUserCommand{
-		PrimaryCommand: model.PrimaryCommand{
-			ID: id,
-		},
-	}
-	if err := bus.Dispatch(ctx, &cmd); err != nil {
-		svc.log.ErrorWithContext(ctx, err, "dispatch error", "command", fmt.Sprintf("%+v", cmd))
-		return err
-	}
-	return nil
+func (svc *UserImpl) Create(ctx context.Context, userID string, name string) (e error) {
+	svc.telemetry(ctx, "create", func(ctx context.Context) {
+		cmd := model.AddUserCommand{
+			ID:   userID,
+			Name: name,
+		}
+		if err := bus.Dispatch(ctx, &cmd); err != nil {
+			svc.log.ErrorWithContext(ctx, err, "dispatch error", "command", fmt.Sprintf("%+v", cmd))
+			e = err
+			return
+		}
+	})
+	return
 }
 
-func (svc *userService) Delete(ctx context.Context, userID string) error {
-	id, err := model.NewID(userID)
-	if err != nil {
-		return err
-	}
-	cmd := model.DeleteUserCommand{
-		PrimaryCommand: model.PrimaryCommand{
-			ID: id,
-		},
-	}
-	if err := bus.Dispatch(ctx, &cmd); err != nil {
-		svc.log.ErrorWithContext(ctx, err, "dispatch error", "command", fmt.Sprintf("%+v", cmd))
-		return err
-	}
-	return nil
-}
-
-func (svc *userService) FindById(ctx context.Context, userID string) (*model.User, error) {
-	id, err := model.NewID(userID)
-	if err != nil {
-		return nil, err
-	}
-	query := model.GetUserByIDQuery{
-		PrimaryQuery: model.PrimaryQuery{
-			ID: id,
-		},
-	}
-	if err := bus.Dispatch(ctx, &query); err != nil {
-		svc.log.ErrorWithContext(ctx, err, "dispatch error", "query", fmt.Sprintf("%+v", query))
-		return nil, err
-	}
-	return query.Result, nil
-}
-
-func (svc *userService) FindByIds(ctx context.Context, userIDs []string) ([]model.User, error) {
-	query := model.GetUserByIDsQuery{
-		Query: make([]model.PrimaryQuery, 0, len(userIDs)),
-	}
-	for _, userID := range userIDs {
+func (svc *UserImpl) Delete(ctx context.Context, userID string) (e error) {
+	svc.telemetry(ctx, "delete", func(ctx context.Context) {
 		id, err := model.NewID(userID)
 		if err != nil {
-			continue
+			e = err
+			return
 		}
-		query.Query = append(query.Query, model.PrimaryQuery{
-			ID: id,
-		})
-	}
-	if err := bus.Dispatch(ctx, &query); err != nil {
-		svc.log.ErrorWithContext(ctx, err, "dispatch error", "query", fmt.Sprintf("%+v", query))
-		return nil, err
-	}
-	return query.Result, nil
+		cmd := model.DeleteUserCommand{
+			PrimaryCommand: model.PrimaryCommand{
+				ID: id,
+			},
+		}
+		if err := bus.Dispatch(ctx, &cmd); err != nil {
+			svc.log.ErrorWithContext(ctx, err, "dispatch error", "command", fmt.Sprintf("%+v", cmd))
+			e = err
+			return
+		}
+	})
+	return
+}
+
+func (svc *UserImpl) FindById(ctx context.Context, userID string) (out *model.User, e error) {
+	svc.telemetry(ctx, "find by id", func(ctx context.Context) {
+		id, err := model.NewID(userID)
+		if err != nil {
+			e = err
+			return
+		}
+		query := model.GetUserByIDQuery{
+			PrimaryQuery: model.PrimaryQuery{
+				ID: id,
+			},
+		}
+		if err := bus.Dispatch(ctx, &query); err != nil {
+			svc.log.ErrorWithContext(ctx, err, "dispatch error", "query", fmt.Sprintf("%+v", query))
+			e = err
+			return
+		}
+		out, e = query.Result, nil
+	})
+	return
+}
+
+func (svc *UserImpl) FindByIds(ctx context.Context, userIDs []string) (out []model.User, e error) {
+	svc.telemetry(ctx, "find by ids", func(ctx context.Context) {
+		query := model.GetUserByIDsQuery{
+			Query: make([]model.PrimaryQuery, 0, len(userIDs)),
+		}
+		for _, userID := range userIDs {
+			id, err := model.NewID(userID)
+			if err != nil {
+				continue
+			}
+			query.Query = append(query.Query, model.PrimaryQuery{
+				ID: id,
+			})
+		}
+		if err := bus.Dispatch(ctx, &query); err != nil {
+			svc.log.ErrorWithContext(ctx, err, "dispatch error", "query", fmt.Sprintf("%+v", query))
+			e = err
+			return
+		}
+		out, e = query.Result, nil
+	})
+	return
 }

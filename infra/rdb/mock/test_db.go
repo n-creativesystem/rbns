@@ -30,7 +30,7 @@ func SQLite3TestDB() TestDB {
 func PostgreSQLTestDB(schema string) TestDB {
 	host := os.Getenv("POSTGRES_HOST")
 	if host == "" {
-		host = "api-rbac-postgres-test"
+		host = "api-rbac-postgres-dev"
 	}
 	port := os.Getenv("POSTGRES_PORT")
 	if port == "" {
@@ -48,7 +48,7 @@ func PostgreSQLTestDB(schema string) TestDB {
 func MySQLTestDB(schema string) TestDB {
 	host := os.Getenv("MYSQL_HOST")
 	if host == "" {
-		host = "api-rbac-postgres-test"
+		host = "api-rbac-mysql-dev"
 	}
 	port := os.Getenv("MYSQL_PORT")
 	if port == "" {

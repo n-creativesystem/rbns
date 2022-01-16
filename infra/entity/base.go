@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/n-creativesystem/rbns/infra/entity/plugins"
-	"github.com/n-creativesystem/rbns/internal/contexts"
+	"github.com/n-creativesystem/rbns/ncsfw/tenants"
 	"gorm.io/gorm"
 )
 
@@ -27,7 +27,7 @@ func (m *Model) Generate() {
 
 func (m *Model) SetTenant(ctx context.Context) {
 	if m.Tenant == "" {
-		m.Tenant = contexts.FromTenantContext(ctx)
+		m.Tenant = tenants.FromTenantContext(ctx)
 	}
 }
 

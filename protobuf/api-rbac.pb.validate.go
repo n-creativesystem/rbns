@@ -1896,3 +1896,298 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = DeleteOrganizationUserValidationError{}
+
+// Validate checks the field values on ChunkType with the rules defined in the
+// proto definition for this message. If any rules are violated, an error is returned.
+func (m *ChunkType) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for Data
+
+	return nil
+}
+
+// ChunkTypeValidationError is the validation error returned by
+// ChunkType.Validate if the designated constraints aren't met.
+type ChunkTypeValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ChunkTypeValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ChunkTypeValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ChunkTypeValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ChunkTypeValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ChunkTypeValidationError) ErrorName() string { return "ChunkTypeValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ChunkTypeValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sChunkType.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ChunkTypeValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ChunkTypeValidationError{}
+
+// Validate checks the field values on FileType with the rules defined in the
+// proto definition for this message. If any rules are violated, an error is returned.
+func (m *FileType) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for Name
+
+	// no validation rules for Size
+
+	for idx, item := range m.GetOption() {
+		_, _ = idx, item
+
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return FileTypeValidationError{
+					field:  fmt.Sprintf("Option[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// FileTypeValidationError is the validation error returned by
+// FileType.Validate if the designated constraints aren't met.
+type FileTypeValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e FileTypeValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e FileTypeValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e FileTypeValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e FileTypeValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e FileTypeValidationError) ErrorName() string { return "FileTypeValidationError" }
+
+// Error satisfies the builtin error interface
+func (e FileTypeValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sFileType.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = FileTypeValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = FileTypeValidationError{}
+
+// Validate checks the field values on UserUploader with the rules defined in
+// the proto definition for this message. If any rules are violated, an error
+// is returned.
+func (m *UserUploader) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for Data
+
+	if v, ok := interface{}(m.GetFileType()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UserUploaderValidationError{
+				field:  "FileType",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	return nil
+}
+
+// UserUploaderValidationError is the validation error returned by
+// UserUploader.Validate if the designated constraints aren't met.
+type UserUploaderValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UserUploaderValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UserUploaderValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UserUploaderValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UserUploaderValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UserUploaderValidationError) ErrorName() string { return "UserUploaderValidationError" }
+
+// Error satisfies the builtin error interface
+func (e UserUploaderValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUserUploader.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UserUploaderValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UserUploaderValidationError{}
+
+// Validate checks the field values on FileType_FileOption with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *FileType_FileOption) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for Key
+
+	return nil
+}
+
+// FileType_FileOptionValidationError is the validation error returned by
+// FileType_FileOption.Validate if the designated constraints aren't met.
+type FileType_FileOptionValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e FileType_FileOptionValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e FileType_FileOptionValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e FileType_FileOptionValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e FileType_FileOptionValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e FileType_FileOptionValidationError) ErrorName() string {
+	return "FileType_FileOptionValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e FileType_FileOptionValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sFileType_FileOption.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = FileType_FileOptionValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = FileType_FileOptionValidationError{}
